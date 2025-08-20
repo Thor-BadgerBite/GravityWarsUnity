@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Planet
+  - Ship
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - Planet
+  - Water
+  - UI
+  - Ships
+  - Missiles
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: Backround
+    uniqueID: 1428661115
+    locked: 0
+  - name: Planet
+    uniqueID: 1582592783
+    locked: 0
+  - name: Ships
+    uniqueID: 1915464579
+    locked: 0
+  - name: Missiles
+    uniqueID: 573851723
+    locked: 0
+  - name: Menu
+    uniqueID: 1946499255
+    locked: 0
