@@ -1,12 +1,38 @@
 # 🚀 Missile Preset Creation Guide
 
+## ⚠️ CRITICAL: Understanding Mass System
+
+### **Display Mass vs Physics Mass**
+
+The game uses TWO mass values:
+- **Display Mass (200-1000 lbs):** What the player sees in UI
+- **Physics Mass (0.6-3.0):** What the physics engine uses
+
+**Conversion Formula:** `Physics Mass = Display Mass / 333.33`
+
+**Examples:**
+```
+Light Missile:   200 lbs → 0.6  physics mass (least gravity effect)
+Standard:        500 lbs → 1.5  physics mass (REFERENCE - old system)
+Heavy Missile:  1000 lbs → 3.0  physics mass (most gravity effect)
+```
+
+**Why this matters:**
+- Old missile system used physics mass = **1.0** (too low, user confirmed 1.5 is better)
+- **Standard missile MUST use 500 lbs (= 1.5 physics)** to match old behavior
+- Light missiles (200-400 lbs) are less curved by gravity
+- Heavy missiles (600-1000 lbs) are more curved by gravity
+
+---
+
 ## How to Create Missile Presets in Unity
 
 1. **Right-click** in the Project window (Assets folder)
 2. Select **Create → GravityWars → Missile Preset**
 3. Name the asset (e.g., "Wasp_Light", "Hellfire_Medium", "Sledgehammer_Heavy")
 4. Select the asset and configure values in the Inspector
-5. Assign the preset to ships via the **PlayerShip** component's `Equipped Missile` field
+5. Set **Display Mass** (200-1000 range) - Physics mass auto-calculates
+6. Assign the preset to ships via the **PlayerShip** component's `Equipped Missile` field
 
 ---
 
@@ -19,7 +45,7 @@
 Missile Name: Wasp-I
 Missile Type: Light
 ---
-Mass: 5
+Display Mass: 200 lbs (Physics Mass: 0.6 auto-calculated)
 Max Velocity: 14 m/s
 Drag: 0.012
 Velocity Approach Rate: 0.15
@@ -37,7 +63,7 @@ Self-Destruct Damage Factor: 0.4
 Trail Color: Cyan (R:0, G:1, B:1)
 Max Velocity Color: White
 ```
-**Strategy:** Best for quick pot-shots and harassment. Low fuel means short flight time.
+**Strategy:** Best for quick pot-shots and harassment. Low fuel means short flight time. Least affected by gravity.
 
 ---
 
@@ -46,7 +72,7 @@ Max Velocity Color: White
 Missile Name: Dart
 Missile Type: Light
 ---
-Mass: 4
+Display Mass: 250 lbs (Physics Mass: 0.75 auto-calculated)
 Max Velocity: 16 m/s
 Drag: 0.015
 Velocity Approach Rate: 0.2
@@ -102,7 +128,7 @@ Max Velocity Color: Yellow-Green
 Missile Name: Standard
 Missile Type: Medium
 ---
-Mass: 10
+Display Mass: 500 lbs (Physics Mass: 1.5 auto-calculated) ← REFERENCE VALUE
 Max Velocity: 10 m/s
 Drag: 0.01
 Velocity Approach Rate: 0.1
@@ -120,7 +146,7 @@ Self-Destruct Damage Factor: 0.5
 Trail Color: Orange (R:1, G:0.5, B:0)
 Max Velocity Color: Red
 ```
-**Strategy:** Default missile. No weaknesses, no strengths. Good all-rounder.
+**Strategy:** Default missile. No weaknesses, no strengths. Good all-rounder. Behaves EXACTLY like old system.
 
 ---
 
@@ -185,7 +211,7 @@ Max Velocity Color: Gold
 Missile Name: Sledgehammer
 Missile Type: Heavy
 ---
-Mass: 20
+Display Mass: 800 lbs (Physics Mass: 2.4 auto-calculated)
 Max Velocity: 7 m/s
 Drag: 0.008
 Velocity Approach Rate: 0.07

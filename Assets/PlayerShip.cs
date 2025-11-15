@@ -557,7 +557,7 @@ void Update()
         float missileMass, missileDragCoef, maxVel, velApproachRate;
         if (equippedMissile != null)
         {
-            missileMass = equippedMissile.mass;
+            missileMass = equippedMissile.Mass;  // Use calculated physics mass
             missileDragCoef = equippedMissile.drag;
             maxVel = equippedMissile.maxVelocity;
             velApproachRate = equippedMissile.velocityApproachRate;
@@ -572,8 +572,8 @@ void Update()
         }
         else
         {
-            // Fallback defaults
-            missileMass = 10f;
+            // Fallback defaults (Standard missile values)
+            missileMass = 1.5f;  // Standard missile physics mass
             missileDragCoef = 0.01f;
             maxVel = 10f;
             velApproachRate = 0.1f;
@@ -586,7 +586,9 @@ void Update()
             {
                 totalForce += planet.CalculateGravitationalPull(currentPos, missileMass);
             }
-            currentVel += totalForce * stepTime;
+            // CRITICAL: Divide by mass to match rb.AddForce(force, ForceMode.Force) behavior
+            // This makes mass cancel out, ensuring prediction matches actual flight
+            currentVel += (totalForce / missileMass) * stepTime;
             currentVel *= (1 - missileDragCoef * stepTime);
 
             // clamp velocity if > maxVelocity

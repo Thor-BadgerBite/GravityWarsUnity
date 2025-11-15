@@ -21,9 +21,28 @@ public class MissilePresetSO : ScriptableObject
     public Sprite icon;
 
     [Header("Physics Properties")]
-    [Tooltip("Missile mass in kg - affects momentum and how gravity pulls it")]
-    [Range(1f, 50f)]
-    public float mass = 10f;
+    [Tooltip("Display mass shown to player (200-1000 lbs). Physics mass is auto-calculated.")]
+    [Range(200f, 1000f)]
+    public float displayMass = 500f;
+
+    [Tooltip("READONLY: Actual physics mass used in calculations (0.6-3.0). Auto-calculated from displayMass.")]
+    public float Mass => displayMass / 333.33f;  // Converts 200-1000 lbs to 0.6-3.0 range
+
+    [Header("--- Advanced: Override Physics Mass (Optional) ---")]
+    [Tooltip("If true, uses customPhysicsMass instead of auto-calculated value")]
+    public bool overridePhysicsMass = false;
+
+    [Tooltip("Custom physics mass (only used if overridePhysicsMass is true)")]
+    [Range(0.6f, 3.0f)]
+    public float customPhysicsMass = 1.5f;
+
+    /// <summary>
+    /// Gets the physics mass to use in calculations
+    /// </summary>
+    private float GetPhysicsMass()
+    {
+        return overridePhysicsMass ? customPhysicsMass : Mass;
+    }
 
     [Tooltip("Maximum flight speed in m/s")]
     [Range(5f, 20f)]
@@ -103,7 +122,7 @@ public class MissilePresetSO : ScriptableObject
     public void ApplyToMissile(Missile3D missile)
     {
         // Physics
-        missile.missileMass = mass;
+        missile.missileMass = GetPhysicsMass();  // Use calculated or custom physics mass
         missile.maxVelocity = maxVelocity;
         missile.drag = drag;
         missile.velocityApproachRate = velocityApproachRate;
@@ -187,7 +206,7 @@ public class MissilePresetSO : ScriptableObject
                $"Damage: {payload}\n" +
                $"Push: {pushStrength}\n" +
                $"Fuel: {fuel} lbs ({GetMaxFlightTime():F1}s)\n" +
-               $"Mass: {mass} kg";
+               $"Mass: {displayMass:F0} lbs (Physics: {GetPhysicsMass():F2})";
     }
 }
 
