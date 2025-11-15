@@ -49,6 +49,13 @@ public class PlayerShip : MonoBehaviour
     public float cooldownTime = 1f;
     public int predictionSteps = 100;
 
+    [Header("Missile Type Selection")]
+    [Tooltip("The missile type this ship is equipped with (unlimited ammo)")]
+    public MissilePresetSO equippedMissile;
+
+    [Tooltip("If true, ignores ship archetype restrictions for testing")]
+    public bool ignoreRestrictions = false;
+
     [Header("Move (Slingshot) Settings")]
     public float minMoveSpeed = 2f;    // minimal slingshot speed if velocity slider is at 0%
     public float maxMoveSpeed = 10f;   // top speed if velocity slider is at 100%
@@ -545,9 +552,32 @@ void Update()
         trajectoryLine.SetPosition(0, currentPos);
 
         float stepTime = Time.fixedDeltaTime;
-        float missileMass = (missilePrefab != null)
-                            ? missilePrefab.GetComponent<Missile3D>().missileMass
-                            : 1f;
+
+        // Use equipped missile preset stats for prediction, or fallback to prefab
+        float missileMass, missileDragCoef, maxVel, velApproachRate;
+        if (equippedMissile != null)
+        {
+            missileMass = equippedMissile.mass;
+            missileDragCoef = equippedMissile.drag;
+            maxVel = equippedMissile.maxVelocity;
+            velApproachRate = equippedMissile.velocityApproachRate;
+        }
+        else if (missilePrefab != null)
+        {
+            Missile3D m3d = missilePrefab.GetComponent<Missile3D>();
+            missileMass = m3d.missileMass;
+            missileDragCoef = m3d.drag;
+            maxVel = m3d.maxVelocity;
+            velApproachRate = m3d.velocityApproachRate;
+        }
+        else
+        {
+            // Fallback defaults
+            missileMass = 10f;
+            missileDragCoef = 0.01f;
+            maxVel = 10f;
+            velApproachRate = 0.1f;
+        }
 
         for (int i = 1; i <= usedSteps; i++)
         {
@@ -557,14 +587,13 @@ void Update()
                 totalForce += planet.CalculateGravitationalPull(currentPos, missileMass);
             }
             currentVel += totalForce * stepTime;
-            currentVel *= (1 - missileDrag * stepTime);
+            currentVel *= (1 - missileDragCoef * stepTime);
 
-            // clamp velocity if > maxVelocity, etc.
-            Missile3D m3d = missilePrefab.GetComponent<Missile3D>();
-            if (m3d && currentVel.magnitude > m3d.maxVelocity)
+            // clamp velocity if > maxVelocity
+            if (currentVel.magnitude > maxVel)
             {
                 Vector3 dir = currentVel.normalized;
-                currentVel = Vector3.Lerp(currentVel, dir * m3d.maxVelocity, m3d.velocityApproachRate);
+                currentVel = Vector3.Lerp(currentVel, dir * maxVel, velApproachRate);
             }
 
             currentPos += currentVel * stepTime;
@@ -588,6 +617,10 @@ void Update()
     {
         var obj = Instantiate(missilePrefab, spawnPos, Quaternion.Euler(0,0,baseAngle));
         var m   = obj.GetComponent<Missile3D>();
+
+        // Apply equipped missile preset stats
+        ApplyMissilePreset(m);
+
         // mark it as cluster-capable
         m.isCluster              = true;
         m.clusterDamageFactor    = nextClusterDamageFactor;
@@ -603,6 +636,9 @@ void Update()
     {
         var obj = Instantiate(missilePrefab, spawnPos, Quaternion.Euler(0,0,baseAngle));
         var m   = obj.GetComponent<Missile3D>();
+
+        // Apply equipped missile preset stats
+        ApplyMissilePreset(m);
 
         // scale damage
         m.payload *= nextPushDamageFactor;
@@ -638,6 +674,9 @@ void Update()
                                  Quaternion.Euler(0, 0, thisAngle));
             var m  = go.GetComponent<Missile3D>();
 
+            // Apply equipped missile preset stats
+            ApplyMissilePreset(m);
+
             // scale payload:
             m.payload *= nextMultiDamageFactor;
 
@@ -670,6 +709,9 @@ void Update()
                                      Quaternion.Euler(0, 0, baseAngle));
         var missile = missileObj.GetComponent<Missile3D>();
 
+        // Apply equipped missile preset stats
+        ApplyMissilePreset(missile);
+
         if (nextExplosiveEnabled)
         {
             missile.detRadius         = nextExplRadius;
@@ -688,6 +730,74 @@ void Update()
 
     trajectoryLine.positionCount = 0;
 }
+
+    /// <summary>
+    /// Applies the equipped missile preset stats to a spawned missile instance
+    /// </summary>
+    private void ApplyMissilePreset(Missile3D missile)
+    {
+        if (equippedMissile != null)
+        {
+            equippedMissile.ApplyToMissile(missile);
+        }
+        else
+        {
+            Debug.LogWarning($"{playerName}: No missile preset equipped! Using default missile stats.");
+        }
+    }
+
+    /// <summary>
+    /// Checks if this ship archetype can use the given missile type
+    /// </summary>
+    public bool CanUseMissile(MissilePresetSO missile)
+    {
+        if (ignoreRestrictions) return true;
+        if (missile == null) return false;
+
+        switch (shipArchetype)
+        {
+            case ShipArchetype.Tank:
+                // Tanks can only use Medium and Heavy missiles
+                return missile.missileType == MissileType.Medium ||
+                       missile.missileType == MissileType.Heavy;
+
+            case ShipArchetype.DamageDealer:
+                // Damage dealers can use all types
+                return true;
+
+            case ShipArchetype.AllAround:
+                // All-around ships can use all types
+                return true;
+
+            case ShipArchetype.Controller:
+                // Controllers can only use Light and Medium missiles
+                return missile.missileType == MissileType.Light ||
+                       missile.missileType == MissileType.Medium;
+
+            default:
+                return true;
+        }
+    }
+
+    /// <summary>
+    /// Gets a description of what missile types this ship can use
+    /// </summary>
+    public string GetAllowedMissileTypes()
+    {
+        switch (shipArchetype)
+        {
+            case ShipArchetype.Tank:
+                return "Medium, Heavy";
+            case ShipArchetype.DamageDealer:
+                return "Light, Medium, Heavy";
+            case ShipArchetype.AllAround:
+                return "Light, Medium, Heavy";
+            case ShipArchetype.Controller:
+                return "Light, Medium";
+            default:
+                return "All";
+        }
+    }
 
     // ----------------------
     // Move Mode (Slingshot)
