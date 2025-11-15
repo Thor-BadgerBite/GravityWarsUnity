@@ -558,7 +558,8 @@ void Update()
 
     void PredictMissileTrajectory(Vector3 initialPos, Vector3 initialVel)
     {
-        Planet[] planets = FindObjectsOfType<Planet>();
+        // Use cached planets for performance (avoids expensive FindObjectsOfType every frame!)
+        Planet[] planets = GameManager.GetCachedPlanets();
         Vector3 currentPos = initialPos;
         Vector3 currentVel = initialVel * 0.5f;
 
@@ -1347,7 +1348,9 @@ void OnCollisionEnter(Collision collision)
 
     bool ShipOverlapsWithPlanet(Vector3 testPos)
     {
-        foreach (Planet planet in FindObjectsOfType<Planet>())
+        // Use cached planets for performance
+        Planet[] planets = GameManager.GetCachedPlanets();
+        foreach (Planet planet in planets)
         {
             SphereCollider planetCollider = planet.GetComponent<SphereCollider>();
             if (planetCollider == null)
