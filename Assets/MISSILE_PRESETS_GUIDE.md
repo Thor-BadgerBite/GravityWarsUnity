@@ -25,6 +25,45 @@ Heavy Missile:  1000 lbs → 3.0  physics mass (most gravity effect)
 
 ---
 
+## 🎯 CRITICAL: Understanding Launch vs Flight Velocity
+
+The game uses TWO velocity systems to create interesting physics gameplay:
+
+### **Launch Velocity (Initial "Slingshot" Speed)**
+How hard you can "throw" the missile when firing - like using a slingshot!
+
+- **Min/Max Launch Velocity:** Defines the slider range in the firing UI
+- **Heavy missiles:** LOW launch velocity (1-8 m/s) - hard to throw a big rock!
+- **Light missiles:** HIGH launch velocity (1-25 m/s) - easy to throw light objects fast!
+
+### **Max Velocity (Flight Speed Cap)**
+Terminal velocity during flight AFTER gravity acceleration
+
+- **Heavy missiles:** HIGH max velocity (50-150 m/s) - can gain devastating speed in gravity wells!
+- **Light missiles:** MEDIUM max velocity (15-40 m/s) - already going fast, less room to accelerate
+
+### **Gameplay Result:**
+```
+Heavy Missile Scenario:
+1. Launch at 5 m/s (slow initial throw - hard to toss a boulder)
+2. Slingshot around planets, gravity pulls it faster and faster
+3. Accelerates to 80+ m/s through gravity wells!
+4. MASSIVE impact damage (damage considers impact velocity)
+
+Light Missile Scenario:
+1. Launch at 20 m/s (fast throw - easy to toss a pebble)
+2. Already near max speed, gravity has less effect
+3. Reaches ~30 m/s max
+4. Lower impact damage but more predictable trajectory
+```
+
+**Why this creates interesting gameplay:**
+- Heavy missiles reward skilled gravity slingshots with devastating damage
+- Light missiles reward quick, direct shots that don't rely on gravity
+- Medium missiles are balanced between both strategies
+
+---
+
 ## How to Create Missile Presets in Unity
 
 1. **Right-click** in the Project window (Assets folder)
@@ -46,7 +85,10 @@ Missile Name: Wasp-I
 Missile Type: Light
 ---
 Display Mass: 200 lbs (Physics Mass: 0.6 auto-calculated)
-Max Velocity: 14 m/s
+---
+Min Launch Velocity: 0.1 m/s
+Max Launch Velocity: 20 m/s  ← HIGH (easy to throw light missiles fast!)
+Max Flight Velocity: 30 m/s  ← Moderate acceleration potential
 Drag: 0.012
 Velocity Approach Rate: 0.15
 ---
@@ -63,7 +105,7 @@ Self-Destruct Damage Factor: 0.4
 Trail Color: Cyan (R:0, G:1, B:1)
 Max Velocity Color: White
 ```
-**Strategy:** Best for quick pot-shots and harassment. Low fuel means short flight time. Least affected by gravity.
+**Strategy:** Best for quick pot-shots and harassment. High launch velocity makes it easy to fire fast. Moderate max velocity means it won't gain much speed from gravity. Good for direct shots!
 
 ---
 
@@ -129,7 +171,10 @@ Missile Name: Standard
 Missile Type: Medium
 ---
 Display Mass: 500 lbs (Physics Mass: 1.5 auto-calculated) ← REFERENCE VALUE
-Max Velocity: 10 m/s
+---
+Min Launch Velocity: 0.1 m/s
+Max Launch Velocity: 10 m/s  ← BALANCED (matches old system)
+Max Flight Velocity: 50 m/s  ← Good acceleration potential through gravity
 Drag: 0.01
 Velocity Approach Rate: 0.1
 ---
@@ -146,7 +191,7 @@ Self-Destruct Damage Factor: 0.5
 Trail Color: Orange (R:1, G:0.5, B:0)
 Max Velocity Color: Red
 ```
-**Strategy:** Default missile. No weaknesses, no strengths. Good all-rounder. Behaves EXACTLY like old system.
+**Strategy:** Default missile. Balanced launch/flight velocities. Can use gravity slingshots effectively. Good all-rounder. Launch behavior matches old system EXACTLY!
 
 ---
 
@@ -212,7 +257,10 @@ Missile Name: Sledgehammer
 Missile Type: Heavy
 ---
 Display Mass: 800 lbs (Physics Mass: 2.4 auto-calculated)
-Max Velocity: 7 m/s
+---
+Min Launch Velocity: 0.1 m/s
+Max Launch Velocity: 6 m/s   ← VERY LOW (hard to throw a boulder!)
+Max Flight Velocity: 120 m/s ← VERY HIGH! Can reach devastating speeds via gravity!
 Drag: 0.008
 Velocity Approach Rate: 0.07
 ---
@@ -229,7 +277,7 @@ Self-Destruct Damage Factor: 0.7
 Trail Color: Purple (R:0.8, G:0, B:1)
 Max Velocity Color: Magenta
 ```
-**Strategy:** Massive knockback force. Can push ships into planets. Devastating repositioning tool.
+**Strategy:** GRAVITY SLINGSHOT KING! Launches slowly (hard to throw) but gains MASSIVE speed through gravity wells. When it hits at 100+ m/s, the impact damage is DEVASTATING. Skilled players can create orbital death bullets!
 
 ---
 
@@ -363,6 +411,11 @@ After creating all 9 presets:
 // For testing all missiles on one ship:
 // - Set "Ignore Restrictions" to TRUE
 // - Swap "Equipped Missile" during playtesting
+
+// IMPORTANT: When you equip a missile, the launch velocity slider
+// will automatically use that missile's min/max launch velocity range!
+// Heavy missiles = shorter slider range (harder to throw)
+// Light missiles = longer slider range (easier to throw fast)
 ```
 
 ---
