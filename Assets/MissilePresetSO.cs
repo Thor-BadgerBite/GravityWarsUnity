@@ -44,7 +44,17 @@ public class MissilePresetSO : ScriptableObject
         return overridePhysicsMass ? customPhysicsMass : Mass;
     }
 
-    [Tooltip("Maximum flight speed in m/s (20 = standard, 100+ = very fast)")]
+    [Header("Launch Velocity (Initial Firing Speed)")]
+    [Tooltip("Minimum launch velocity - how slow you can fire this missile (m/s)")]
+    [Range(0.1f, 5f)]
+    public float minLaunchVelocity = 0.1f;
+
+    [Tooltip("Maximum launch velocity - how hard you can 'throw' this missile (m/s). Heavy missiles = harder to throw fast, Light missiles = easy to throw fast")]
+    [Range(1f, 30f)]
+    public float maxLaunchVelocity = 10f;
+
+    [Header("Max Flight Velocity (Speed Cap During Flight)")]
+    [Tooltip("Maximum flight speed in m/s - terminal velocity during flight after gravity acceleration. Heavy missiles can have HIGH values to gain devastating speed through gravity wells!")]
     [Range(5f, 500f)]
     public float maxVelocity = 10f;
 

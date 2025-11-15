@@ -217,7 +217,17 @@ public class PlayerShip : MonoBehaviour
                          RigidbodyConstraints.FreezeRotationZ;
 
         initialPosition = transform.position;
-        launchVelocity = (minLaunchVelocity + maxLaunchVelocity) / 2f;
+
+        // Initialize launch velocity to mid-range (use equipped missile's range if available)
+        if (equippedMissile != null)
+        {
+            launchVelocity = (equippedMissile.minLaunchVelocity + equippedMissile.maxLaunchVelocity) / 2f;
+        }
+        else
+        {
+            launchVelocity = (minLaunchVelocity + maxLaunchVelocity) / 2f;
+        }
+
         controlsEnabled = false;
 
         SetupTrajectoryLine();
@@ -462,12 +472,21 @@ void Update()
     currentZRotation = Mathf.Repeat(currentZRotation + rotationAmount, 360f);
     ApplyTiltAndRotation(rotationInput);
 
-    // Adjust launch velocity
+    // Adjust launch velocity - use missile-specific ranges if equipped
+    float effectiveMinLaunch = minLaunchVelocity;
+    float effectiveMaxLaunch = maxLaunchVelocity;
+
+    if (equippedMissile != null)
+    {
+        effectiveMinLaunch = equippedMissile.minLaunchVelocity;
+        effectiveMaxLaunch = equippedMissile.maxLaunchVelocity;
+    }
+
     float velInput = 0f;
     if (Input.GetKey(KeyCode.UpArrow))   velInput = 1f;
     if (Input.GetKey(KeyCode.DownArrow)) velInput = -1f;
-    float vChange = velInput * (maxLaunchVelocity - minLaunchVelocity) * 0.5f * Time.deltaTime;
-    launchVelocity = Mathf.Clamp(launchVelocity + vChange, minLaunchVelocity, maxLaunchVelocity);
+    float vChange = velInput * (effectiveMaxLaunch - effectiveMinLaunch) * 0.5f * Time.deltaTime;
+    launchVelocity = Mathf.Clamp(launchVelocity + vChange, effectiveMinLaunch, effectiveMaxLaunch);
 
     // If Fire mode => show missile line
     if (currentMode == PlayerActionMode.Fire)
@@ -854,10 +873,19 @@ void Update()
         float angle = GetFiringAngle() * Mathf.Deg2Rad;
         Vector3 dir = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0);
 
+        // Get effective launch velocity ranges (missile-specific if equipped)
+        float effectiveMinLaunch = minLaunchVelocity;
+        float effectiveMaxLaunch = maxLaunchVelocity;
+        if (equippedMissile != null)
+        {
+            effectiveMinLaunch = equippedMissile.minLaunchVelocity;
+            effectiveMaxLaunch = equippedMissile.maxLaunchVelocity;
+        }
+
         // 1) Find how far along the "velocity" slider we are (0..1)
-        float velocityPercent = 
-            (launchVelocity - minLaunchVelocity) 
-            / (maxLaunchVelocity - minLaunchVelocity);
+        float velocityPercent =
+            (launchVelocity - effectiveMinLaunch)
+            / (effectiveMaxLaunch - effectiveMinLaunch);
         // clamp just in case
         velocityPercent = Mathf.Clamp01(velocityPercent);
         // if we’re in Move Mode, update the engine loop pitch
@@ -1200,9 +1228,18 @@ void OnCollisionEnter(Collision collision)
         float simTime = 0f;
         float simulatedDuration = moveDuration;
 
+        // Get effective launch velocity ranges (missile-specific if equipped)
+        float effectiveMinLaunch = minLaunchVelocity;
+        float effectiveMaxLaunch = maxLaunchVelocity;
+        if (equippedMissile != null)
+        {
+            effectiveMinLaunch = equippedMissile.minLaunchVelocity;
+            effectiveMaxLaunch = equippedMissile.maxLaunchVelocity;
+        }
+
         // Calculate final speed ignoring ±10% random factor for simpler preview
         float velocityPercent = Mathf.Clamp01(
-            (launchVelocity - minLaunchVelocity) / (maxLaunchVelocity - minLaunchVelocity)
+            (launchVelocity - effectiveMinLaunch) / (effectiveMaxLaunch - effectiveMinLaunch)
         );
         float baseSlingshotSpeed = Mathf.Lerp(minMoveSpeed, maxMoveSpeed, velocityPercent);
         float finalSpeed = baseSlingshotSpeed;
