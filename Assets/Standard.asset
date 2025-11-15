@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aefa48c7f123d72479092016a9718a8d, type: 3}
+  m_Name: Standard
+  m_EditorClassIdentifier: 
+  missileName: Standard Missile
+  missileType: 1
+  visualModelPrefab: {fileID: 5064258758001045331, guid: 67a1919f779d055438ad43c5902fc393, type: 3}
+  icon: {fileID: 0}
+  displayMass: 500
+  overridePhysicsMass: 0
+  customPhysicsMass: 1.5
+  minLaunchVelocity: 0.1
+  maxLaunchVelocity: 10
+  maxVelocity: 50
+  drag: 0.01
+  velocityApproachRate: 0.1
+  fuel: 100
+  fuelConsumptionRate: 2
+  payload: 2500
+  pushStrength: 2
+  damageVariation: 0.1
+  selfDestructRadius: 4
+  selfDestructDamageFactor: 0.5
+  selfDestructPushStrength: 2
+  trailColor: {r: 1, g: 0.5, b: 0, a: 1}
+  maxVelocityColor: {r: 1, g: 0, b: 0, a: 1}
+  launchSound: {fileID: 0}
+  flyingSound: {fileID: 0}
+  explosionSound: {fileID: 0}
+  maxTiltAngle: 45
+  bankingSensitivity: 0.5

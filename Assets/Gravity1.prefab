@@ -93,6 +93,8 @@ MonoBehaviour:
   missileSpawnDistance: 2
   cooldownTime: 1
   predictionSteps: 100
+  equippedMissile: {fileID: 11400000, guid: 9fb4504da9015d84a8ca49989f7f3b9b, type: 2}
+  ignoreRestrictions: 0
   minMoveSpeed: 2
   maxMoveSpeed: 10
   moveDeceleration: 4
