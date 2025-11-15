@@ -44,8 +44,8 @@ public class MissilePresetSO : ScriptableObject
         return overridePhysicsMass ? customPhysicsMass : Mass;
     }
 
-    [Tooltip("Maximum flight speed in m/s")]
-    [Range(5f, 20f)]
+    [Tooltip("Maximum flight speed in m/s (20 = standard, 100+ = very fast)")]
+    [Range(5f, 500f)]
     public float maxVelocity = 10f;
 
     [Tooltip("Drag coefficient - higher = slows down faster")]

@@ -607,10 +607,10 @@ void Update()
     void FireMissile()
 {
     lastFireTime = Time.time;
-    GameManager.Instance.PlayerActionUsed();
+    // NOTE: PlayerActionUsed() moved to END of function to ensure missile is spawned first
 
     // 1) Capture the angle you want to fire at:
-    float baseAngle    = GetFiringAngle();  
+    float baseAngle    = GetFiringAngle();
     float baseRadians  = baseAngle * Mathf.Deg2Rad;
     Vector3 baseDir    = new Vector3(Mathf.Cos(baseRadians), Mathf.Sin(baseRadians), 0f);
     Vector3 spawnPos   = transform.position + baseDir * missileSpawnDistance;
@@ -631,6 +631,7 @@ void Update()
         nextClusterEnabled       = false;
         m.Launch(baseDir, launchVelocity, this.gameObject, this.damageMultiplier);
         trajectoryLine.positionCount = 0;
+        GameManager.Instance.PlayerActionUsed();  // Moved here - after missile spawn
         return;
     }
     // --- PUSHER MISSILE BRANCH ---
@@ -654,6 +655,7 @@ void Update()
         nextPushEnabled = false;
         trajectoryLine.positionCount = 0;
         m.Launch(baseDir, launchVelocity, this.gameObject, this.damageMultiplier);
+        GameManager.Instance.PlayerActionUsed();  // Moved here - after missile spawn
         return;
     }
 
@@ -700,6 +702,7 @@ void Update()
         // reset flag and bail out
         nextMultiEnabled        = false;
         trajectoryLine.positionCount = 0;
+        GameManager.Instance.PlayerActionUsed();  // Moved here - after missile spawn
         return;
     }
 
@@ -731,6 +734,7 @@ void Update()
     }
 
     trajectoryLine.positionCount = 0;
+    GameManager.Instance.PlayerActionUsed();  // Moved here - after missile spawn
 }
 
     /// <summary>
