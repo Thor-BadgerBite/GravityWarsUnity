@@ -846,20 +846,13 @@ public class GameManager : MonoBehaviour
 
         while (!isTurnActive && missileFired && activeMissile != null && !activeMissile.isDestroyed)
         {
-            // Decrease the missile's fuel by (rate * dt)
-            float consumed = activeMissile.fuelConsumptionRate * updateInterval;
-            activeMissile.fuel -= consumed;
-
-            // Update bubble display
+            // NOTE: Fuel is consumed in Missile3D.Update(), we just READ it here for display
+            // Update bubble display to show remaining fuel
             bubbleTimer.value = activeMissile.fuel;
             timerBubbleText.text = $"{(int)activeMissile.fuel}";  // e.g. integer lbs
 
-            // If fuel <= 0 => forcibly destroy the missile
-            if (activeMissile.fuel <= 0f)
-            {
-                activeMissile.DestroyMissile();  
-                break;
-            }
+            // Missile3D.Update() handles fuel depletion and self-destruction
+            // No need to check or modify fuel here
 
             yield return new WaitForSeconds(updateInterval);
         }

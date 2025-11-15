@@ -74,6 +74,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee87af78b9b8f324184cd3c7239e01fb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  shipArchetype: 2
+  shipXP: 6250
+  shipLevel: 1
+  xpNeededForNextLevel: 0
   score: 0
   playerName: Player 2
   rotationSpeed: 50
@@ -88,6 +92,8 @@ MonoBehaviour:
   missileSpawnDistance: 2
   cooldownTime: 1
   predictionSteps: 100
+  equippedMissile: {fileID: 11400000, guid: 9fb4504da9015d84a8ca49989f7f3b9b, type: 2}
+  ignoreRestrictions: 0
   minMoveSpeed: 2
   maxMoveSpeed: 10
   moveDeceleration: 4
@@ -96,6 +102,21 @@ MonoBehaviour:
   isDestroyed: 0
   controlsEnabled: 1
   shotsThisRound: 0
+  isPassiveUnlocked: 0
+  skipNextMoveEndsTurn: 0
+  nextExplosiveEnabled: 0
+  nextExplRadius: 0
+  nextExplDamageFactor: 1
+  nextExplPushStrength: 0
+  nextMultiEnabled: 0
+  nextMultiDamageFactor: 0.75
+  nextMultiSpreadDeg: 5
+  nextClusterEnabled: 0
+  nextClusterDamageFactor: 1
+  nextClusterSpreadDeg: 5
+  nextPushEnabled: 0
+  nextPushDamageFactor: 1
+  nextPushKnockbackFactor: 1
   isLeftPlayer: 1
   movesAllowedPerTurn: 3
   precisionMove: 1
@@ -114,7 +135,14 @@ MonoBehaviour:
   adaptiveDamagePassive: 0
   precisionEngineering: 0
   collisionAvoidancePassive: 1
+  lifestealPassive: 0
+  lifestealPercent: 0.2
+  reduceDamageFromHighSpeedMissiles: 0
+  highSpeedDamageReductionPercent: 0.2
+  increaseDamageOnHighSpeedMissiles: 0
+  highSpeedDamageAmplifyPercent: 0.2
   isGhost: 0
+  shipModelName: Star Sparrow
   baseHealth: 10000
   currentHealth: 0
   armor: 100
