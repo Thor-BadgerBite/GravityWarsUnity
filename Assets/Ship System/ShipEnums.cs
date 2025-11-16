@@ -8,13 +8,3 @@ public enum ShipArchetype
     AllAround,      // Balanced stats
     Controller      // Tactical with extra action points
 }
-
-/// <summary>
-/// Missile type categories.
-/// </summary>
-public enum MissileType
-{
-    Light,      // Fast, low damage, low fuel, weak push
-    Medium,     // Balanced stats
-    Heavy       // Slow, high damage, high fuel, strong push
-}
