@@ -6,7 +6,6 @@ public class PlayerShip : MonoBehaviour
     // ---------------------------------------------------
     // 1) NEW: archetype & leveling fields
     // ---------------------------------------------------
-    public enum ShipArchetype { Tank, DamageDealer, AllAround, Controller }
 
     [Header("Ship Preset System")]
     [Tooltip("Ship preset defining this ship's configuration (NEW SYSTEM - optional for now)")]
