@@ -98,6 +98,13 @@ public class PlayerShip : MonoBehaviour
     public int predictionSteps = 100;
     public GameObject missilePrefab;
 
+    [Header("Missile Launch Velocity (fallback if no missile equipped)")]
+    [Tooltip("Minimum launch velocity for missiles (fallback default)")]
+    public float minLaunchVelocity = 0.1f;
+    [Tooltip("Maximum launch velocity for missiles (fallback default)")]
+    public float maxLaunchVelocity = 10f;
+
+    [Header("Missile Selection (choose before match)")]
     [Tooltip("The missile type this ship is equipped with (unlimited ammo)")]
     public MissilePresetSO equippedMissile;
 
