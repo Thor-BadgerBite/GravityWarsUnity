@@ -35,7 +35,24 @@ public class MoveTypeSO : ScriptableObject
     [Tooltip("Can AllAround ships use this move type?")]
     public bool allowAllAround = true;
 
-    [Header("Move Parameters")]
+    [Header("Movement Speed (Slingshot)")]
+    [Tooltip("Minimum slingshot speed when velocity slider is at 0%")]
+    [Range(1f, 5f)]
+    public float minMoveSpeed = 2f;
+
+    [Tooltip("Maximum slingshot speed when velocity slider is at 100%")]
+    [Range(5f, 15f)]
+    public float maxMoveSpeed = 10f;
+
+    [Tooltip("Deceleration rate during slingshot move (m/s²)")]
+    [Range(2f, 8f)]
+    public float moveDeceleration = 4f;
+
+    [Tooltip("Maximum duration of slingshot move (seconds)")]
+    [Range(1f, 5f)]
+    public float moveDuration = 2.5f;
+
+    [Header("Warp Parameters (Warp Move Only)")]
     [Tooltip("Zoom duration for warp moves (only applies to Warp)")]
     [Range(0.1f, 1f)]
     public float warpZoomDuration = 0.3f;
@@ -95,6 +112,12 @@ public class MoveTypeSO : ScriptableObject
         ship.precisionMove = false;
         ship.warpMove = false;
 
+        // Apply movement speed parameters (all move types use these)
+        ship.minMoveSpeed = minMoveSpeed;
+        ship.maxMoveSpeed = maxMoveSpeed;
+        ship.moveDeceleration = moveDeceleration;
+        ship.moveDuration = moveDuration;
+
         // Enable the specific move type
         switch (category)
         {
@@ -108,8 +131,11 @@ public class MoveTypeSO : ScriptableObject
 
             case MoveTypeCategory.Warp:
                 ship.warpMove = true;
-                // Note: Warp parameters are currently hardcoded in PlayerShip
-                // Could be refactored to read from this SO if needed
+                // Apply warp-specific parameters (NOTE: These require SerializeField warp parameters in PlayerShip)
+                // ship.warpZoomDuration = warpZoomDuration;
+                // ship.minScaleFactor = minScaleFactor;
+                // ship.postWarpShakeTime = postWarpShakeTime;
+                // ship.postWarpShakeAngle = postWarpShakeAngle;
                 break;
         }
     }

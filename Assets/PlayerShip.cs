@@ -160,18 +160,27 @@ public class PlayerShip : MonoBehaviour
     // -----------------------
     void Start()
     {
-        // Keep inspector values as "base stats for level=1".
-        currentHealth    = baseHealth; 
-        maxHealth        = baseHealth;
+        // *** CRITICAL FIX: Apply ship preset FIRST before using any values! ***
+        if (shipPreset != null)
+        {
+            // Apply ship configuration from ScriptableObject preset
+            shipPreset.ApplyToShip(this);
+            Debug.Log($"<color=green>[{playerName}] Applied ship preset: {shipPreset.shipName}</color>");
+        }
+        else
+        {
+            // Fallback to inspector values (backward compatibility)
+            Debug.LogWarning($"[{playerName}] No ship preset assigned! Using inspector values (old system).");
+        }
+
+        // Store base values AFTER applying preset
         baseArmorValue   = armor;
         baseDamageMultiplier = damageMultiplier;
-        // If both are true, pick one or forcibly disable precision
-        if (precisionMove && warpMove)
-        {
-            Debug.LogWarning($"Ship {playerName}: warpMove & precisionMove both true! " +
-                            "Forcing precisionMove=false because warp overrides.");
-            precisionMove = false;
-        }
+
+        // Set initial health
+        currentHealth    = baseHealth;
+        maxHealth        = baseHealth;
+
         if (!isGhost)
         {
             ghostShipInstance = Instantiate(gameObject, transform.position, transform.rotation);

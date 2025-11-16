@@ -39,6 +39,27 @@ public class ShipBodySO : ScriptableObject
     [Range(3, 4)]
     public int actionPointsPerTurn = 3;
 
+    [Header("Ship Handling / Rotation")]
+    [Tooltip("How fast the ship rotates (degrees/sec). Tank=30, DD=70, AllAround=50, Controller=60")]
+    [Range(20f, 80f)]
+    public float rotationSpeed = 50f;
+
+    [Tooltip("Maximum tilt angle when rotating (degrees). Affects visual feedback.")]
+    [Range(20f, 50f)]
+    public float maxTiltAngle = 40f;
+
+    [Tooltip("How quickly ship tilts during rotation")]
+    [Range(3f, 8f)]
+    public float tiltSpeed = 5f;
+
+    [Tooltip("Rotation speed multiplier when fine-tuning (Shift key held)")]
+    [Range(0.1f, 0.5f)]
+    public float fineRotationMultiplier = 0.2f;
+
+    [Tooltip("Tilt speed multiplier when fine-tuning (Shift key held)")]
+    [Range(0.1f, 0.5f)]
+    public float fineTiltMultiplier = 0.2f;
+
     [Header("Missile Restrictions")]
     [Tooltip("Can this ship body use Light missiles?")]
     public bool canUseLightMissiles = true;
@@ -60,6 +81,7 @@ public class ShipBodySO : ScriptableObject
     {
         ValidateArchetypeStats();
         ValidateActionPoints();
+        ValidateRotationSettings();
         ValidateMissileRestrictions();
     }
 
@@ -112,6 +134,43 @@ public class ShipBodySO : ScriptableObject
         {
             Debug.LogWarning($"[{name}] {archetype} ships should have 3 action points! Auto-corrected.");
             actionPointsPerTurn = 3;
+        }
+    }
+
+    private void ValidateRotationSettings()
+    {
+        // Warn if rotation speeds are unusual for archetype
+        float recommendedRotSpeed = 50f;
+
+        switch (archetype)
+        {
+            case ShipArchetype.Tank:
+                recommendedRotSpeed = 30f;  // Slow, heavy
+                if (rotationSpeed > 40f)
+                {
+                    Debug.LogWarning($"[{name}] Tank ships should be slow to rotate (recommended: 30). Current: {rotationSpeed}");
+                }
+                break;
+
+            case ShipArchetype.DamageDealer:
+                recommendedRotSpeed = 70f;  // Fast, nimble
+                if (rotationSpeed < 60f)
+                {
+                    Debug.LogWarning($"[{name}] DamageDealer ships should be nimble (recommended: 70). Current: {rotationSpeed}");
+                }
+                break;
+
+            case ShipArchetype.Controller:
+                recommendedRotSpeed = 60f;  // Fairly nimble
+                if (rotationSpeed < 50f)
+                {
+                    Debug.LogWarning($"[{name}] Controller ships should be fairly nimble (recommended: 60). Current: {rotationSpeed}");
+                }
+                break;
+
+            case ShipArchetype.AllAround:
+                recommendedRotSpeed = 50f;  // Balanced
+                break;
         }
     }
 

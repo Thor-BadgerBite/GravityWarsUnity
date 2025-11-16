@@ -85,12 +85,12 @@ public class PassiveAbilitySO : ScriptableObject
     }
 
     /// <summary>
-    /// Applies this passive to a PlayerShip
+    /// Applies this passive to a PlayerShip (does NOT reset other passives - supports multiple passives!)
     /// </summary>
     public void ApplyToShip(PlayerShip ship)
     {
-        // Reset all passives first
-        ResetAllPassives(ship);
+        // NOTE: We do NOT reset all passives here - this allows multiple passives to coexist!
+        // The caller (ShipPresetSO) is responsible for resetting if needed
 
         // Enable the specific passive
         switch (passiveType)
@@ -168,9 +168,9 @@ public class PassiveAbilitySO : ScriptableObject
     }
 
     /// <summary>
-    /// Resets all passive flags on a ship (used before applying new passive)
+    /// Resets all passive flags on a ship (call this ONCE before applying multiple passives)
     /// </summary>
-    private void ResetAllPassives(PlayerShip ship)
+    public static void ResetAllPassives(PlayerShip ship)
     {
         ship.sniperMode = false;
         ship.unmovable = false;

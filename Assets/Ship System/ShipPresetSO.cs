@@ -78,12 +78,30 @@ public class ShipPresetSO : ScriptableObject
             ship.armor = shipBody.baseArmor;
             ship.damageMultiplier = shipBody.baseDamageMultiplier;
             ship.movesAllowedPerTurn = shipBody.actionPointsPerTurn;
+
+            // Apply rotation/handling settings
+            ship.rotationSpeed = shipBody.rotationSpeed;
+            ship.maxTiltAngle = shipBody.maxTiltAngle;
+            ship.tiltSpeed = shipBody.tiltSpeed;
+            ship.fineRotationSpeedMultiplier = shipBody.fineRotationMultiplier;
+            ship.fineTiltSpeedMultiplier = shipBody.fineTiltMultiplier;
         }
 
-        // Apply passives (currently only 1 supported)
-        if (passives != null && passives.Length > 0 && passives[0] != null)
+        // Apply passives (supports multiple passives!)
+        if (passives != null && passives.Length > 0)
         {
-            passives[0].ApplyToShip(ship);
+            // Reset ALL passives ONCE before applying
+            PassiveAbilitySO.ResetAllPassives(ship);
+
+            // Apply each passive in the array (they stack!)
+            foreach (var passive in passives)
+            {
+                if (passive != null)
+                {
+                    passive.ApplyToShip(ship);
+                    Debug.Log($"  → Applied passive: {passive.passiveName}");
+                }
+            }
         }
 
         // Apply move type
