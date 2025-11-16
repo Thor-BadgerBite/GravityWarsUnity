@@ -8,6 +8,10 @@ public class PlayerShip : MonoBehaviour
     // ---------------------------------------------------
     public enum ShipArchetype { Tank, DamageDealer, AllAround, Controller }
 
+    [Header("Ship Preset System")]
+    [Tooltip("Ship preset defining this ship's configuration (NEW SYSTEM - optional for now)")]
+    public ShipPresetSO shipPreset;
+
     [Header("Leveling / Archetype")]
     public ShipArchetype shipArchetype = ShipArchetype.AllAround;
 
@@ -290,55 +294,91 @@ public class PlayerShip : MonoBehaviour
     }
 
     /// <summary>
-    /// After we have final shipLevel, apply a scaling to base stats 
+    /// After we have final shipLevel, apply a scaling to base stats
     /// that depends on the archetype (and shipLevel).
-    /// The difference is each ship has its own unique base stats from the Inspector.
-    /// We'll apply a small per-level increment or multiplier here.
+    /// NEW: Uses ShipLevelingFormulaSO if ship preset is assigned, otherwise fallback to hardcoded formulas.
     /// </summary>
     public void UpdateStatsFromLevel()
+    {
+        // Try to use ScriptableObject system first
+        if (shipPreset != null && shipPreset.GetLevelingFormula() != null)
+        {
+            UpdateStatsFromPreset();
+            return;
+        }
+
+        // Fallback to hardcoded formulas (with BALANCE FIXES applied!)
+        UpdateStatsFromHardcodedFormulas();
+    }
+
+    /// <summary>
+    /// Uses ShipLevelingFormulaSO from ship preset (NEW SYSTEM)
+    /// </summary>
+    private void UpdateStatsFromPreset()
+    {
+        ShipLevelingFormulaSO formula = shipPreset.GetLevelingFormula();
+        if (formula == null)
+        {
+            Debug.LogWarning($"{playerName}: Ship preset has no leveling formula! Using hardcoded fallback.");
+            UpdateStatsFromHardcodedFormulas();
+            return;
+        }
+
+        // Calculate stats using ScriptableObject formulas
+        maxHealth = formula.CalculateHealthAtLevel(baseHealth, shipLevel);
+        armor = formula.CalculateArmorAtLevel(baseArmorValue, shipLevel);
+        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, shipLevel);
+
+        // Clamp current health
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
+
+        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+    }
+
+    /// <summary>
+    /// Uses hardcoded formulas (LEGACY SYSTEM with BALANCE FIXES)
+    /// </summary>
+    private void UpdateStatsFromHardcodedFormulas()
     {
         // This "level offset" = how many increments we are above level 1
         int Loffset = shipLevel - 1;
         if (Loffset < 0) Loffset = 0;
 
-        // We'll do a small switch. 
-        // (You can do a more sophisticated formula if you like.)
+        // Apply formulas based on archetype (with BALANCE FIXES!)
         switch (shipArchetype)
         {
             case ShipArchetype.Tank:
-                // e.g. each level => +300 HP + 2 armor, +0.02 damage multiplier
+                // BALANCE FIX: Reduced damage scaling from 0.02 → 0.015
                 maxHealth = baseHealth * (1f + 0.04f * Loffset);
                 armor     = baseArmorValue + (4f   * Loffset);
-                damageMultiplier = baseDamageMultiplier + (0.02f * Loffset);
+                damageMultiplier = baseDamageMultiplier + (0.015f * Loffset);  // ← NERFED!
                 break;
 
             case ShipArchetype.DamageDealer:
-                // e.g. each level => +150 HP, +1 armor, +0.04 damage multiplier
                 maxHealth = baseHealth * (1f + 0.02f * Loffset);
                 armor = baseArmorValue + (1f   * Loffset);
                 damageMultiplier = baseDamageMultiplier + (0.04f * Loffset);
                 break;
 
             case ShipArchetype.AllAround:
-                // a moderate approach
                 maxHealth = baseHealth * (1f + 0.03f * Loffset);
                 armor     = baseArmorValue + (3f * Loffset);
                 damageMultiplier = baseDamageMultiplier + (0.03f * Loffset);
                 break;
 
             case ShipArchetype.Controller:
-                // maybe a balanced approach but slightly less direct damage
+                // BALANCE FIX: Buffed damage scaling from 0.025 → 0.03
                 maxHealth = baseHealth * (1f + 0.02f * Loffset);
                 armor = baseArmorValue + (2f * Loffset);
-                damageMultiplier = baseDamageMultiplier + (0.025f * Loffset);
-                // if you had a special "utility" stat, you might scale that as well
+                damageMultiplier = baseDamageMultiplier + (0.03f * Loffset);  // ← BUFFED!
                 break;
         }
+
         currentHealth = maxHealth;
         // If the current health is above new max, clamp it
         if (currentHealth > maxHealth) currentHealth = maxHealth;
 
-        Debug.Log($"{playerName} => L{shipLevel}, HP={maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+        Debug.Log($"{playerName} (HARDCODED) => L{shipLevel}, HP={maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
     }
 
     void SetupTrajectoryLine()
