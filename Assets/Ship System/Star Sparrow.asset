@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f11841f110074d44ab7504486d8bc67, type: 3}
+  m_Name: Star Sparrow
+  m_EditorClassIdentifier: 
+  shipName: Star Sparrow
+  shipIcon: {fileID: 0}
+  description: Describe this ship's playstyle and strengths.
+  shipBody: {fileID: 11400000, guid: f0613290875850c42a63dfafa05f4be1, type: 2}
+  levelingFormula: {fileID: 11400000, guid: ed40d41359a208748ac1fdf74e6dcd98, type: 2}
+  passives:
+  - {fileID: 0}
+  tier1Perk: {fileID: 0}
+  tier2Perk: {fileID: 0}
+  tier3Perk: {fileID: 0}
+  moveType: {fileID: 0}
+  defaultMissile: {fileID: 0}
+  requiredAccountLevel: 0
+  isPremiumShip: 0
+  validationStatus: "\u2713 All validations passed!"
