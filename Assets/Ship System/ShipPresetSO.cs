@@ -79,6 +79,10 @@ public class ShipPresetSO : ScriptableObject
             ship.damageMultiplier = shipBody.baseDamageMultiplier;
             ship.movesAllowedPerTurn = shipBody.actionPointsPerTurn;
 
+            // CRITICAL: Set base values BEFORE UpdateStatsFromLevel() uses them!
+            ship.baseArmorValue = shipBody.baseArmor;
+            ship.baseDamageMultiplier = shipBody.baseDamageMultiplier;
+
             // Apply rotation/handling settings
             ship.rotationSpeed = shipBody.rotationSpeed;
             ship.maxTiltAngle = shipBody.maxTiltAngle;

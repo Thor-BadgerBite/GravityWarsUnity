@@ -139,8 +139,8 @@ public class PlayerShip : MonoBehaviour
     private bool lastChanceUsed = false;
     [HideInInspector] public bool isGhost = false;
     [HideInInspector] public float currentHealth;
-    private float baseDamageMultiplier;
-    private float baseArmorValue;
+    [HideInInspector] public float baseDamageMultiplier;  // Base value for damage scaling
+    [HideInInspector] public float baseArmorValue;        // Base value for armor scaling
     private GameObject ghostShipInstance;
     [HideInInspector] public PlayerActionMode currentMode = PlayerActionMode.Fire;
     [HideInInspector] public float launchVelocity;
@@ -172,22 +172,24 @@ public class PlayerShip : MonoBehaviour
         if (shipPreset != null)
         {
             // Apply ship configuration from ScriptableObject preset
+            // This sets baseHealth, armor, damageMultiplier, AND base values
+            // Then calls UpdateStatsFromLevel() which calculates maxHealth, currentHealth, etc.
             shipPreset.ApplyToShip(this);
             Debug.Log($"<color=green>[{playerName}] Applied ship preset: {shipPreset.shipName}</color>");
+
+            // DON'T overwrite values after preset applies them!
         }
         else
         {
-            // Fallback to inspector values (backward compatibility)
+            // Fallback to inspector values (backward compatibility - OLD SYSTEM)
             Debug.LogWarning($"[{playerName}] No ship preset assigned! Using inspector values (old system).");
+
+            // For old system, manually set base values
+            baseArmorValue = armor;
+            baseDamageMultiplier = damageMultiplier;
+            currentHealth = baseHealth;
+            maxHealth = baseHealth;
         }
-
-        // Store base values AFTER applying preset
-        baseArmorValue   = armor;
-        baseDamageMultiplier = damageMultiplier;
-
-        // Set initial health
-        currentHealth    = baseHealth;
-        maxHealth        = baseHealth;
 
         if (!isGhost)
         {
@@ -345,10 +347,10 @@ public class PlayerShip : MonoBehaviour
         armor = formula.CalculateArmorAtLevel(baseArmorValue, shipLevel);
         damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, shipLevel);
 
-        // Clamp current health
-        if (currentHealth > maxHealth) currentHealth = maxHealth;
+        // Initialize current health to max (ship starts at full health)
+        currentHealth = maxHealth;
 
-        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
     }
 
     /// <summary>
