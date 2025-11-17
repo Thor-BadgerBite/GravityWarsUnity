@@ -9,6 +9,9 @@ using UnityEngine;
 [System.Serializable]
 public class PlayerAccountData
 {
+    [Header("Save Version")]
+    public int saveVersion = 2; // Incremented when data structure changes (for migration)
+
     [Header("Account Info")]
     public string playerID;
     public string displayName;
