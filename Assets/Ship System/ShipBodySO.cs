@@ -74,6 +74,11 @@ public class ShipBodySO : ScriptableObject
     [TextArea(3, 5)]
     public string description = "A balanced ship chassis suitable for all-around combat.";
 
+    [Header("Unlock Requirements")]
+    [Tooltip("Account level required to unlock this ship body (0 = available from start)")]
+    [Range(0, 50)]
+    public int requiredAccountLevel = 0;
+
     /// <summary>
     /// Validates stat ranges based on archetype when values change in Inspector
     /// </summary>

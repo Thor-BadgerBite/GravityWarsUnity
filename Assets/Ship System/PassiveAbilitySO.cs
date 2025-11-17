@@ -27,6 +27,10 @@ public class PassiveAbilitySO : ScriptableObject
     [Range(1, 20)]
     public int unlockLevel = 10;
 
+    [Tooltip("Account level required to unlock this passive (0 = available from start)")]
+    [Range(0, 50)]
+    public int requiredAccountLevel = 0;
+
     [Header("Archetype Restrictions")]
     [Tooltip("Can Tank ships use this passive?")]
     public bool allowTank = true;
