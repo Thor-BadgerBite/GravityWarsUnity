@@ -6,12 +6,13 @@ public class PlayerShip : MonoBehaviour
     // ---------------------------------------------------
     // 1) NEW: archetype & leveling fields
     // ---------------------------------------------------
-    public enum ShipArchetype { Tank, DamageDealer, AllAround, Controller }
 
-    [Header("Leveling / Archetype")]
-    public ShipArchetype shipArchetype = ShipArchetype.AllAround;
+    [Header("Ship Preset System")]
+    [Tooltip("Ship preset defining this ship's configuration (NEW SYSTEM - required!)")]
+    public ShipPresetSO shipPreset;
 
-    [Tooltip("XP for this specific ship. Adjust in Inspector for testing.")]
+    [Header("Player Progression (NOT in preset - this is your XP!)")]
+    [Tooltip("XP for this specific ship. This is YOUR progress, not ship config!")]
     public float shipXP = 6250f;
 
     [Tooltip("Ship current level (1..20). Calculated from XP in RecalcLevelFromXP().")]
@@ -19,6 +20,60 @@ public class PlayerShip : MonoBehaviour
 
     [Tooltip("XP needed to reach the next level. (Derived, not manually set.)")]
     [HideInInspector] public float xpNeededForNextLevel = 0f;
+
+    // ============================================================
+    // FIELDS BELOW ARE MANAGED BY SHIP PRESET - DO NOT EDIT IN INSPECTOR!
+    // They are hidden from inspector but accessible to code.
+    // ============================================================
+
+    [HideInInspector] public ShipArchetype shipArchetype = ShipArchetype.AllAround;  // From ShipBodySO
+    [HideInInspector] public string shipModelName = "Star Sparrow";                  // From ShipBodySO
+    [HideInInspector] public float baseHealth = 10000f;                              // From ShipBodySO
+    [HideInInspector] public float armor = 100f;                                     // From ShipBodySO
+    [HideInInspector] public float damageMultiplier = 1f;                            // From ShipBodySO
+    [HideInInspector] public float maxHealth = 100f;                                 // Calculated from baseHealth
+    [HideInInspector] public int movesAllowedPerTurn = 3;                            // From ShipBodySO
+
+    // Rotation settings (from ShipBodySO)
+    [HideInInspector] public float rotationSpeed = 50f;
+    [HideInInspector] public float maxTiltAngle = 40f;
+    [HideInInspector] public float tiltSpeed = 5f;
+    [HideInInspector] public float fineRotationSpeedMultiplier = 0.2f;
+    [HideInInspector] public float fineTiltSpeedMultiplier = 0.2f;
+
+    // Movement settings (from MoveTypeSO)
+    [HideInInspector] public float minMoveSpeed = 2f;
+    [HideInInspector] public float maxMoveSpeed = 10f;
+    [HideInInspector] public float moveDeceleration = 4f;
+    [HideInInspector] public float moveDuration = 2.5f;
+
+    // Passive flags (from PassiveAbilitySO)
+    [HideInInspector] public bool precisionMove = false;
+    [HideInInspector] public bool warpMove = false;
+    [HideInInspector] public bool sniperMode = true;
+    [HideInInspector] public bool unmovable = false;
+    [HideInInspector] public bool enhancedRegeneration = false;
+    [HideInInspector] public float regenRate = 1f;
+    [HideInInspector] public bool damageResistancePassive = false;
+    [HideInInspector] public float damageResistancePercentage = 0.15f;
+    [HideInInspector] public bool criticalImmunity = false;
+    [HideInInspector] public bool CriticalEnhancement = false;
+    [HideInInspector] public bool damageBoostPassive = false;
+    [HideInInspector] public bool hasLastChancePassive = false;
+    [HideInInspector] public bool adaptiveArmorPassive = false;
+    [HideInInspector] public bool adaptiveDamagePassive = false;
+    [HideInInspector] public bool precisionEngineering = false;
+    [HideInInspector] public bool collisionAvoidancePassive = false;
+    [HideInInspector] public bool lifestealPassive = false;
+    [HideInInspector] public float lifestealPercent = 0.2f;
+    [HideInInspector] public bool reduceDamageFromHighSpeedMissiles = false;
+    [HideInInspector] public float highSpeedDamageReductionPercent = 0.2f;
+    [HideInInspector] public bool increaseDamageOnHighSpeedMissiles = false;
+    [HideInInspector] public float highSpeedDamageAmplifyPercent = 0.2f;
+
+    // ============================================================
+    // END OF PRESET-MANAGED FIELDS
+    // ============================================================
 
     /// <summary>
     /// Use this if you want a maximum level of 20, or adjust as needed.
@@ -31,36 +86,30 @@ public class PlayerShip : MonoBehaviour
     private AudioSource engineLoopSource;
     private bool precisionMoveTemp = false; // the ephemeral toggle for ghost usage
     [HideInInspector] public int score = 0;
+
+    [Header("Player Assignment")]
     public string playerName;
+    public bool isLeftPlayer = true;
 
-    [Header("Rotation Settings")]
-    public float rotationSpeed = 50f;
-    public float maxTiltAngle = 40f;
-    public float tiltSpeed = 5f;
-    public float fineRotationSpeedMultiplier = 0.2f;
-    public float fineTiltSpeedMultiplier = 0.2f;
-
-    [Header("Missile Fire Settings")]
-    public float minLaunchVelocity = 0.1f;
-    public float maxLaunchVelocity = 10f;
-    public GameObject missilePrefab;
+    [Header("Global Game Settings (same for all ships)")]
     public KeyCode fireKey = KeyCode.Space;
     public float missileSpawnDistance = 2f;
     public float cooldownTime = 1f;
     public int predictionSteps = 100;
+    public GameObject missilePrefab;
 
-    [Header("Missile Type Selection")]
+    [Header("Missile Launch Velocity (fallback if no missile equipped)")]
+    [Tooltip("Minimum launch velocity for missiles (fallback default)")]
+    public float minLaunchVelocity = 0.1f;
+    [Tooltip("Maximum launch velocity for missiles (fallback default)")]
+    public float maxLaunchVelocity = 10f;
+
+    [Header("Missile Selection (choose before match)")]
     [Tooltip("The missile type this ship is equipped with (unlimited ammo)")]
     public MissilePresetSO equippedMissile;
 
     [Tooltip("If true, ignores ship archetype restrictions for testing")]
-    public bool ignoreRestrictions = false;
-
-    [Header("Move (Slingshot) Settings")]
-    public float minMoveSpeed = 2f;    // minimal slingshot speed if velocity slider is at 0%
-    public float maxMoveSpeed = 10f;   // top speed if velocity slider is at 100%
-    public float moveDeceleration = 4f;  
-    public float moveDuration = 2.5f; 
+    public bool ignoreRestrictions = false; 
 
     // ALLOW ONLY ONCE PER ROUND:
     [HideInInspector] public int movesRemainingThisRound = 1;
@@ -86,54 +135,16 @@ public class PlayerShip : MonoBehaviour
     [HideInInspector] public float nextPushDamageFactor      = 1f;
     [HideInInspector] public float nextPushKnockbackFactor   = 1f;
 
-
-
-    [Header("3D Ship Misc")]
-    public bool isLeftPlayer = true;
-    [Header("Ship Passives")]
-    public int movesAllowedPerTurn = 3;
-    public bool precisionMove = false;   // Toggle in Inspector for main ship
-    public bool warpMove = false;   // The new perk
-    public bool sniperMode = true;       // << NEW Sniper perk
-    public bool unmovable = false; // If true, the ship is immune to push forces.
-    public bool enhancedRegeneration = false;  // Toggle in Inspector
-    public float regenRate = 1f;               // HP per second (can start at 1 hp/sec)
-    public bool damageResistancePassive = false;   // Toggle in Inspector
-    public float damageResistancePercentage = 0.15f; // 15% damage reduction (0.15 means 15% less damage)
-    public bool criticalImmunity = false;  // If true, the ship is immune to critical hit multipliers.
-    public bool CriticalEnhancement = false; // If true, the ship can deal critical hits to other ships.
-    public bool damageBoostPassive = false; // Passive for Damage Boost: if true, the damageMultiplier increases overtime.
-    public bool hasLastChancePassive = false;  // Set via Inspector per ship
-    public bool adaptiveArmorPassive = false;  // Toggle in Inspector for this passive
-    public bool adaptiveDamagePassive = false; // Set in Inspector for this passive
-    public bool precisionEngineering = false; // When true, missiles have no random variation
-    public bool collisionAvoidancePassive = false; // If true, the missile can avoid collisions with planets.
-    public bool lifestealPassive = false; // If true, you steal HP from damage dealt.
-    public float lifestealPercent = 0.2f; // e.g. 10% lifesteal.
-    public bool reduceDamageFromHighSpeedMissiles = false;
-    public float highSpeedDamageReductionPercent = 0.2f;  //E.g. 0.2 => 20% less damage if missile speed >80% max
-    
-    public bool increaseDamageOnHighSpeedMissiles = false;
-    public float highSpeedDamageAmplifyPercent = 0.2f; // And the tracking field remains private:
-    
+    // Runtime state
     private bool lastChanceUsed = false;
-
-    [HideInInspector] public bool isGhost = false;  // assigned only at runtime
-    [Header("Ship Attributes")]
-    public string shipModelName = "Star Sparrow";
-    public float baseHealth = 10000f;         // Base health for level 1
-    public float currentHealth;               // Current health, set in Start()
-    public float armor = 100f;                // Fixed armor value; 100 yields ~20% reduction
-    public float damageMultiplier = 1f;       // Multiplier for incoming damage (default 1.0)
-    private float baseDamageMultiplier;       // Store the original multiplier at game start
-    private float baseArmorValue;    // This will store the base value (100f for now)
-
+    [HideInInspector] public bool isGhost = false;
+    [HideInInspector] public float currentHealth;
+    [HideInInspector] public float baseDamageMultiplier;  // Base value for damage scaling
+    [HideInInspector] public float baseArmorValue;        // Base value for armor scaling
     private GameObject ghostShipInstance;
-
     [HideInInspector] public PlayerActionMode currentMode = PlayerActionMode.Fire;
     [HideInInspector] public float launchVelocity;
     [HideInInspector] public float lastFireTime;
-    public float maxHealth = 100f;    // Exposed in inspector, or set to 100
     private LineRenderer trajectoryLine;
     private float missileDrag;
     private Vector3 initialPosition;
@@ -157,18 +168,29 @@ public class PlayerShip : MonoBehaviour
     // -----------------------
     void Start()
     {
-        // Keep inspector values as "base stats for level=1".
-        currentHealth    = baseHealth; 
-        maxHealth        = baseHealth;
-        baseArmorValue   = armor;
-        baseDamageMultiplier = damageMultiplier;
-        // If both are true, pick one or forcibly disable precision
-        if (precisionMove && warpMove)
+        // *** CRITICAL FIX: Apply ship preset FIRST before using any values! ***
+        if (shipPreset != null)
         {
-            Debug.LogWarning($"Ship {playerName}: warpMove & precisionMove both true! " +
-                            "Forcing precisionMove=false because warp overrides.");
-            precisionMove = false;
+            // Apply ship configuration from ScriptableObject preset
+            // This sets baseHealth, armor, damageMultiplier, AND base values
+            // Then calls UpdateStatsFromLevel() which calculates maxHealth, currentHealth, etc.
+            shipPreset.ApplyToShip(this);
+            Debug.Log($"<color=green>[{playerName}] Applied ship preset: {shipPreset.shipName}</color>");
+
+            // DON'T overwrite values after preset applies them!
         }
+        else
+        {
+            // Fallback to inspector values (backward compatibility - OLD SYSTEM)
+            Debug.LogWarning($"[{playerName}] No ship preset assigned! Using inspector values (old system).");
+
+            // For old system, manually set base values
+            baseArmorValue = armor;
+            baseDamageMultiplier = damageMultiplier;
+            currentHealth = baseHealth;
+            maxHealth = baseHealth;
+        }
+
         if (!isGhost)
         {
             ghostShipInstance = Instantiate(gameObject, transform.position, transform.rotation);
@@ -290,55 +312,91 @@ public class PlayerShip : MonoBehaviour
     }
 
     /// <summary>
-    /// After we have final shipLevel, apply a scaling to base stats 
+    /// After we have final shipLevel, apply a scaling to base stats
     /// that depends on the archetype (and shipLevel).
-    /// The difference is each ship has its own unique base stats from the Inspector.
-    /// We'll apply a small per-level increment or multiplier here.
+    /// NEW: Uses ShipLevelingFormulaSO if ship preset is assigned, otherwise fallback to hardcoded formulas.
     /// </summary>
     public void UpdateStatsFromLevel()
+    {
+        // Try to use ScriptableObject system first
+        if (shipPreset != null && shipPreset.GetLevelingFormula() != null)
+        {
+            UpdateStatsFromPreset();
+            return;
+        }
+
+        // Fallback to hardcoded formulas (with BALANCE FIXES applied!)
+        UpdateStatsFromHardcodedFormulas();
+    }
+
+    /// <summary>
+    /// Uses ShipLevelingFormulaSO from ship preset (NEW SYSTEM)
+    /// </summary>
+    private void UpdateStatsFromPreset()
+    {
+        ShipLevelingFormulaSO formula = shipPreset.GetLevelingFormula();
+        if (formula == null)
+        {
+            Debug.LogWarning($"{playerName}: Ship preset has no leveling formula! Using hardcoded fallback.");
+            UpdateStatsFromHardcodedFormulas();
+            return;
+        }
+
+        // Calculate stats using ScriptableObject formulas
+        maxHealth = formula.CalculateHealthAtLevel(baseHealth, shipLevel);
+        armor = formula.CalculateArmorAtLevel(baseArmorValue, shipLevel);
+        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, shipLevel);
+
+        // Initialize current health to max (ship starts at full health)
+        currentHealth = maxHealth;
+
+        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+    }
+
+    /// <summary>
+    /// Uses hardcoded formulas (LEGACY SYSTEM with BALANCE FIXES)
+    /// </summary>
+    private void UpdateStatsFromHardcodedFormulas()
     {
         // This "level offset" = how many increments we are above level 1
         int Loffset = shipLevel - 1;
         if (Loffset < 0) Loffset = 0;
 
-        // We'll do a small switch. 
-        // (You can do a more sophisticated formula if you like.)
+        // Apply formulas based on archetype (with BALANCE FIXES!)
         switch (shipArchetype)
         {
             case ShipArchetype.Tank:
-                // e.g. each level => +300 HP + 2 armor, +0.02 damage multiplier
+                // BALANCE FIX: Reduced damage scaling from 0.02 → 0.015
                 maxHealth = baseHealth * (1f + 0.04f * Loffset);
                 armor     = baseArmorValue + (4f   * Loffset);
-                damageMultiplier = baseDamageMultiplier + (0.02f * Loffset);
+                damageMultiplier = baseDamageMultiplier + (0.015f * Loffset);  // ← NERFED!
                 break;
 
             case ShipArchetype.DamageDealer:
-                // e.g. each level => +150 HP, +1 armor, +0.04 damage multiplier
                 maxHealth = baseHealth * (1f + 0.02f * Loffset);
                 armor = baseArmorValue + (1f   * Loffset);
                 damageMultiplier = baseDamageMultiplier + (0.04f * Loffset);
                 break;
 
             case ShipArchetype.AllAround:
-                // a moderate approach
                 maxHealth = baseHealth * (1f + 0.03f * Loffset);
                 armor     = baseArmorValue + (3f * Loffset);
                 damageMultiplier = baseDamageMultiplier + (0.03f * Loffset);
                 break;
 
             case ShipArchetype.Controller:
-                // maybe a balanced approach but slightly less direct damage
+                // BALANCE FIX: Buffed damage scaling from 0.025 → 0.03
                 maxHealth = baseHealth * (1f + 0.02f * Loffset);
                 armor = baseArmorValue + (2f * Loffset);
-                damageMultiplier = baseDamageMultiplier + (0.025f * Loffset);
-                // if you had a special "utility" stat, you might scale that as well
+                damageMultiplier = baseDamageMultiplier + (0.03f * Loffset);  // ← BUFFED!
                 break;
         }
+
         currentHealth = maxHealth;
         // If the current health is above new max, clamp it
         if (currentHealth > maxHealth) currentHealth = maxHealth;
 
-        Debug.Log($"{playerName} => L{shipLevel}, HP={maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+        Debug.Log($"{playerName} (HARDCODED) => L{shipLevel}, HP={maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
     }
 
     void SetupTrajectoryLine()
@@ -558,7 +616,8 @@ void Update()
 
     void PredictMissileTrajectory(Vector3 initialPos, Vector3 initialVel)
     {
-        Planet[] planets = FindObjectsOfType<Planet>();
+        // Use cached planets for performance (avoids expensive FindObjectsOfType every frame!)
+        Planet[] planets = GameManager.GetCachedPlanets();
         Vector3 currentPos = initialPos;
         Vector3 currentVel = initialVel * 0.5f;
 
@@ -1347,7 +1406,9 @@ void OnCollisionEnter(Collision collision)
 
     bool ShipOverlapsWithPlanet(Vector3 testPos)
     {
-        foreach (Planet planet in FindObjectsOfType<Planet>())
+        // Use cached planets for performance
+        Planet[] planets = GameManager.GetCachedPlanets();
+        foreach (Planet planet in planets)
         {
             SphereCollider planetCollider = planet.GetComponent<SphereCollider>();
             if (planetCollider == null)

@@ -9,17 +9,18 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9535ccc37442d374d8ade95656ef6e66, type: 3}
-  m_Name: Multi Missile SO
+  m_Script: {fileID: 11500000, guid: a0eb66ae610010843bd6c6ba12cc796b, type: 3}
+  m_Name: Unmovable
   m_EditorClassIdentifier: 
-  perkName: Multi Missile
-  tier: 1
-  cost: 1
-  icon: {fileID: 21300000, guid: dcaa3d608ca1be9499408e1ad1b676b8, type: 3}
-  minLevel: 5
+  passiveName: Unmovable
+  icon: {fileID: -1216264081, guid: 672d673c129fdde4d944c6f2705144ab, type: 3}
+  passiveType: 2
+  description: Ship is immune to push forces from explosions.
+  unlockLevel: 10
   allowTank: 1
   allowDamageDealer: 1
   allowController: 1
   allowAllAround: 1
-  damageFactor: 0.75
-  spreadAngle: 5
+  value1: 0
+  value2: 0
+  flag1: 0

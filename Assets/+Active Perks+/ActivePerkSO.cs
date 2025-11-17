@@ -1,6 +1,7 @@
 using UnityEngine;
 public abstract class ActivePerkSO : ScriptableObject
 {
+    [Header("Identity")]
     [Tooltip("Display name")]
     public string perkName;
 
@@ -20,11 +21,58 @@ public abstract class ActivePerkSO : ScriptableObject
     /// </summary>
     [HideInInspector] public int minLevel;
 
+    [Header("Archetype Restrictions")]
+    [Tooltip("Can Tank ships use this perk?")]
+    public bool allowTank = true;
+
+    [Tooltip("Can DamageDealer ships use this perk?")]
+    public bool allowDamageDealer = true;
+
+    [Tooltip("Can Controller ships use this perk?")]
+    public bool allowController = true;
+
+    [Tooltip("Can AllAround ships use this perk?")]
+    public bool allowAllAround = true;
+
     void OnValidate()
     {
         cost = tier;
         // auto‑set unlock level based on tier
         minLevel = tier == 1 ? 5 : tier == 2 ? 15 : 20;
+    }
+
+    /// <summary>
+    /// Checks if this perk can be used by a ship with the given archetype
+    /// </summary>
+    public bool CanBeUsedBy(ShipArchetype archetype)
+    {
+        switch (archetype)
+        {
+            case ShipArchetype.Tank:
+                return allowTank;
+            case ShipArchetype.DamageDealer:
+                return allowDamageDealer;
+            case ShipArchetype.Controller:
+                return allowController;
+            case ShipArchetype.AllAround:
+                return allowAllAround;
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// Returns a list of allowed archetypes as a string
+    /// </summary>
+    public string GetAllowedArchetypes()
+    {
+        string result = "";
+        if (allowTank) result += "Tank, ";
+        if (allowDamageDealer) result += "DamageDealer, ";
+        if (allowController) result += "Controller, ";
+        if (allowAllAround) result += "AllAround, ";
+
+        return result.TrimEnd(',', ' ');
     }
 
     public abstract IActivePerk CreatePerk();

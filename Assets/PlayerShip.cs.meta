@@ -3,7 +3,11 @@ guid: ee87af78b9b8f324184cd3c7239e01fb
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - shipPreset: {instanceID: 0}
+  - missilePrefab: {instanceID: 0}
+  - equippedMissile: {instanceID: 0}
+  - playerUI: {instanceID: 0}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

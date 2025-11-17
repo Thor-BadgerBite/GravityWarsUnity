@@ -670,7 +670,8 @@ private void AvoidPlanetsPredictively()
 
     void ApplyGravity()
     {
-        Planet[] planets = FindObjectsOfType<Planet>();
+        // Use cached planets for performance (avoids expensive FindObjectsOfType every frame!)
+        Planet[] planets = GameManager.GetCachedPlanets();
         totalGravitationalForce = Vector3.zero;
 
         foreach (Planet planet in planets)

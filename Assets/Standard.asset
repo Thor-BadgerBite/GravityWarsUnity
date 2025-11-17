@@ -20,7 +20,7 @@ MonoBehaviour:
   overridePhysicsMass: 0
   customPhysicsMass: 1.5
   minLaunchVelocity: 0.1
-  maxLaunchVelocity: 10
+  maxLaunchVelocity: 20
   maxVelocity: 50
   drag: 0.01
   velocityApproachRate: 0.1

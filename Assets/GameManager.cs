@@ -153,6 +153,34 @@ public class GameManager : MonoBehaviour
     private List<SpawnedPlanet> spawnedPlanets = new List<SpawnedPlanet>();
     private List<Planet> planetComponents = new List<Planet>();
 
+    // ===== PLANET CACHE SYSTEM =====
+    // Cached planet array for performance - avoids expensive FindObjectsOfType calls
+    private static Planet[] cachedPlanets = null;
+
+    /// <summary>
+    /// Gets the cached planet array. Much faster than FindObjectsOfType<Planet>()!
+    /// Call UpdatePlanetCache() when planets spawn/despawn.
+    /// </summary>
+    public static Planet[] GetCachedPlanets()
+    {
+        if (cachedPlanets == null || cachedPlanets.Length == 0)
+        {
+            Debug.LogWarning("Planet cache is empty! Updating cache now...");
+            UpdatePlanetCache();
+        }
+        return cachedPlanets;
+    }
+
+    /// <summary>
+    /// Updates the planet cache. Call this after spawning or destroying planets.
+    /// </summary>
+    public static void UpdatePlanetCache()
+    {
+        cachedPlanets = FindObjectsOfType<Planet>();
+        Debug.Log($"Planet cache updated: {cachedPlanets.Length} planets found");
+    }
+    // ===== END PLANET CACHE SYSTEM =====
+
     private class SpawnedPlanet
     {
         public GameObject gameObject;
@@ -323,13 +351,17 @@ public class GameManager : MonoBehaviour
 
    void ClearExistingPlanetsAndShips()
     {
-        // Destroy all planets
-        foreach (var planet in FindObjectsOfType<Planet>())
+        // Destroy all planets (use cached planets if available, otherwise find them)
+        Planet[] planetsToDestroy = cachedPlanets ?? FindObjectsOfType<Planet>();
+        foreach (var planet in planetsToDestroy)
         {
             Destroy(planet.gameObject);
         }
         planetComponents.Clear();
         spawnedPlanets.Clear();
+
+        // Clear planet cache since all planets are destroyed
+        cachedPlanets = null;
 
         // Destroy all old ships
         PlayerShip[] existingShips = FindObjectsOfType<PlayerShip>();
@@ -414,6 +446,9 @@ public class GameManager : MonoBehaviour
         }
 
         RepositionPlanets();
+
+        // Update planet cache after all planets are spawned
+        UpdatePlanetCache();
     }
 
     void InitializeAvailablePlanets()

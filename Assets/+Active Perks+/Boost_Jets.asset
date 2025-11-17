@@ -12,8 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2ba6d464eab2eae49be79b64c3c2209e, type: 3}
   m_Name: Boost_Jets
   m_EditorClassIdentifier: 
-  perkName: 
+  perkName: Boost Jets
   tier: 2
   cost: 2
   icon: {fileID: 21300000, guid: 7a57eda9a470a50488fafd4fd3c0d629, type: 3}
   minLevel: 15
+  allowTank: 1
+  allowDamageDealer: 1
+  allowController: 1
+  allowAllAround: 1

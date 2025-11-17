@@ -27,10 +27,22 @@ public class PerkManager : MonoBehaviour
     {
         _ship = GetComponent<PlayerShip>();
 
-        // cache your ScriptableObjects
-        _soSlots[0] = tier1Perk;
-        _soSlots[1] = tier2Perk;
-        _soSlots[2] = tier3Perk;
+        // Load perks from ship preset if available (NEW SYSTEM)
+        if (_ship.shipPreset != null)
+        {
+            _soSlots[0] = _ship.shipPreset.tier1Perk;
+            _soSlots[1] = _ship.shipPreset.tier2Perk;
+            _soSlots[2] = _ship.shipPreset.tier3Perk;
+            Debug.Log($"<color=cyan>[PerkManager] Loaded perks from ship preset: {_ship.shipPreset.shipName}</color>");
+        }
+        else
+        {
+            // Fallback to inspector fields (LEGACY SYSTEM - backward compatibility)
+            _soSlots[0] = tier1Perk;
+            _soSlots[1] = tier2Perk;
+            _soSlots[2] = tier3Perk;
+            Debug.LogWarning($"[PerkManager] No ship preset found, using inspector perk fields (old system).");
+        }
 
         // instantiate the runtime perks
         for (int i = 0; i < 3; i++)
@@ -42,7 +54,7 @@ public class PerkManager : MonoBehaviour
         // so we can detect when they actually fire
         _lastShotsCount = _ship.shotsThisRound;
         _lastMode       = _ship.currentMode;   // initialize it
-        
+
     }
 
     void Update()
