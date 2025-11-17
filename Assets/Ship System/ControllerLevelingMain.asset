@@ -12,9 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51065832a733bc74cbdf0c485384e8d4, type: 3}
   m_Name: ControllerLevelingMain
   m_EditorClassIdentifier: 
-  archetype: 2
-  healthScalingPerLevel: 0.03
-  armorScalingPerLevel: 3
-  damageScalingPerLevel: 0.03
+  archetype: 3
+  healthScalingPerLevel: 0.02
+  armorScalingPerLevel: 2
+  damageScalingPerLevel: 0.027
   previewLevel: 10
-  previewStats: 
+  previewStats: '=== Controller at Level 10 ===
+
+    Health: 11800
+
+    Armor: 118,0
+    (22,8% reduction)
+
+    Effective HP: 15281
+
+    Damage Mult: 1,24
+
+    Missile
+    Dmg: 3108 (with 2500 payload)'

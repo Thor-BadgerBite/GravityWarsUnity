@@ -18,12 +18,14 @@ MonoBehaviour:
   shipBody: {fileID: 11400000, guid: f0613290875850c42a63dfafa05f4be1, type: 2}
   levelingFormula: {fileID: 11400000, guid: ed40d41359a208748ac1fdf74e6dcd98, type: 2}
   passives:
-  - {fileID: 0}
-  tier1Perk: {fileID: 0}
-  tier2Perk: {fileID: 0}
-  tier3Perk: {fileID: 0}
-  moveType: {fileID: 0}
-  defaultMissile: {fileID: 0}
+  - {fileID: 11400000, guid: 5f05a661f697e5544a20c609007c3d7b, type: 2}
+  tier1Perk: {fileID: 11400000, guid: 6138185ac1367c4499d7140d6ba61cd9, type: 2}
+  tier2Perk: {fileID: 11400000, guid: 617fdf51fc3989744b108694f4b4a9bd, type: 2}
+  tier3Perk: {fileID: 11400000, guid: d95b8a7aaada4bc498403cd31c3e2af6, type: 2}
+  moveType: {fileID: 11400000, guid: d870944c3d337cf41b844d7c19ddd4d3, type: 2}
+  defaultMissile: {fileID: 11400000, guid: 9fb4504da9015d84a8ca49989f7f3b9b, type: 2}
   requiredAccountLevel: 0
   isPremiumShip: 0
-  validationStatus: "\u2713 All validations passed!"
+  validationStatus: 'ERROR: Move type ''Normal Move'' cannot be used by Tank!
+
+'

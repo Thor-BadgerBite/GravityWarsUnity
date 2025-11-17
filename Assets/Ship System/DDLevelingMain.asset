@@ -12,9 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51065832a733bc74cbdf0c485384e8d4, type: 3}
   m_Name: DDLevelingMain
   m_EditorClassIdentifier: 
-  archetype: 2
-  healthScalingPerLevel: 0.03
-  armorScalingPerLevel: 3
-  damageScalingPerLevel: 0.03
+  archetype: 1
+  healthScalingPerLevel: 0.02
+  armorScalingPerLevel: 1
+  damageScalingPerLevel: 0.04
   previewLevel: 10
-  previewStats: 
+  previewStats: '=== DamageDealer at Level 10 ===
+
+    Health: 11800
+
+    Armor:
+    109,0 (21,4% reduction)
+
+    Effective HP: 15016
+
+    Damage Mult: 1,36
+
+    Missile
+    Dmg: 3400 (with 2500 payload)'

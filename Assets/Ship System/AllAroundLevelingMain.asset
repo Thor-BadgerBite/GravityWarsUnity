@@ -17,4 +17,16 @@ MonoBehaviour:
   armorScalingPerLevel: 3
   damageScalingPerLevel: 0.03
   previewLevel: 10
-  previewStats: 
+  previewStats: '=== AllAround at Level 10 ===
+
+    Health: 12700
+
+    Armor: 127,0
+    (24,1% reduction)
+
+    Effective HP: 16732
+
+    Damage Mult: 1,27
+
+    Missile
+    Dmg: 3175 (with 2500 payload)'

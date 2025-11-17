@@ -20,6 +20,10 @@ MonoBehaviour:
   allowDamageDealer: 1
   allowController: 1
   allowAllAround: 1
+  minMoveSpeed: 2
+  maxMoveSpeed: 10
+  moveDeceleration: 4
+  moveDuration: 2.5
   warpZoomDuration: 0.3
   minScaleFactor: 0.2
   postWarpShakeTime: 1

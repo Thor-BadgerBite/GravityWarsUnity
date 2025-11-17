@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Unmovable
   m_EditorClassIdentifier: 
   passiveName: Unmovable
-  icon: {fileID: 0}
+  icon: {fileID: -1216264081, guid: 672d673c129fdde4d944c6f2705144ab, type: 3}
   passiveType: 2
   description: Ship is immune to push forces from explosions.
   unlockLevel: 10

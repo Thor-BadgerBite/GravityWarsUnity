@@ -12,9 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 51065832a733bc74cbdf0c485384e8d4, type: 3}
   m_Name: TankLevelingMain
   m_EditorClassIdentifier: 
-  archetype: 2
-  healthScalingPerLevel: 0.03
-  armorScalingPerLevel: 3
-  damageScalingPerLevel: 0.03
+  archetype: 0
+  healthScalingPerLevel: 0.04
+  armorScalingPerLevel: 4
+  damageScalingPerLevel: 0.017
   previewLevel: 10
-  previewStats: 
+  previewStats: '=== Tank at Level 10 ===
+
+    Health: 13600
+
+    Armor: 136,0 (25,4%
+    reduction)
+
+    Effective HP: 18224
+
+    Damage Mult: 1,15
+
+    Missile Dmg:
+    2883 (with 2500 payload)'

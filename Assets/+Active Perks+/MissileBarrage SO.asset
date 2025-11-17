@@ -12,11 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06f9016923e16da418954a9e31694e4e, type: 3}
   m_Name: MissileBarrage SO
   m_EditorClassIdentifier: 
-  perkName: 
+  perkName: Missile Barrage
   tier: 2
   cost: 2
-  icon: {fileID: 0}
-  minLevel: 0
+  icon: {fileID: 21300000, guid: eb68befdfd7241a438b19a8ab6e4a1aa, type: 3}
+  minLevel: 15
+  allowTank: 1
+  allowDamageDealer: 1
+  allowController: 1
+  allowAllAround: 1
   damageFactor: 0.4
   spread: 5
   interval: 1

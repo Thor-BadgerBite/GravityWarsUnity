@@ -16,10 +16,15 @@ MonoBehaviour:
   archetype: 0
   visualPrefab: {fileID: 2288132525519809735, guid: ddc8ceeb2cef97843ac9c43f9fb42855, type: 3}
   icon: {fileID: 0}
-  baseHealth: 11000
-  baseArmor: 100
-  baseDamageMultiplier: 1
+  baseHealth: 15000
+  baseArmor: 80
+  baseDamageMultiplier: 1.2
   actionPointsPerTurn: 3
+  rotationSpeed: 50
+  maxTiltAngle: 40
+  tiltSpeed: 5
+  fineRotationMultiplier: 0.2
+  fineTiltMultiplier: 0.2
   canUseLightMissiles: 0
   canUseMediumMissiles: 1
   canUseHeavyMissiles: 1
