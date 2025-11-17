@@ -1041,10 +1041,67 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"Game Over. {winner.playerName} wins!");
         yield return StartCoroutine(FadeOverlay(true, $"Game Over!\n{winner.playerName} wins the game!"));
+
+        // ===== PROGRESSION SYSTEM: Award match XP =====
+        AwardMatchProgression(winner);
+        // ==============================================
+
         yield return new WaitForSeconds(gameOverDuration);
         ResetScores();
         currentRound = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    /// <summary>
+    /// Awards XP and progression after a match ends
+    /// </summary>
+    private void AwardMatchProgression(PlayerShip winner)
+    {
+        // Check if progression system is active
+        if (ProgressionManager.Instance == null)
+        {
+            Debug.LogWarning("[GameManager] ProgressionManager not found, skipping XP award");
+            return;
+        }
+
+        // Determine winner and loser
+        PlayerShip player1 = player1Ship;
+        PlayerShip player2 = player2Ship;
+
+        bool player1Won = (winner == player1);
+        int winnerRoundsWon = winner.score;
+        int loserRoundsWon = player1Won ? player2.score : player1.score;
+
+        // Calculate damage dealt (TODO: Track this during match)
+        // For now, use a placeholder based on rounds won
+        int winnerDamage = winnerRoundsWon * 5000; // Rough estimate
+        int loserDamage = loserRoundsWon * 5000;
+
+        // Get ship loadouts (if custom ships are being used)
+        // For now, we'll pass null and XP will be awarded to account only
+        CustomShipLoadout winnerLoadout = null;  // TODO: Get from ship selection
+        CustomShipLoadout loserLoadout = null;
+
+        // Award XP to winner
+        Debug.Log($"[GameManager] Awarding XP to winner: {winner.playerName}");
+        ProgressionManager.Instance.AwardMatchXP(
+            won: true,
+            roundsWon: winnerRoundsWon,
+            damageDealt: winnerDamage,
+            usedLoadout: winnerLoadout
+        );
+
+        // Award XP to loser (reduced, but still something)
+        PlayerShip loser = player1Won ? player2 : player1;
+        Debug.Log($"[GameManager] Awarding participation XP to: {loser.playerName}");
+        ProgressionManager.Instance.AwardMatchXP(
+            won: false,
+            roundsWon: loserRoundsWon,
+            damageDealt: loserDamage,
+            usedLoadout: loserLoadout
+        );
+
+        Debug.Log("[GameManager] Match progression awarded!");
     }
 
     void ResetScores()
