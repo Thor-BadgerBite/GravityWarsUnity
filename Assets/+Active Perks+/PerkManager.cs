@@ -66,20 +66,15 @@ public class PerkManager : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha2)) ToggleSlot(1);
         if (Input.GetKeyDown(KeyCode.Alpha3)) ToggleSlot(2);
 
-        // detect when they actually fire a shot
-        if (_ship.shotsThisRound > _lastShotsCount)
-        {
-            HandleShotFired();
-            _lastShotsCount = _ship.shotsThisRound;
-        }
+        // REMOVED: Shot detection (obsolete, now handled by ActivateToggledPerk + ConsumeToggledPerk)
+        // The old approach detected shots too late (after missile spawned)
 
-        // <-- new: refresh UI if the action mode changed
+        // Refresh UI if the action mode changed
         if (_ship.currentMode != _lastMode)
         {
             _lastMode = _ship.currentMode;
             RefreshUI();
         }
-        
     }
 
     /// <summary>
@@ -115,24 +110,60 @@ public class PerkManager : MonoBehaviour
         RefreshUI();
     }
 
-    private void HandleShotFired()
+    /// <summary>
+    /// NEW: Activates the toggled perk to set flags BEFORE firing.
+    /// Called from PlayerShip.FireMissile() BEFORE spawning the missile.
+    /// Does NOT deduct action points yet - that happens in ConsumeToggledPerk().
+    /// </summary>
+    public void ActivateToggledPerk()
     {
         if (_toggledSlot < 0) return;
 
-        // consume N moves
+        var so = _soSlots[_toggledSlot];
+        var perk = _equipped[_toggledSlot];
+
+        // Final validation before activation
+        if (so == null || perk == null || !perk.CanActivate(_ship))
+        {
+            Debug.LogWarning($"[PerkManager] Cannot activate perk in slot {_toggledSlot}!");
+            _toggledSlot = -1;
+            RefreshUI();
+            return;
+        }
+
+        // Activate the perk (sets flags like nextMultiEnabled, etc.)
+        Debug.Log($"[PerkManager] Activating {so.perkName} BEFORE firing missile");
+        perk.Activate(_ship);
+        _usedThisTurn[_toggledSlot] = true;
+    }
+
+    /// <summary>
+    /// NEW: Consumes the action points and clears toggle AFTER firing.
+    /// Called from GameManager.PlayerActionUsed() AFTER the missile spawns.
+    /// </summary>
+    public void ConsumeToggledPerk()
+    {
+        if (_toggledSlot < 0) return;
+
+        // Deduct action points
         int cost = _equipped[_toggledSlot].Cost;
         _ship.movesRemainingThisRound = Mathf.Max(0, _ship.movesRemainingThisRound - cost);
 
-        // execute the perk
-        _equipped[_toggledSlot].Activate(_ship);
-        _usedThisTurn[_toggledSlot] = true;
+        Debug.Log($"[PerkManager] Consumed {cost} action point(s) for perk in slot {_toggledSlot}");
 
-        // clear the toggle
+        // Clear the toggle
         _toggledSlot = -1;
 
-        // update bars etc.
+        // Update UI
         GameManager.Instance.UpdateFightingUI_AtRoundStart();
         RefreshUI();
+    }
+
+    private void HandleShotFired()
+    {
+        // OBSOLETE: This method is no longer used.
+        // Perk activation split into ActivateToggledPerk() and ConsumeToggledPerk()
+        Debug.LogWarning("[PerkManager] HandleShotFired() is obsolete!");
     }
 
     public void RefreshUI()
@@ -193,6 +224,8 @@ public class PerkManager : MonoBehaviour
 
     public void OnActionExecuted()
     {
-        HandleShotFired();
+        // NEW: Just consume the action points and clear toggle
+        // (Perk was already activated in ActivateToggledPerk() before firing)
+        ConsumeToggledPerk();
     }
 }

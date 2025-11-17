@@ -20,14 +20,14 @@ public class MultiMissilePerk : IActivePerk
     public void Activate(PlayerShip ship)
     {
         used = true;
-        ship.movesRemainingThisRound -= Cost;
-        GameManager.Instance.UpdateFightingUI_AtRoundStart();
+        // BUG FIX: Removed duplicate action point deduction (PerkManager.ConsumeToggledPerk() handles this)
+        // BUG FIX: Removed UpdateFightingUI call (also handled by ConsumeToggledPerk)
 
         // flag the next shot to be a multi-missile volley
         ship.nextMultiEnabled         = true;
         ship.nextMultiDamageFactor    = so.damageFactor;
         ship.nextMultiSpreadDeg       = so.spreadAngle;
 
-        Debug.Log($"Multi Missile perk activated: spread ±{so.spreadAngle}°, damageFactor {so.damageFactor}");
+        Debug.Log($"[MultiMissilePerk] Perk activated: spread ±{so.spreadAngle}°, damageFactor {so.damageFactor}");
     }
 }

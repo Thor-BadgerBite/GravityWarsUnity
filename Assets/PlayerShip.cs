@@ -685,7 +685,16 @@ void Update()
     void FireMissile()
 {
     lastFireTime = Time.time;
-    // NOTE: PlayerActionUsed() moved to END of function to ensure missile is spawned first
+
+    // ===== BUG FIX: Activate toggled perk BEFORE spawning missiles! =====
+    // This sets the flags (nextMultiEnabled, nextExplosiveEnabled, etc.) BEFORE we check them.
+    // Previously this was called at the END, causing perks to activate for the NEXT shot!
+    PerkManager perkManager = GetComponent<PerkManager>();
+    if (perkManager != null)
+    {
+        perkManager.ActivateToggledPerk();
+    }
+    // =====================================================================
 
     // 1) Capture the angle you want to fire at:
     float baseAngle    = GetFiringAngle();

@@ -20,9 +20,11 @@ public class MissileBarragePerk : IActivePerk
     public void Activate(PlayerShip ship)
     {
         used = true;
-        ship.movesRemainingThisRound -= Cost;
-        GameManager.Instance.UpdateFightingUI_AtRoundStart();
+        // BUG FIX: Removed duplicate action point deduction (PerkManager.ConsumeToggledPerk() handles this)
+        // BUG FIX: Removed UpdateFightingUI call (also handled by ConsumeToggledPerk)
+
         ship.StartCoroutine(FireMissileBarrage(ship));
+        Debug.Log($"[MissileBarragePerk] Perk activated: firing barrage of {4} missiles");
     }
 
     private IEnumerator FireMissileBarrage(PlayerShip ship)

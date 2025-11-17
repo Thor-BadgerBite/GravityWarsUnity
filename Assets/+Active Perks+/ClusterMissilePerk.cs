@@ -20,13 +20,13 @@ public class ClusterMissilePerk : IActivePerk
     public void Activate(PlayerShip ship)
     {
         used = true;
-        ship.movesRemainingThisRound -= Cost;
-        GameManager.Instance.UpdateFightingUI_AtRoundStart();
+        // BUG FIX: Removed duplicate action point deduction (PerkManager.ConsumeToggledPerk() handles this)
+        // BUG FIX: Removed UpdateFightingUI call (also handled by ConsumeToggledPerk)
 
         // flag the next missile to be a cluster
         ship.nextClusterEnabled          = true;
         ship.nextClusterDamageFactor     = so.damageFactor;
         ship.nextClusterSpreadDeg        = so.spreadAngle;
-        Debug.Log($"Cluster missile perk activated: damage×{so.damageFactor}, spread±{so.spreadAngle}°");
+        Debug.Log($"[ClusterMissilePerk] Perk activated: damage×{so.damageFactor}, spread±{so.spreadAngle}°");
     }
 }
