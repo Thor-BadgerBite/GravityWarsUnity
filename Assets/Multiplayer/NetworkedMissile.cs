@@ -189,10 +189,20 @@ namespace GravityWars.Multiplayer
 
         private void ServerPhysicsUpdate()
         {
-            // Apply gravity (toward center of arena)
-            Vector2 gravityDirection = (Vector2.zero - (Vector2)transform.position).normalized;
-            float gravityStrength = 5f; // Slightly less than ships for interesting trajectories
-            _rigidbody.AddForce(gravityDirection * gravityStrength, ForceMode2D.Force);
+            // Apply gravity - Use custom Planet-based gravitational system (EXACT same as local hotseat mode)
+            Planet[] planets = GameManager.GetCachedPlanets();
+            if (planets != null && planets.Length > 0)
+            {
+                Vector2 totalForce = Vector2.zero;
+                foreach (Planet planet in planets)
+                {
+                    if (planet != null)
+                    {
+                        totalForce += (Vector2)planet.CalculateGravitationalPull(transform.position, _rigidbody.mass);
+                    }
+                }
+                _rigidbody.AddForce(totalForce, ForceMode2D.Force);
+            }
 
             // Update rotation to face direction of travel
             if (_rigidbody.velocity != Vector2.zero)

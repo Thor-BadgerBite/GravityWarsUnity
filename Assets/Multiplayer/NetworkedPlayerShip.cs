@@ -36,7 +36,6 @@ namespace GravityWars.Multiplayer
         [SerializeField] private float moveSpeed = 5f;
         [SerializeField] private float rotationSpeed = 180f;
         [SerializeField] private float maxHealth = 100f;
-        [SerializeField] private float gravityStrength = 10f;
 
         [Header("Combat Configuration")]
         [SerializeField] private GameObject missilePrefab;
@@ -310,9 +309,20 @@ namespace GravityWars.Multiplayer
                 _rigidbody.AddForce(thrustDirection * moveSpeed * _currentInput.moveInput, ForceMode2D.Force);
             }
 
-            // Apply gravity (toward center of arena, for example)
-            Vector2 gravityDirection = (Vector2.zero - (Vector2)transform.position).normalized;
-            _rigidbody.AddForce(gravityDirection * gravityStrength, ForceMode2D.Force);
+            // Apply gravity - Use custom Planet-based gravitational system (EXACT same as local hotseat mode)
+            Planet[] planets = GameManager.GetCachedPlanets();
+            if (planets != null && planets.Length > 0)
+            {
+                Vector2 totalForce = Vector2.zero;
+                foreach (Planet planet in planets)
+                {
+                    if (planet != null)
+                    {
+                        totalForce += (Vector2)planet.CalculateGravitationalPull(transform.position, _rigidbody.mass);
+                    }
+                }
+                _rigidbody.AddForce(totalForce, ForceMode2D.Force);
+            }
 
             // Limit velocity
             if (_rigidbody.velocity.magnitude > moveSpeed * 2f)
@@ -342,9 +352,21 @@ namespace GravityWars.Multiplayer
                 _predictedVelocity += thrustDirection * moveSpeed * _currentInput.moveInput * Time.deltaTime;
             }
 
-            // Apply gravity
-            Vector2 gravityDirection = (Vector2.zero - _predictedPosition).normalized;
-            _predictedVelocity += gravityDirection * gravityStrength * Time.deltaTime;
+            // Apply gravity - Use custom Planet-based gravitational system (EXACT same as local hotseat mode)
+            Planet[] planets = GameManager.GetCachedPlanets();
+            if (planets != null && planets.Length > 0)
+            {
+                Vector2 totalForce = Vector2.zero;
+                foreach (Planet planet in planets)
+                {
+                    if (planet != null)
+                    {
+                        totalForce += (Vector2)planet.CalculateGravitationalPull(_predictedPosition, _rigidbody.mass);
+                    }
+                }
+                // Divide by mass to get acceleration (matching Unity's ForceMode.Force behavior)
+                _predictedVelocity += (totalForce / _rigidbody.mass) * Time.deltaTime;
+            }
 
             // Limit velocity
             if (_predictedVelocity.magnitude > moveSpeed * 2f)
