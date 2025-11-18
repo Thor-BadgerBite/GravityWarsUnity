@@ -319,9 +319,7 @@ public class NetworkInputManager : NetworkBehaviour
         PlayerShip ship = GetShipForPlayer(input.playerId);
         if (ship != null)
         {
-            // The ship's existing rotation logic will be called
-            // We just need to set the input value
-            // This is handled by the GameManager routing
+            ship.ApplyNetworkRotation(input.rotationDelta);
         }
     }
 
@@ -330,7 +328,8 @@ public class NetworkInputManager : NetworkBehaviour
         PlayerShip ship = GetShipForPlayer(input.playerId);
         if (ship != null)
         {
-            // Route thrust input to ship
+            // TODO: Apply thrust if needed
+            Debug.Log($"[NetworkInput] Thrust input from player {input.playerId}: {input.thrustAmount}");
         }
     }
 
@@ -338,9 +337,15 @@ public class NetworkInputManager : NetworkBehaviour
     {
         // This is CRITICAL - both clients must spawn missile with EXACT same parameters
         PlayerShip ship = GetShipForPlayer(action.playerId);
-        if (ship != null && GameManager.Instance != null)
+        if (ship != null)
         {
-            GameManager.Instance.ExecuteNetworkFireAction(action);
+            ship.ExecuteNetworkFire(
+                action.spawnPosition,
+                action.spawnRotation,
+                action.initialVelocity,
+                action.fireAngle,
+                action.firePower
+            );
         }
 
         if (action.playerId == _localPlayerId)
@@ -354,6 +359,8 @@ public class NetworkInputManager : NetworkBehaviour
         PlayerShip ship = GetShipForPlayer(action.playerId);
         if (ship != null && GameManager.Instance != null)
         {
+            // TODO: Execute move action on ship
+            Debug.Log($"[NetworkInput] Move action from player {action.playerId} to {action.targetPosition}");
             GameManager.Instance.ExecuteNetworkMoveAction(action);
         }
 

@@ -462,6 +462,10 @@ void Update()
     pos.z = 0;
     transform.position = pos;
 
+    // Check if in networked mode
+    GameManagerNetworkAdapter networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
+    bool isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
+
     // Fine tuning if Shift pressed
     isFineTuning = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
@@ -473,8 +477,15 @@ void Update()
             // If warpMove is true, do warp instantly
             if (warpMove)
             {
-                WarpShip();
-                // do NOT end the turn here. The user can still do another action (fire, or warp again)
+                if (isNetworkedMode)
+                {
+                    // TODO: Network warp move support
+                    Debug.LogWarning("[Network] Warp move not yet supported in multiplayer");
+                }
+                else
+                {
+                    WarpShip();
+                }
             }
             else
             {
@@ -527,8 +538,18 @@ void Update()
 
     float usedRotationSpeed = isFineTuning ? rotationSpeed * fineRotationSpeedMultiplier : rotationSpeed;
     float rotationAmount = rotationInput * usedRotationSpeed * Time.deltaTime;
-    currentZRotation = Mathf.Repeat(currentZRotation + rotationAmount, 360f);
-    ApplyTiltAndRotation(rotationInput);
+
+    // NETWORK ROUTING: Send rotation to network if in networked mode
+    if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
+    {
+        networkAdapter.RoutePlayerRotation(this, rotationAmount);
+    }
+    else if (!isNetworkedMode)
+    {
+        // LOCAL MODE: Apply rotation directly
+        currentZRotation = Mathf.Repeat(currentZRotation + rotationAmount, 360f);
+        ApplyTiltAndRotation(rotationInput);
+    }
 
     // Adjust launch velocity - use missile-specific ranges if equipped
     float effectiveMinLaunch = minLaunchVelocity;
@@ -573,11 +594,29 @@ void Update()
     {
         if (currentMode == PlayerActionMode.Fire)
         {
-            FireMissile();
+            if (isNetworkedMode)
+            {
+                // NETWORK MODE: Send fire action to network
+                SendNetworkFireAction(networkAdapter);
+            }
+            else
+            {
+                // LOCAL MODE: Fire directly
+                FireMissile();
+            }
         }
         else
         {
-            PerformSlingshotMove();
+            if (isNetworkedMode)
+            {
+                // NETWORK MODE: Send move action to network
+                SendNetworkMoveAction(networkAdapter);
+            }
+            else
+            {
+                // LOCAL MODE: Move directly
+                PerformSlingshotMove();
+            }
         }
     }
 
@@ -585,7 +624,108 @@ void Update()
     playerUI?.UpdateUI();
 }
 
+    // ---------------------------------------------------------
+    // NETWORK MULTIPLAYER SUPPORT
+    // ---------------------------------------------------------
 
+    /// <summary>
+    /// Sends fire action to network (called from Update when player presses fire in networked mode)
+    /// </summary>
+    private void SendNetworkFireAction(GameManagerNetworkAdapter adapter)
+    {
+        // Calculate fire parameters
+        float angle = GetFiringAngle();
+        float angleRad = angle * Mathf.Deg2Rad;
+        Vector3 dir = new Vector3(Mathf.Cos(angleRad), Mathf.Sin(angleRad), 0f);
+        Vector3 spawnPos = transform.position + dir * missileSpawnDistance;
+        Quaternion spawnRot = Quaternion.Euler(0, 0, angle);
+        Vector3 initialVelocity = dir * launchVelocity;
+
+        // Send to network (server will validate and broadcast to both clients)
+        adapter.RoutePlayerFire(this, spawnPos, spawnRot, initialVelocity, angle, launchVelocity);
+
+        Debug.Log($"[Network] {playerName} sent fire action - Angle: {angle:F1}°, Velocity: {launchVelocity:F2}");
+    }
+
+    /// <summary>
+    /// Sends move action to network (called from Update when player uses move in networked mode)
+    /// </summary>
+    private void SendNetworkMoveAction(GameManagerNetworkAdapter adapter)
+    {
+        // Calculate target position for precision move (or current position for regular slingshot)
+        Vector3 targetPos = transform.position; // TODO: Calculate actual target for precision moves
+
+        int moveType = 0; // 0=Regular, 1=Precision, 2=Warp
+        if (precisionMove) moveType = 1;
+        if (warpMove) moveType = 2;
+
+        // Send to network
+        adapter.RoutePlayerMove(this, targetPos, moveType);
+
+        Debug.Log($"[Network] {playerName} sent move action - Type: {moveType}");
+    }
+
+    /// <summary>
+    /// Applies rotation from network (called by NetworkInputManager when rotation update received)
+    /// PUBLIC - Called by network adapter
+    /// </summary>
+    public void ApplyNetworkRotation(float rotationDelta)
+    {
+        currentZRotation = Mathf.Repeat(currentZRotation + rotationDelta, 360f);
+
+        // Apply rotation without tilt for network updates (tilt is visual only, not networked)
+        Quaternion zRot = Quaternion.Euler(0, 0, currentZRotation);
+        rb.MoveRotation(zRot);
+    }
+
+    /// <summary>
+    /// Executes fire action from network (called by GameManagerNetworkAdapter when both clients should fire)
+    /// PUBLIC - Called by network adapter
+    /// This spawns the missile with exact parameters from network
+    /// </summary>
+    public void ExecuteNetworkFire(Vector3 spawnPos, Quaternion spawnRot, Vector3 initialVelocity, float angle, float power)
+    {
+        // Spawn missile with exact network parameters
+        if (missilePrefab == null) return;
+
+        GameObject missileObj = Instantiate(missilePrefab, spawnPos, spawnRot);
+        Missile3D missile = missileObj.GetComponent<Missile3D>();
+
+        if (missile != null)
+        {
+            // Apply missile preset stats
+            ApplyMissilePreset(missile);
+
+            // Set owner
+            missile.ownerShip = this.gameObject;
+
+            // Apply initial velocity
+            Rigidbody missileRb = missile.GetComponent<Rigidbody>();
+            if (missileRb != null)
+            {
+                missileRb.velocity = initialVelocity;
+            }
+
+            // Launch with network parameters
+            Vector3 dir = initialVelocity.normalized;
+            missile.Launch(dir, power, this.gameObject, this.damageMultiplier);
+
+            // Store trail for last missile
+            StoreLastMissileTrail(missile);
+
+            Debug.Log($"[Network] {playerName} executed fire from network - Angle: {angle:F1}°, Velocity: {power:F2}");
+        }
+
+        // Clear trajectory line
+        trajectoryLine.positionCount = 0;
+
+        // Update cooldown
+        lastFireTime = Time.time;
+    }
+
+    // ---------------------------------------------------------
+    // END NETWORK MULTIPLAYER SUPPORT
+    // ---------------------------------------------------------
 
     void ApplyTiltAndRotation(float rotationInput)
     {

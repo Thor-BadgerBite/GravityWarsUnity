@@ -170,31 +170,14 @@ public class GameManagerNetworkAdapter : MonoBehaviour
             return;
         }
 
-        // Spawn missile with exact parameters from network
-        GameObject missileObj = Instantiate(
-            firingShip.missilePrefab,
+        // Delegate to PlayerShip's ExecuteNetworkFire method
+        firingShip.ExecuteNetworkFire(
             action.spawnPosition,
-            action.spawnRotation
+            action.spawnRotation,
+            action.initialVelocity,
+            action.fireAngle,
+            action.firePower
         );
-
-        Missile3D missile = missileObj.GetComponent<Missile3D>();
-        if (missile != null)
-        {
-            // Set owner
-            missile.ownerShip = firingShip;
-
-            // Apply exact initial velocity from network
-            Rigidbody missileRb = missile.GetComponent<Rigidbody>();
-            if (missileRb != null)
-            {
-                missileRb.velocity = action.initialVelocity;
-            }
-
-            // Store last trail reference
-            firingShip.StoreLastMissileTrail(missile);
-
-            Debug.Log($"[NetworkAdapter] Executed fire action for player {action.playerId} at tick {action.tick}");
-        }
 
         // Notify turn coordinator that missile flight has started
         if (NetworkTurnCoordinator.Instance != null && NetworkTurnCoordinator.Instance.IsServer)
