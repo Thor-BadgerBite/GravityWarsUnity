@@ -174,11 +174,9 @@ namespace GravityWars.Networking
                 }
 
                 // Save to Unity Cloud Save
-                // TODO: Uncomment when UGS Cloud Save is integrated
-                // await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.SaveAsync(cloudData);
+                await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.SaveAsync(cloudData);
 
-                // MOCK: Simulate cloud save for now
-                Debug.Log($"[CloudSave] ✓ Successfully saved to cloud (MOCK) for player: {data.playerID}");
+                Debug.Log($"[CloudSave] ✓ Successfully saved to cloud for player: {data.playerID}");
                 Debug.Log($"[CloudSave]   - Save count: {data.saveCount}");
                 Debug.Log($"[CloudSave]   - Device: {data.deviceID}");
                 Debug.Log($"[CloudSave]   - Data size: {saveJson.Length} bytes");
@@ -237,8 +235,6 @@ namespace GravityWars.Networking
 
             try
             {
-                // TODO: Uncomment when UGS Cloud Save is integrated
-                /*
                 // Load all save data keys
                 var cloudData = await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.LoadAsync(
                     new HashSet<string> { SAVE_DATA_KEY, SAVE_METADATA_KEY, SAVE_HASH_KEY, LAST_SYNC_TIME_KEY }
@@ -285,11 +281,6 @@ namespace GravityWars.Networking
                 _currentSaveData = data;
                 OnLoadCompleted?.Invoke(data);
                 return data;
-                */
-
-                // MOCK: Return null for now (no cloud save implementation yet)
-                Debug.Log("[CloudSave] LoadFromCloud() - UGS Cloud Save not implemented yet (TODO)");
-                return null;
             }
             catch (Exception e)
             {
@@ -444,8 +435,6 @@ namespace GravityWars.Networking
         {
             try
             {
-                // TODO: Uncomment when UGS Cloud Save is integrated
-                /*
                 var currentData = await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.LoadAsync(
                     new HashSet<string> { SAVE_DATA_KEY }
                 );
@@ -460,10 +449,7 @@ namespace GravityWars.Networking
                     await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.SaveAsync(backupData);
                     Debug.Log("[CloudSave] Backup created successfully");
                 }
-                */
 
-                // MOCK
-                Debug.Log("[CloudSave] Backup created (MOCK)");
                 return true;
             }
             catch (Exception e)
@@ -487,16 +473,13 @@ namespace GravityWars.Networking
 
             try
             {
-                // TODO: Uncomment when UGS Cloud Save is integrated
-                /*
                 await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(SAVE_DATA_KEY);
                 await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(SAVE_METADATA_KEY);
                 await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(SAVE_HASH_KEY);
                 await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(BACKUP_DATA_KEY);
                 await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(LAST_SYNC_TIME_KEY);
-                */
 
-                Debug.Log("[CloudSave] ✓ Cloud save deleted successfully (MOCK)");
+                Debug.Log("[CloudSave] ✓ Cloud save deleted successfully");
                 _currentSaveData = null;
                 _hasUnsavedChanges = false;
                 return true;
