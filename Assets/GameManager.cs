@@ -349,7 +349,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-   void ClearExistingPlanetsAndShips()
+   public void ClearExistingPlanetsAndShips()
     {
         // Destroy all planets (use cached planets if available, otherwise find them)
         Planet[] planetsToDestroy = cachedPlanets ?? FindObjectsOfType<Planet>();
@@ -1372,7 +1372,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates one icon based on the ship’s move‐type
+    /// Updates one icon based on the ship's move‐type
     /// and movesRemainingThisRound.
     /// </summary>
     void UpdateMoveIconUI(PlayerShip ship, Image icon)
@@ -1386,6 +1386,99 @@ public class GameManager : MonoBehaviour
         icon.sprite = GetMoveSprite(mt, enabled);
     }
 
+    // ---------------------------------------------------------
+    // NETWORK MULTIPLAYER SUPPORT
+    // ---------------------------------------------------------
+
+    /// <summary>
+    /// Called by NetworkTurnCoordinator when players are assigned
+    /// </summary>
+    public void OnNetworkPlayersAssigned(ulong player1Id, ulong player2Id)
+    {
+        Debug.Log($"[GameManager] Network players assigned - P1: {player1Id}, P2: {player2Id}");
+        // Additional setup if needed
+    }
+
+    /// <summary>
+    /// Called by NetworkTurnCoordinator when turn state changes
+    /// </summary>
+    public void OnNetworkTurnStateChanged(GravityWars.Multiplayer.TurnStateChange state)
+    {
+        Debug.Log($"[GameManager] Network turn state changed to {state.phase}");
+
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.OnTurnStateChanged(state);
+        }
+    }
+
+    /// <summary>
+    /// Called by NetworkInputManager to execute fire action deterministically
+    /// </summary>
+    public void ExecuteNetworkFireAction(GravityWars.Multiplayer.PlayerFireAction action)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.ExecuteNetworkFireAction(action);
+        }
+    }
+
+    /// <summary>
+    /// Called by NetworkInputManager to execute move action deterministically
+    /// </summary>
+    public void ExecuteNetworkMoveAction(GravityWars.Multiplayer.PlayerMoveAction action)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.ExecuteNetworkMoveAction(action);
+        }
+    }
+
+    /// <summary>
+    /// Called when missile is destroyed in networked game
+    /// </summary>
+    public void OnNetworkMissileDestroyed(GravityWars.Multiplayer.MissileDestroyedEvent evt)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.OnNetworkMissileDestroyed(evt);
+        }
+    }
+
+    /// <summary>
+    /// Called when score is updated from server
+    /// </summary>
+    public void OnNetworkScoreUpdated(int player1Score, int player2Score)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.OnScoreUpdated(player1Score, player2Score);
+        }
+    }
+
+    /// <summary>
+    /// Called when round ends in networked game
+    /// </summary>
+    public void OnNetworkRoundEnd(int newRoundNumber)
+    {
+        Debug.Log($"[GameManager] Round {newRoundNumber} starting");
+        // Reset arena for new round
+        ResetForNewRound();
+    }
+
+    /// <summary>
+    /// Called when match ends in networked game
+    /// </summary>
+    public void OnNetworkMatchEnd(ulong winnerId, int player1Score, int player2Score)
+    {
+        Debug.Log($"[GameManager] Match ended - Winner: {winnerId}, Score: {player1Score}-{player2Score}");
+        // Show match end screen
+    }
 
 
 }
