@@ -55,59 +55,31 @@ public class GameManagerNetworkAdapter : MonoBehaviour
     /// <summary>
     /// Spawn planets using a seed for deterministic generation.
     /// Both clients will generate identical planet layouts.
+    /// SERVER ONLY - Server generates planets and sends data to clients.
     /// </summary>
-    public PlanetSpawnData[] GenerateDeterministicPlanets(int seed, int unitsToSpawn)
+    public PlanetSpawnData[] GenerateDeterministicPlanets(int seed)
     {
-        // Set random seed for determinism
-        Random.InitState(seed);
+        if (GameManager.Instance == null) return new PlanetSpawnData[0];
 
-        var planetDataList = new System.Collections.Generic.List<PlanetSpawnData>();
+        // Use GameManager's seed-based spawning
+        GameManager.Instance.SpawnPlanetsWithSeed(seed);
 
-        // Use GameManager's existing planet spawning logic, but capture the results
-        // This requires modifications to GameManager to support seeded spawning
-
-        // For now, return empty array - this will be implemented when modifying GameManager
-        return planetDataList.ToArray();
+        // Get the spawned planet data to send to clients
+        return GameManager.Instance.GetSpawnedPlanetData();
     }
 
     /// <summary>
-    /// Spawn planets from network data (client receives from server)
+    /// Spawn planets from network data (client receives from server).
+    /// CLIENT ONLY - Client receives exact planet positions from server.
     /// </summary>
     public void SpawnPlanetsFromNetworkData(PlanetSpawnData[] planetData)
     {
         if (GameManager.Instance == null) return;
 
-        // Clear existing planets
-        GameManager.Instance.ClearExistingPlanetsAndShips();
+        // GameManager now handles this directly
+        GameManager.Instance.SpawnPlanetsFromNetworkData(planetData);
 
-        // Spawn each planet with exact parameters
-        foreach (var data in planetData)
-        {
-            SpawnPlanetAtPosition(data);
-        }
-
-        // Update planet cache for gravity calculations
-        GameManager.UpdatePlanetCache();
-
-        Debug.Log($"[NetworkAdapter] Spawned {planetData.Length} planets from network data");
-    }
-
-    private void SpawnPlanetAtPosition(PlanetSpawnData data)
-    {
-        // Get planet prefab from GameManager's planetInfos array
-        if (GameManager.Instance.planetInfos == null ||
-            data.prefabIndex < 0 ||
-            data.prefabIndex >= GameManager.Instance.planetInfos.Length)
-        {
-            Debug.LogError($"[NetworkAdapter] Invalid planet prefab index: {data.prefabIndex}");
-            return;
-        }
-
-        var planetInfo = GameManager.Instance.planetInfos[data.prefabIndex];
-        GameObject planetObj = Instantiate(planetInfo.prefab, data.position, data.rotation);
-
-        Planet planetComponent = planetObj.GetComponent<Planet>() ?? planetObj.AddComponent<Planet>();
-        planetComponent.SetPlanetProperties(planetInfo.name, data.mass);
+        Debug.Log($"[NetworkAdapter] Client spawned {planetData.Length} planets from network data");
     }
 
     #endregion

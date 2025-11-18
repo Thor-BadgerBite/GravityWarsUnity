@@ -414,6 +414,20 @@ public class GameManager : MonoBehaviour
 
     void SpawnPlanets()
     {
+        // Use system time as seed for local/hotseat mode
+        SpawnPlanetsWithSeed(System.Environment.TickCount);
+    }
+
+    /// <summary>
+    /// Spawn planets using a specific seed for deterministic generation (multiplayer).
+    /// Both clients calling this with the same seed will generate identical planet layouts.
+    /// </summary>
+    public void SpawnPlanetsWithSeed(int seed)
+    {
+        // Set random seed for deterministic generation
+        Random.InitState(seed);
+        Debug.Log($"[GameManager] Spawning planets with seed: {seed}");
+
         InitializeAvailablePlanets();
         if (planetInfos.Length == 0)
         {
@@ -449,6 +463,86 @@ public class GameManager : MonoBehaviour
 
         // Update planet cache after all planets are spawned
         UpdatePlanetCache();
+
+        Debug.Log($"[GameManager] Spawned {planetComponents.Count} planets deterministically");
+    }
+
+    /// <summary>
+    /// Get spawned planet data for network synchronization.
+    /// Server calls this to get planet data to send to clients.
+    /// </summary>
+    public GravityWars.Multiplayer.PlanetSpawnData[] GetSpawnedPlanetData()
+    {
+        var planetDataList = new System.Collections.Generic.List<GravityWars.Multiplayer.PlanetSpawnData>();
+
+        for (int i = 0; i < planetComponents.Count; i++)
+        {
+            Planet planet = planetComponents[i];
+
+            // Find the prefab index for this planet
+            int prefabIndex = System.Array.FindIndex(planetInfos, p => p.name == planet.planetName);
+
+            if (prefabIndex == -1)
+            {
+                Debug.LogWarning($"[GameManager] Could not find prefab index for planet '{planet.planetName}'");
+                continue;
+            }
+
+            var data = new GravityWars.Multiplayer.PlanetSpawnData
+            {
+                position = planet.transform.position,
+                rotation = planet.transform.rotation,
+                mass = planet.mass,
+                prefabIndex = prefabIndex
+            };
+
+            planetDataList.Add(data);
+        }
+
+        return planetDataList.ToArray();
+    }
+
+    /// <summary>
+    /// Spawn planets from network data (client receives from server).
+    /// Used when server already generated planets and sends exact positions to client.
+    /// </summary>
+    public void SpawnPlanetsFromNetworkData(GravityWars.Multiplayer.PlanetSpawnData[] planetData)
+    {
+        Debug.Log($"[GameManager] Spawning {planetData.Length} planets from network data");
+
+        // Clear existing planets first
+        ClearExistingPlanetsAndShips();
+
+        // Spawn each planet with exact parameters
+        foreach (var data in planetData)
+        {
+            if (data.prefabIndex < 0 || data.prefabIndex >= planetInfos.Length)
+            {
+                Debug.LogError($"[GameManager] Invalid planet prefab index: {data.prefabIndex}");
+                continue;
+            }
+
+            var planetInfo = planetInfos[data.prefabIndex];
+            GameObject planetObj = Instantiate(planetInfo.prefab, data.position, data.rotation);
+
+            Planet planetComponent = planetObj.GetComponent<Planet>() ?? planetObj.AddComponent<Planet>();
+            planetComponent.SetPlanetProperties(planetInfo.name, data.mass);
+            planetComponents.Add(planetComponent);
+
+            Renderer planetRenderer = planetObj.GetComponent<Renderer>();
+            float size = Mathf.Max(planetRenderer.bounds.size.x, planetRenderer.bounds.size.y);
+            spawnedPlanets.Add(new SpawnedPlanet
+            {
+                gameObject = planetObj,
+                position = data.position,
+                size = size
+            });
+        }
+
+        // Update planet cache
+        UpdatePlanetCache();
+
+        Debug.Log($"[GameManager] Finished spawning planets from network data");
     }
 
     void InitializeAvailablePlanets()

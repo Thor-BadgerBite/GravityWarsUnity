@@ -176,17 +176,74 @@ public class NetworkTurnCoordinator : NetworkBehaviour
         // Tell clients about player assignments
         NotifyPlayerAssignmentsClientRpc(player1Id, player2Id);
 
-        // Start first round
+        // Start match initialization sequence
         StartCoroutine(StartMatchSequence());
     }
 
     private IEnumerator StartMatchSequence()
     {
         // Brief delay for clients to initialize
+        yield return new WaitForSeconds(0.5f);
+
+        // Generate deterministic arena
+        InitializeArena();
+
+        // Another brief delay for arena setup
         yield return new WaitForSeconds(1f);
 
         // Start with player 1
         StartPreparationPhase(_player1Id);
+    }
+
+    /// <summary>
+    /// Server: Generate and broadcast arena setup (planets, ship spawns)
+    /// </summary>
+    private void InitializeArena()
+    {
+        if (!IsServer) return;
+
+        // Generate random seed from current time
+        int randomSeed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+
+        Debug.Log($"[TurnCoordinator] Generating arena with seed: {randomSeed}");
+
+        // Get adapter for planet generation
+        var adapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
+        if (adapter == null)
+        {
+            Debug.LogError("[TurnCoordinator] GameManagerNetworkAdapter not found!");
+            return;
+        }
+
+        // Server generates planets using seed
+        GravityWars.Multiplayer.PlanetSpawnData[] planetData = adapter.GenerateDeterministicPlanets(randomSeed);
+
+        Debug.Log($"[TurnCoordinator] Generated {planetData.Length} planets");
+
+        // Calculate ship spawn positions (opposite sides of arena)
+        Vector3 player1SpawnPos = new Vector3(-25f, 0f, 0f);  // Left side
+        Vector3 player2SpawnPos = new Vector3(25f, 0f, 0f);   // Right side
+
+        Quaternion player1SpawnRot = Quaternion.Euler(0, 90, -90);   // Facing right
+        Quaternion player2SpawnRot = Quaternion.Euler(0, -90, -90);  // Facing left
+
+        // Create match init data
+        var matchData = new GravityWars.Multiplayer.MatchInitData
+        {
+            randomSeed = randomSeed,
+            player1Id = _player1Id,
+            player2Id = _player2Id,
+            player1SpawnPos = player1SpawnPos,
+            player2SpawnPos = player2SpawnPos,
+            player1SpawnRot = player1SpawnRot,
+            player2SpawnRot = player2SpawnRot,
+            winningScore = winningScore
+        };
+
+        // Broadcast match initialization to all clients
+        InitializeArenaClientRpc(matchData, planetData);
+
+        Debug.Log($"[TurnCoordinator] Arena initialization broadcast complete");
     }
 
     /// <summary>
@@ -421,6 +478,61 @@ public class NetworkTurnCoordinator : NetworkBehaviour
         if (GameManager.Instance != null)
         {
             GameManager.Instance.OnNetworkPlayersAssigned(player1Id, player2Id);
+        }
+    }
+
+    [ClientRpc]
+    private void InitializeArenaClientRpc(GravityWars.Multiplayer.MatchInitData matchData, GravityWars.Multiplayer.PlanetSpawnData[] planetData)
+    {
+        Debug.Log($"[TurnCoordinator] Client received arena initialization - Seed: {matchData.randomSeed}, Planets: {planetData.Length}");
+
+        // Get network adapter
+        var adapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
+        if (adapter == null)
+        {
+            Debug.LogError("[TurnCoordinator] GameManagerNetworkAdapter not found on client!");
+            return;
+        }
+
+        // Spawn planets from network data
+        adapter.SpawnPlanetsFromNetworkData(planetData);
+
+        // Spawn ships at exact positions
+        if (GameManager.Instance != null)
+        {
+            // Clear any existing ships first
+            PlayerShip[] existingShips = FindObjectsOfType<PlayerShip>();
+            foreach (var ship in existingShips)
+            {
+                Destroy(ship.gameObject);
+            }
+
+            // Spawn Player 1 ship
+            GameObject player1Obj = Instantiate(
+                GameManager.Instance.playerShipPrefab,
+                matchData.player1SpawnPos,
+                matchData.player1SpawnRot
+            );
+            player1Obj.name = "Player1Ship";
+            GameManager.Instance.player1Ship = player1Obj.GetComponent<PlayerShip>();
+            GameManager.Instance.player1Ship.playerName = "Player 1";
+            GameManager.Instance.player1Ship.isLeftPlayer = true;
+
+            // Spawn Player 2 ship
+            GameObject player2Obj = Instantiate(
+                GameManager.Instance.playerShipPrefab,
+                matchData.player2SpawnPos,
+                matchData.player2SpawnRot
+            );
+            player2Obj.name = "Player2Ship";
+            GameManager.Instance.player2Ship = player2Obj.GetComponent<PlayerShip>();
+            GameManager.Instance.player2Ship.playerName = "Player 2";
+            GameManager.Instance.player2Ship.isLeftPlayer = false;
+
+            // Initialize UI
+            GameManager.Instance.UpdateFightingUI_AtRoundStart();
+
+            Debug.Log($"[TurnCoordinator] Client arena setup complete - Ships spawned");
         }
     }
 
