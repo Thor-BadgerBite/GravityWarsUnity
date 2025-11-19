@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Missile retrofit system - manages missile unlocks and loadout selection.
+namespace GravityWars.Online
+{
+    /// <summary>
+    /// Missile retrofit system - manages missile unlocks and loadout selection.
 /// Missiles are SEPARATE from ships and can be changed before each match.
 /// Players must unlock missiles through progression and can equip compatible missiles.
 ///
@@ -251,3 +253,4 @@ public class MissileUnlockData
 }
 
 #endregion
+}

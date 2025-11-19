@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Battle Pass system - seasonal progression with free and premium tracks.
+namespace GravityWars.Online
+{
+    /// <summary>
+    /// Battle Pass system - seasonal progression with free and premium tracks.
 /// 25 levels total, resets each season (typically 3 months).
 ///
 /// FREE TRACK: Basic rewards (lower-tier ships, skins, currencies)
@@ -343,3 +345,4 @@ public class BattlePassReward
 }
 
 #endregion
+}

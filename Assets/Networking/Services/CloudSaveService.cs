@@ -6,6 +6,7 @@ using Unity.Services.CloudSave;
 using System.Security.Cryptography;
 using System.Text;
 using GravityWars.CloudSave;
+using SaveData = GravityWars.CloudSave.SaveData;
 
 namespace GravityWars.Networking
 {

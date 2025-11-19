@@ -2,8 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Unity.Services.Matchmaker;
-using Unity.Services.Matchmaker.Models;
+// TODO: Install Unity.Services.Matchmaker package when implementing online matchmaking
+// using Unity.Services.Matchmaker;
+// using Unity.Services.Matchmaker.Models;
 
 /// <summary>
 /// Manages competitive and casual matchmaking for Gravity Wars.
