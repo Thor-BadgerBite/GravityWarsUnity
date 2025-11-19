@@ -42,7 +42,7 @@ public class GameManagerQuestIntegration : MonoBehaviour
     #region Match Tracking
 
     private string _currentPlayerArchetype = "";
-    private string _current OpponentArchetype = "";
+    private string _currentOpponentArchetype = "";
     private int _totalDamageThisMatch = 0;
     private int _missilesHitThisMatch = 0;
 
