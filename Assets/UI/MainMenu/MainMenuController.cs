@@ -259,7 +259,8 @@ public class MainMenuController : MonoBehaviour
 
         if (!CheckRankedUnlocked())
         {
-            ShowLockedMessage("Complete the tutorial to unlock Ranked mode!");
+            int unlockLevel = ProgressionSystem.RANKED_UNLOCK_LEVEL;
+            ShowLockedMessage($"Ranked mode unlocks at Level {unlockLevel}! (Current: Level {_currentProfile.level})");
             return;
         }
 
@@ -407,14 +408,11 @@ public class MainMenuController : MonoBehaviour
 
     /// <summary>
     /// Check if ranked mode is unlocked.
+    /// Uses ProgressionSystem for level-based unlocking.
     /// </summary>
     private bool CheckRankedUnlocked()
     {
-        // Example: Require level 3 and 5 casual matches played
-        bool levelRequirement = _currentProfile.level >= 3;
-        bool matchRequirement = _currentProfile.casualMatchesPlayed >= 5;
-
-        return levelRequirement && matchRequirement;
+        return ProgressionSystem.IsRankedUnlocked(_currentProfile.level);
     }
 
     /// <summary>

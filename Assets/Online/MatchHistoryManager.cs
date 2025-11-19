@@ -292,7 +292,8 @@ public class MatchHistoryManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Check if player leveled up and apply level progression.
+    /// Check if player leveled up and apply level progression with rewards.
+    /// Uses ProgressionSystem for unlock management and rewards.
     /// </summary>
     private void CheckLevelUp(PlayerProfileData profile)
     {
@@ -301,13 +302,71 @@ public class MatchHistoryManager : MonoBehaviour
             profile.currentXP -= profile.xpForNextLevel;
             profile.level++;
 
-            // Increase XP requirement for next level (exponential curve)
-            profile.xpForNextLevel = Mathf.RoundToInt(1000 * Mathf.Pow(1.15f, profile.level - 1));
+            // Get level-up rewards from ProgressionSystem
+            LevelUpReward reward = ProgressionSystem.GetLevelUpReward(profile.level);
 
-            // Level up rewards
-            profile.credits += 100 * profile.level;
+            // Apply rewards
+            profile.credits += reward.credits;
+            profile.gems += reward.gems;
 
-            Debug.Log($"[MatchHistory] {profile.username} leveled up to level {profile.level}!");
+            // Calculate XP requirement for next level
+            profile.xpForNextLevel = ProgressionSystem.CalculateXPForLevel(profile.level + 1);
+
+            // Log level up with rewards
+            Debug.Log($"[MatchHistory] 🎉 {profile.username} leveled up to level {profile.level}!");
+            Debug.Log($"[MatchHistory]   Rewards: +{reward.credits} credits, +{reward.gems} gems");
+
+            // Log unlocks
+            if (reward.unlocks != null && reward.unlocks.Count > 0)
+            {
+                Debug.Log($"[MatchHistory]   🔓 New unlocks:");
+                foreach (var unlock in reward.unlocks)
+                {
+                    Debug.Log($"[MatchHistory]      - {unlock.displayName}: {unlock.description}");
+
+                    // Add unlock to player profile based on type
+                    ApplyUnlock(profile, unlock);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Apply an unlock to the player profile.
+    /// </summary>
+    private void ApplyUnlock(PlayerProfileData profile, UnlockData unlock)
+    {
+        switch (unlock.type)
+        {
+            case UnlockType.ShipClass:
+                // Ship class unlocks are level-based, no need to store
+                Debug.Log($"[MatchHistory] Ship class unlocked: {unlock.displayName}");
+                break;
+
+            case UnlockType.CustomSlot:
+                // Custom slot unlocks are level-based, no need to store
+                Debug.Log($"[MatchHistory] Custom slot unlocked: {unlock.displayName}");
+                break;
+
+            case UnlockType.Ship:
+                // Add specific ship to unlocked ships
+                if (!profile.unlockedShipModels.Contains(unlock.id))
+                {
+                    profile.unlockedShipModels.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] Ship unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.Feature:
+            case UnlockType.GameMode:
+                // Feature unlocks are level-based, no need to store
+                Debug.Log($"[MatchHistory] Feature unlocked: {unlock.displayName}");
+                break;
+
+            case UnlockType.Cosmetic:
+                // TODO: Add cosmetic unlock to profile when cosmetics system is implemented
+                Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.displayName}");
+                break;
         }
     }
 
