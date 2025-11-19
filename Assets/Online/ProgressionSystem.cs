@@ -36,6 +36,102 @@ public static class ProgressionSystem
 
     #endregion
 
+    #region Ship Unlock Schedule
+
+    // Starter Ship (given on account creation)
+    public const string STARTER_SHIP = "starter_ship";  // Placeholder name - will be replaced with actual ship
+
+    /// <summary>
+    /// Ship unlock schedule with balanced progression.
+    /// Ships are spaced out to give players time to learn each one.
+    /// </summary>
+    private static readonly Dictionary<int, ShipUnlockData> SHIP_UNLOCKS = new Dictionary<int, ShipUnlockData>
+    {
+        // ALL-AROUND SHIPS (Balanced, beginner-friendly)
+        { 3, new ShipUnlockData("nova_class", "Nova Class", ShipClass.AllAround, "A sleek and agile all-around fighter") },
+        { 7, new ShipUnlockData("phoenix_mk1", "Phoenix Mk-I", ShipClass.AllAround, "Enhanced maneuverability with improved firepower") },
+
+        // TANK SHIPS (High armor, slow movement) - Start after Level 5
+        { 6, new ShipUnlockData("titan_defender", "Titan Defender", ShipClass.Tank, "Heavy armor plating, built to withstand punishment") },
+        { 12, new ShipUnlockData("bastion_class", "Bastion Class", ShipClass.Tank, "Impenetrable shields and reinforced hull") },
+        { 18, new ShipUnlockData("juggernaut", "Juggernaut", ShipClass.Tank, "Massive firepower with unbreakable defenses") },
+
+        // Milestone reward for reaching ranked
+        { 10, new ShipUnlockData("eclipse_striker", "Eclipse Striker", ShipClass.AllAround, "A gift for reaching competitive play!") },
+
+        // DAMAGE DEALER SHIPS (Glass cannon, high risk/reward) - Start after Level 15
+        { 16, new ShipUnlockData("viper_assault", "Viper Assault", ShipClass.DamageDealer, "Lightning-fast attacks with devastating firepower") },
+        { 19, new ShipUnlockData("reaper_class", "Reaper Class", ShipClass.DamageDealer, "High-energy weapons for maximum destruction") },
+        { 23, new ShipUnlockData("spectre_hunter", "Spectre Hunter", ShipClass.DamageDealer, "Precision strikes that eliminate targets instantly") },
+
+        // Milestone reward for 2nd custom slot
+        { 20, new ShipUnlockData("horizon_vanguard", "Horizon Vanguard", ShipClass.AllAround, "Versatile combat ship for your new loadout slot") },
+
+        // CONTROLLER SHIPS (Utility, crowd control, special abilities) - Start after Level 25
+        { 26, new ShipUnlockData("nexus_command", "Nexus Command", ShipClass.Controller, "Deploy tactical abilities to control the battlefield") },
+        { 28, new ShipUnlockData("oracle_class", "Oracle Class", ShipClass.Controller, "Advanced targeting systems and disruption tech") },
+        { 32, new ShipUnlockData("phantom_ops", "Phantom Ops", ShipClass.Controller, "Stealth capabilities with electronic warfare suite") },
+
+        // Special milestone ships
+        { 30, new ShipUnlockData("crimson_tempest", "Crimson Tempest", ShipClass.DamageDealer, "Legendary ship awarded to veteran pilots") },
+        { 35, new ShipUnlockData("sovereign_elite", "Sovereign Elite", ShipClass.Tank, "Elite-tier battleship with supreme durability") },
+
+        // Milestone reward for 3rd custom slot
+        { 40, new ShipUnlockData("infinity_class", "Infinity Class", ShipClass.Controller, "Ultimate versatility for master tacticians") },
+
+        // Late-game prestige ships
+        { 45, new ShipUnlockData("omega_apex", "Omega Apex", ShipClass.AllAround, "Pinnacle of engineering excellence") },
+        { 50, new ShipUnlockData("celestial_monarch", "Celestial Monarch", ShipClass.Controller, "The ultimate ship for grandmaster pilots") }
+    };
+
+    /// <summary>
+    /// Get ship unlock data for a specific level.
+    /// Returns null if no ship unlocks at that level.
+    /// </summary>
+    public static ShipUnlockData GetShipUnlock(int level)
+    {
+        return SHIP_UNLOCKS.ContainsKey(level) ? SHIP_UNLOCKS[level] : null;
+    }
+
+    /// <summary>
+    /// Get all ships unlocked up to and including the specified level.
+    /// </summary>
+    public static List<ShipUnlockData> GetAllUnlockedShips(int level)
+    {
+        var unlockedShips = new List<ShipUnlockData>();
+
+        foreach (var kvp in SHIP_UNLOCKS)
+        {
+            if (kvp.Key <= level)
+            {
+                unlockedShips.Add(kvp.Value);
+            }
+        }
+
+        return unlockedShips;
+    }
+
+    /// <summary>
+    /// Get next ship unlock level for player.
+    /// Returns -1 if no more ships to unlock.
+    /// </summary>
+    public static int GetNextShipUnlockLevel(int currentLevel)
+    {
+        int nextLevel = int.MaxValue;
+
+        foreach (var level in SHIP_UNLOCKS.Keys)
+        {
+            if (level > currentLevel && level < nextLevel)
+            {
+                nextLevel = level;
+            }
+        }
+
+        return nextLevel == int.MaxValue ? -1 : nextLevel;
+    }
+
+    #endregion
+
     #region Level-Up Rewards Configuration
 
     /// <summary>
@@ -138,6 +234,19 @@ public static class ProgressionSystem
                 id = "custom_slot_3",
                 displayName = "Custom Ship Slot #3",
                 description = "Create and save a third custom ship loadout!"
+            });
+        }
+
+        // Ship Unlocks (check if a ship unlocks at this level)
+        ShipUnlockData shipUnlock = GetShipUnlock(level);
+        if (shipUnlock != null)
+        {
+            unlocks.Add(new UnlockData
+            {
+                type = UnlockType.Ship,
+                id = shipUnlock.shipId,
+                displayName = shipUnlock.displayName,
+                description = shipUnlock.description
             });
         }
 
@@ -459,6 +568,26 @@ public class UnlockData
     public string id;
     public string displayName;
     public string description;
+}
+
+/// <summary>
+/// Data for a ship unlock reward.
+/// </summary>
+[Serializable]
+public class ShipUnlockData
+{
+    public string shipId;           // e.g., "nova_class"
+    public string displayName;      // e.g., "Nova Class"
+    public ShipClass shipClass;     // Ship class (AllAround, Tank, DD, Controller)
+    public string description;      // Flavor text
+
+    public ShipUnlockData(string id, string name, ShipClass shipClass, string desc)
+    {
+        this.shipId = id;
+        this.displayName = name;
+        this.shipClass = shipClass;
+        this.description = desc;
+    }
 }
 
 #endregion
