@@ -129,6 +129,11 @@ public class PlayerProfileData
     public List<string> unlockedShipModels = new List<string>();
 
     /// <summary>
+    /// Currently equipped ship ID (displayed in main menu)
+    /// </summary>
+    public string currentEquippedShipId = "starter_ship";
+
+    /// <summary>
     /// List of custom ship loadouts
     /// </summary>
     public List<CustomShipLoadout> customLoadouts = new List<CustomShipLoadout>();

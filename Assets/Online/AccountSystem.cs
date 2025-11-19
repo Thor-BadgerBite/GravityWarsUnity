@@ -202,25 +202,45 @@ public class AccountSystem : MonoBehaviour
 
     /// <summary>
     /// Create a new player profile with default values.
+    /// New players receive:
+    /// - Starting ELO: 1200 (Gold rank)
+    /// - Starter ship: "starter_ship"
+    /// - Starting credits: 1000
+    /// - Level 1 with 0 XP
     /// </summary>
     private PlayerProfileData CreateNewPlayerProfile(string playerId, string username)
     {
-        return new PlayerProfileData
+        const string STARTER_SHIP_ID = "starter_ship";
+        const int STARTING_CREDITS = 1000;
+
+        var profile = new PlayerProfileData
         {
             playerId = playerId,
             username = username,
             accountCreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+
+            // Competitive stats
             eloRating = ELORatingSystem.STARTING_ELO,
             peakEloRating = ELORatingSystem.STARTING_ELO,
             currentRank = CompetitiveRank.Gold,
+
+            // Progression
             level = 1,
             currentXP = 0,
             xpForNextLevel = 1000,
-            credits = 0,
+            credits = STARTING_CREDITS,
             gems = 0,
+
+            // Ships - Initialize with starter ship
+            unlockedShipModels = new List<string> { STARTER_SHIP_ID },
+            currentEquippedShipId = STARTER_SHIP_ID,
+
             dataVersion = 1
         };
+
+        Debug.Log($"[AccountSystem] Created new player profile with starter ship: {STARTER_SHIP_ID}");
+        return profile;
     }
 
     #endregion
