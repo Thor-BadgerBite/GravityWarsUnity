@@ -69,6 +69,11 @@ namespace GravityWars.Networking
         private const string BACKUP_DATA_KEY = "player_save_backup_v2";
         private const string LAST_SYNC_TIME_KEY = "last_sync_timestamp_v2";
 
+        // NEW: PlayerProfileData keys for competitive multiplayer
+        private const string PLAYER_PROFILE_KEY = "player_profile_data_v1";
+        private const string PROFILE_HASH_KEY = "player_profile_hash_v1";
+        private const string PROFILE_BACKUP_KEY = "player_profile_backup_v1";
+
         private const float MIN_SAVE_INTERVAL = 5f; // Minimum seconds between saves (rate limiting)
         private const int MAX_OFFLINE_QUEUE_SIZE = 50;
 
@@ -922,6 +927,282 @@ namespace GravityWars.Networking
         public void MarkDirty()
         {
             _hasUnsavedChanges = true;
+        }
+
+        #endregion
+
+        #region PlayerProfileData API (Competitive Multiplayer)
+
+        /// <summary>
+        /// Save complete player profile for competitive multiplayer.
+        /// Includes ELO rating, match history, statistics, and all account data.
+        /// </summary>
+        public async Task<bool> SavePlayerProfile(PlayerProfileData profile)
+        {
+            if (profile == null)
+            {
+                Debug.LogError("[CloudSave] Cannot save null PlayerProfileData");
+                return false;
+            }
+
+            // Rate limiting check
+            if (Time.time - _lastSaveTime < MIN_SAVE_INTERVAL)
+            {
+                Debug.LogWarning($"[CloudSave] Profile save rate limited");
+                return false;
+            }
+
+            // Check if online
+            if (!IsOnline())
+            {
+                Debug.LogWarning("[CloudSave] Offline - cannot save player profile");
+                return false;
+            }
+
+            try
+            {
+                // Backup current profile before overwriting
+                if (enableBackups)
+                {
+                    await BackupCurrentProfile();
+                }
+
+                // Serialize profile data
+                string profileJson = JsonUtility.ToJson(profile);
+                string profileHash = enableAntiCheat ? ComputeDataHash(profileJson) : "";
+
+                // Prepare cloud save dictionary
+                var cloudData = new Dictionary<string, object>
+                {
+                    { PLAYER_PROFILE_KEY, profileJson },
+                    { LAST_SYNC_TIME_KEY, DateTime.UtcNow.ToString("o") }
+                };
+
+                if (enableAntiCheat)
+                {
+                    cloudData[PROFILE_HASH_KEY] = profileHash;
+                }
+
+                // Save to Unity Cloud Save
+                await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.SaveAsync(cloudData);
+
+                Debug.Log($"[CloudSave] ✓ Successfully saved player profile for: {profile.username}");
+                Debug.Log($"[CloudSave]   - ELO: {profile.eloRating}, Rank: {profile.currentRank}");
+                Debug.Log($"[CloudSave]   - Matches: {profile.rankedMatchesPlayed + profile.casualMatchesPlayed}");
+                Debug.Log($"[CloudSave]   - Profile size: {profileJson.Length} bytes");
+
+                _lastSaveTime = Time.time;
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CloudSave] Failed to save player profile: {e.Message}\n{e.StackTrace}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Load complete player profile from cloud storage.
+        /// Returns null if no profile exists (new player).
+        /// </summary>
+        public async Task<PlayerProfileData> LoadPlayerProfile()
+        {
+            if (!IsOnline())
+            {
+                Debug.LogWarning("[CloudSave] Offline - cannot load player profile");
+                return null;
+            }
+
+            try
+            {
+                // Load profile data keys
+                var cloudData = await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.LoadAsync(
+                    new HashSet<string> { PLAYER_PROFILE_KEY, PROFILE_HASH_KEY, LAST_SYNC_TIME_KEY }
+                );
+
+                // Check if profile exists
+                if (!cloudData.ContainsKey(PLAYER_PROFILE_KEY))
+                {
+                    Debug.Log("[CloudSave] No player profile found - new player");
+                    return null;
+                }
+
+                // Deserialize profile data
+                string profileJson = cloudData[PLAYER_PROFILE_KEY].Value.GetAsString();
+                PlayerProfileData profile = JsonUtility.FromJson<PlayerProfileData>(profileJson);
+
+                // Verify hash (anti-cheat)
+                if (enableAntiCheat && cloudData.ContainsKey(PROFILE_HASH_KEY))
+                {
+                    string storedHash = cloudData[PROFILE_HASH_KEY].Value.GetAsString();
+                    string computedHash = ComputeDataHash(profileJson);
+
+                    if (storedHash != computedHash)
+                    {
+                        Debug.LogWarning("[CloudSave] ⚠ Profile hash mismatch - possible tampering detected!");
+                        // In production: flag account for investigation
+                    }
+                }
+
+                Debug.Log($"[CloudSave] ✓ Successfully loaded player profile: {profile.username}");
+                Debug.Log($"[CloudSave]   - ELO: {profile.eloRating}, Rank: {profile.currentRank}");
+                Debug.Log($"[CloudSave]   - Level: {profile.level}, XP: {profile.currentXP}");
+                Debug.Log($"[CloudSave]   - Ranked W/L: {profile.rankedMatchesWon}/{profile.rankedMatchesPlayed - profile.rankedMatchesWon}");
+
+                return profile;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CloudSave] Failed to load player profile: {e.Message}\n{e.StackTrace}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Update specific profile fields (ELO, stats, match history).
+        /// More efficient than saving entire profile.
+        /// </summary>
+        public async Task<bool> UpdateProfileFields(string playerId, Dictionary<string, object> updates)
+        {
+            if (updates == null || updates.Count == 0)
+            {
+                Debug.LogWarning("[CloudSave] No fields to update");
+                return false;
+            }
+
+            if (!IsOnline())
+            {
+                Debug.LogWarning("[CloudSave] Offline - cannot update profile fields");
+                return false;
+            }
+
+            try
+            {
+                // Load current profile
+                PlayerProfileData profile = await LoadPlayerProfile();
+                if (profile == null)
+                {
+                    Debug.LogError("[CloudSave] Cannot update - profile does not exist");
+                    return false;
+                }
+
+                // Apply updates using reflection (or manual field updates)
+                foreach (var kvp in updates)
+                {
+                    var field = typeof(PlayerProfileData).GetField(kvp.Key);
+                    if (field != null)
+                    {
+                        field.SetValue(profile, kvp.Value);
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[CloudSave] Field not found: {kvp.Key}");
+                    }
+                }
+
+                // Save updated profile
+                return await SavePlayerProfile(profile);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CloudSave] Failed to update profile fields: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Create backup of current player profile.
+        /// </summary>
+        private async Task<bool> BackupCurrentProfile()
+        {
+            try
+            {
+                var currentData = await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.LoadAsync(
+                    new HashSet<string> { PLAYER_PROFILE_KEY }
+                );
+
+                if (currentData.ContainsKey(PLAYER_PROFILE_KEY))
+                {
+                    string backupJson = currentData[PLAYER_PROFILE_KEY].Value.GetAsString();
+                    var backupData = new Dictionary<string, object>
+                    {
+                        { PROFILE_BACKUP_KEY, backupJson }
+                    };
+                    await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.SaveAsync(backupData);
+                    Debug.Log("[CloudSave] Profile backup created successfully");
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning($"[CloudSave] Profile backup failed: {e.Message}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Restore player profile from backup.
+        /// </summary>
+        public async Task<PlayerProfileData> RestoreProfileFromBackup()
+        {
+            if (!IsOnline())
+            {
+                Debug.LogWarning("[CloudSave] Offline - cannot restore profile backup");
+                return null;
+            }
+
+            try
+            {
+                var backupData = await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.LoadAsync(
+                    new HashSet<string> { PROFILE_BACKUP_KEY }
+                );
+
+                if (!backupData.ContainsKey(PROFILE_BACKUP_KEY))
+                {
+                    Debug.LogWarning("[CloudSave] No profile backup found");
+                    return null;
+                }
+
+                string backupJson = backupData[PROFILE_BACKUP_KEY].Value.GetAsString();
+                PlayerProfileData profile = JsonUtility.FromJson<PlayerProfileData>(backupJson);
+
+                Debug.Log($"[CloudSave] ✓ Restored profile from backup: {profile.username}");
+                return profile;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CloudSave] Failed to restore profile backup: {e.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Delete player profile from cloud (account deletion).
+        /// WARNING: This is irreversible!
+        /// </summary>
+        public async Task<bool> DeletePlayerProfile()
+        {
+            if (!IsOnline())
+            {
+                Debug.LogWarning("[CloudSave] Offline - cannot delete player profile");
+                return false;
+            }
+
+            try
+            {
+                await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(PLAYER_PROFILE_KEY);
+                await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(PROFILE_HASH_KEY);
+                await Unity.Services.CloudSave.CloudSaveService.Instance.Data.Player.DeleteAsync(PROFILE_BACKUP_KEY);
+
+                Debug.Log("[CloudSave] ✓ Player profile deleted successfully");
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[CloudSave] Failed to delete player profile: {e.Message}");
+                return false;
+            }
         }
 
         #endregion
