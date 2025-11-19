@@ -18,14 +18,14 @@ public class PusherMissilePerk : IActivePerk
     public void Activate(PlayerShip ship)
     {
         used = true;
-        ship.movesRemainingThisRound -= Cost;
-        GameManager.Instance.UpdateFightingUI_AtRoundStart();
+        // BUG FIX: Removed duplicate action point deduction (PerkManager.ConsumeToggledPerk() handles this)
+        // BUG FIX: Removed UpdateFightingUI call (also handled by ConsumeToggledPerk)
 
-        // flag the next missile as “pusher”
+        // flag the next missile as "pusher"
         ship.nextPushEnabled         = true;
         ship.nextPushDamageFactor    = so.damageFactor;
         ship.nextPushKnockbackFactor = so.knockbackMultiplier;
 
-        Debug.Log($"Pusher missile perk activated: damage ×{so.damageFactor}, knockback ×{so.knockbackMultiplier}");
+        Debug.Log($"[PusherMissilePerk] Perk activated: damage ×{so.damageFactor}, knockback ×{so.knockbackMultiplier}");
     }
 }

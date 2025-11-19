@@ -22,6 +22,11 @@ public class MoveTypeSO : ScriptableObject
     [TextArea(2, 4)]
     public string description = "Standard ship movement with deceleration.";
 
+    [Header("Unlock Requirements")]
+    [Tooltip("Account level required to unlock this move type (0 = available from start)")]
+    [Range(0, 50)]
+    public int requiredAccountLevel = 0;
+
     [Header("Archetype Restrictions")]
     [Tooltip("Can Tank ships use this move type?")]
     public bool allowTank = true;

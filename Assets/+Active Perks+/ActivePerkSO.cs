@@ -34,6 +34,11 @@ public abstract class ActivePerkSO : ScriptableObject
     [Tooltip("Can AllAround ships use this perk?")]
     public bool allowAllAround = true;
 
+    [Header("Unlock Requirements")]
+    [Tooltip("Account level required to unlock this perk (0 = available from start)")]
+    [Range(0, 50)]
+    public int requiredAccountLevel = 0;
+
     void OnValidate()
     {
         cost = tier;

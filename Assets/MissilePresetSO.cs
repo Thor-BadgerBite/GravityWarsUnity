@@ -20,6 +20,11 @@ public class MissilePresetSO : ScriptableObject
     [Tooltip("Icon for UI display")]
     public Sprite icon;
 
+    [Header("Unlock Requirements")]
+    [Tooltip("Account level required to unlock this missile (0 = available from start)")]
+    [Range(0, 50)]
+    public int requiredAccountLevel = 0;
+
     [Header("Physics Properties")]
     [Tooltip("Display mass shown to player (200-1000 lbs). Physics mass is auto-calculated.")]
     [Range(200f, 1000f)]

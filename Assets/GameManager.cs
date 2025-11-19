@@ -349,7 +349,7 @@ public class GameManager : MonoBehaviour
     }
 
 
-   void ClearExistingPlanetsAndShips()
+   public void ClearExistingPlanetsAndShips()
     {
         // Destroy all planets (use cached planets if available, otherwise find them)
         Planet[] planetsToDestroy = cachedPlanets ?? FindObjectsOfType<Planet>();
@@ -414,6 +414,20 @@ public class GameManager : MonoBehaviour
 
     void SpawnPlanets()
     {
+        // Use system time as seed for local/hotseat mode
+        SpawnPlanetsWithSeed(System.Environment.TickCount);
+    }
+
+    /// <summary>
+    /// Spawn planets using a specific seed for deterministic generation (multiplayer).
+    /// Both clients calling this with the same seed will generate identical planet layouts.
+    /// </summary>
+    public void SpawnPlanetsWithSeed(int seed)
+    {
+        // Set random seed for deterministic generation
+        Random.InitState(seed);
+        Debug.Log($"[GameManager] Spawning planets with seed: {seed}");
+
         InitializeAvailablePlanets();
         if (planetInfos.Length == 0)
         {
@@ -449,6 +463,86 @@ public class GameManager : MonoBehaviour
 
         // Update planet cache after all planets are spawned
         UpdatePlanetCache();
+
+        Debug.Log($"[GameManager] Spawned {planetComponents.Count} planets deterministically");
+    }
+
+    /// <summary>
+    /// Get spawned planet data for network synchronization.
+    /// Server calls this to get planet data to send to clients.
+    /// </summary>
+    public GravityWars.Multiplayer.PlanetSpawnData[] GetSpawnedPlanetData()
+    {
+        var planetDataList = new System.Collections.Generic.List<GravityWars.Multiplayer.PlanetSpawnData>();
+
+        for (int i = 0; i < planetComponents.Count; i++)
+        {
+            Planet planet = planetComponents[i];
+
+            // Find the prefab index for this planet
+            int prefabIndex = System.Array.FindIndex(planetInfos, p => p.name == planet.planetName);
+
+            if (prefabIndex == -1)
+            {
+                Debug.LogWarning($"[GameManager] Could not find prefab index for planet '{planet.planetName}'");
+                continue;
+            }
+
+            var data = new GravityWars.Multiplayer.PlanetSpawnData
+            {
+                position = planet.transform.position,
+                rotation = planet.transform.rotation,
+                mass = planet.mass,
+                prefabIndex = prefabIndex
+            };
+
+            planetDataList.Add(data);
+        }
+
+        return planetDataList.ToArray();
+    }
+
+    /// <summary>
+    /// Spawn planets from network data (client receives from server).
+    /// Used when server already generated planets and sends exact positions to client.
+    /// </summary>
+    public void SpawnPlanetsFromNetworkData(GravityWars.Multiplayer.PlanetSpawnData[] planetData)
+    {
+        Debug.Log($"[GameManager] Spawning {planetData.Length} planets from network data");
+
+        // Clear existing planets first
+        ClearExistingPlanetsAndShips();
+
+        // Spawn each planet with exact parameters
+        foreach (var data in planetData)
+        {
+            if (data.prefabIndex < 0 || data.prefabIndex >= planetInfos.Length)
+            {
+                Debug.LogError($"[GameManager] Invalid planet prefab index: {data.prefabIndex}");
+                continue;
+            }
+
+            var planetInfo = planetInfos[data.prefabIndex];
+            GameObject planetObj = Instantiate(planetInfo.prefab, data.position, data.rotation);
+
+            Planet planetComponent = planetObj.GetComponent<Planet>() ?? planetObj.AddComponent<Planet>();
+            planetComponent.SetPlanetProperties(planetInfo.name, data.mass);
+            planetComponents.Add(planetComponent);
+
+            Renderer planetRenderer = planetObj.GetComponent<Renderer>();
+            float size = Mathf.Max(planetRenderer.bounds.size.x, planetRenderer.bounds.size.y);
+            spawnedPlanets.Add(new SpawnedPlanet
+            {
+                gameObject = planetObj,
+                position = data.position,
+                size = size
+            });
+        }
+
+        // Update planet cache
+        UpdatePlanetCache();
+
+        Debug.Log($"[GameManager] Finished spawning planets from network data");
     }
 
     void InitializeAvailablePlanets()
@@ -1041,10 +1135,67 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log($"Game Over. {winner.playerName} wins!");
         yield return StartCoroutine(FadeOverlay(true, $"Game Over!\n{winner.playerName} wins the game!"));
+
+        // ===== PROGRESSION SYSTEM: Award match XP =====
+        AwardMatchProgression(winner);
+        // ==============================================
+
         yield return new WaitForSeconds(gameOverDuration);
         ResetScores();
         currentRound = 1;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    /// <summary>
+    /// Awards XP and progression after a match ends
+    /// </summary>
+    private void AwardMatchProgression(PlayerShip winner)
+    {
+        // Check if progression system is active
+        if (ProgressionManager.Instance == null)
+        {
+            Debug.LogWarning("[GameManager] ProgressionManager not found, skipping XP award");
+            return;
+        }
+
+        // Determine winner and loser
+        PlayerShip player1 = player1Ship;
+        PlayerShip player2 = player2Ship;
+
+        bool player1Won = (winner == player1);
+        int winnerRoundsWon = winner.score;
+        int loserRoundsWon = player1Won ? player2.score : player1.score;
+
+        // Calculate damage dealt (TODO: Track this during match)
+        // For now, use a placeholder based on rounds won
+        int winnerDamage = winnerRoundsWon * 5000; // Rough estimate
+        int loserDamage = loserRoundsWon * 5000;
+
+        // Get ship loadouts (if custom ships are being used)
+        // For now, we'll pass null and XP will be awarded to account only
+        CustomShipLoadout winnerLoadout = null;  // TODO: Get from ship selection
+        CustomShipLoadout loserLoadout = null;
+
+        // Award XP to winner
+        Debug.Log($"[GameManager] Awarding XP to winner: {winner.playerName}");
+        ProgressionManager.Instance.AwardMatchXP(
+            won: true,
+            roundsWon: winnerRoundsWon,
+            damageDealt: winnerDamage,
+            usedLoadout: winnerLoadout
+        );
+
+        // Award XP to loser (reduced, but still something)
+        PlayerShip loser = player1Won ? player2 : player1;
+        Debug.Log($"[GameManager] Awarding participation XP to: {loser.playerName}");
+        ProgressionManager.Instance.AwardMatchXP(
+            won: false,
+            roundsWon: loserRoundsWon,
+            damageDealt: loserDamage,
+            usedLoadout: loserLoadout
+        );
+
+        Debug.Log("[GameManager] Match progression awarded!");
     }
 
     void ResetScores()
@@ -1315,7 +1466,7 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates one icon based on the ship’s move‐type
+    /// Updates one icon based on the ship's move‐type
     /// and movesRemainingThisRound.
     /// </summary>
     void UpdateMoveIconUI(PlayerShip ship, Image icon)
@@ -1329,6 +1480,99 @@ public class GameManager : MonoBehaviour
         icon.sprite = GetMoveSprite(mt, enabled);
     }
 
+    // ---------------------------------------------------------
+    // NETWORK MULTIPLAYER SUPPORT
+    // ---------------------------------------------------------
+
+    /// <summary>
+    /// Called by NetworkTurnCoordinator when players are assigned
+    /// </summary>
+    public void OnNetworkPlayersAssigned(ulong player1Id, ulong player2Id)
+    {
+        Debug.Log($"[GameManager] Network players assigned - P1: {player1Id}, P2: {player2Id}");
+        // Additional setup if needed
+    }
+
+    /// <summary>
+    /// Called by NetworkTurnCoordinator when turn state changes
+    /// </summary>
+    public void OnNetworkTurnStateChanged(GravityWars.Multiplayer.TurnStateChange state)
+    {
+        Debug.Log($"[GameManager] Network turn state changed to {state.phase}");
+
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.OnTurnStateChanged(state);
+        }
+    }
+
+    /// <summary>
+    /// Called by NetworkInputManager to execute fire action deterministically
+    /// </summary>
+    public void ExecuteNetworkFireAction(GravityWars.Multiplayer.PlayerFireAction action)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.ExecuteNetworkFireAction(action);
+        }
+    }
+
+    /// <summary>
+    /// Called by NetworkInputManager to execute move action deterministically
+    /// </summary>
+    public void ExecuteNetworkMoveAction(GravityWars.Multiplayer.PlayerMoveAction action)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.ExecuteNetworkMoveAction(action);
+        }
+    }
+
+    /// <summary>
+    /// Called when missile is destroyed in networked game
+    /// </summary>
+    public void OnNetworkMissileDestroyed(GravityWars.Multiplayer.MissileDestroyedEvent evt)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.OnNetworkMissileDestroyed(evt);
+        }
+    }
+
+    /// <summary>
+    /// Called when score is updated from server
+    /// </summary>
+    public void OnNetworkScoreUpdated(int player1Score, int player2Score)
+    {
+        var adapter = GetComponent<GameManagerNetworkAdapter>();
+        if (adapter != null)
+        {
+            adapter.OnScoreUpdated(player1Score, player2Score);
+        }
+    }
+
+    /// <summary>
+    /// Called when round ends in networked game
+    /// </summary>
+    public void OnNetworkRoundEnd(int newRoundNumber)
+    {
+        Debug.Log($"[GameManager] Round {newRoundNumber} starting");
+        // Reset arena for new round
+        ResetForNewRound();
+    }
+
+    /// <summary>
+    /// Called when match ends in networked game
+    /// </summary>
+    public void OnNetworkMatchEnd(ulong winnerId, int player1Score, int player2Score)
+    {
+        Debug.Log($"[GameManager] Match ended - Winner: {winnerId}, Score: {player1Score}-{player2Score}");
+        // Show match end screen
+    }
 
 
 }
