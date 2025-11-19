@@ -124,9 +124,34 @@ public class PlayerProfileData
     #region Ships & Loadouts
 
     /// <summary>
-    /// List of unlocked ship model IDs
+    /// List of unlocked prebuild ship model IDs
     /// </summary>
     public List<string> unlockedShipModels = new List<string>();
+
+    /// <summary>
+    /// List of unlocked ship bodies (for custom building)
+    /// </summary>
+    public List<string> unlockedShipBodies = new List<string>();
+
+    /// <summary>
+    /// List of unlocked passive abilities
+    /// </summary>
+    public List<string> unlockedPassives = new List<string>();
+
+    /// <summary>
+    /// List of unlocked active abilities
+    /// </summary>
+    public List<string> unlockedActives = new List<string>();
+
+    /// <summary>
+    /// List of unlocked missiles (retrofit system)
+    /// </summary>
+    public List<string> unlockedMissiles = new List<string>();
+
+    /// <summary>
+    /// List of unlocked skins (cosmetic variants)
+    /// </summary>
+    public List<string> unlockedSkins = new List<string>();
 
     /// <summary>
     /// Currently equipped ship ID (displayed in main menu)

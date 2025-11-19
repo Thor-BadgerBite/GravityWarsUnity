@@ -186,6 +186,7 @@ public static class ProgressionSystem
 
     /// <summary>
     /// Get list of unlocks for a specific level.
+    /// Checks ALL unlock types: ships, bodies, passives, actives, missiles, features, etc.
     /// </summary>
     private static List<UnlockData> GetUnlocksForLevel(int level)
     {
@@ -237,16 +238,68 @@ public static class ProgressionSystem
             });
         }
 
-        // Ship Unlocks (check if a ship unlocks at this level)
-        ShipUnlockData shipUnlock = GetShipUnlock(level);
-        if (shipUnlock != null)
+        // Prebuild Ship Unlocks (from ExtendedProgressionData)
+        var prebuildShip = ExtendedProgressionData.GetPrebuildShip(level);
+        if (prebuildShip != null)
         {
             unlocks.Add(new UnlockData
             {
-                type = UnlockType.Ship,
-                id = shipUnlock.shipId,
-                displayName = shipUnlock.displayName,
-                description = shipUnlock.description
+                type = UnlockType.PrebuildShip,
+                id = prebuildShip.shipId,
+                displayName = prebuildShip.displayName,
+                description = prebuildShip.description
+            });
+        }
+
+        // Ship Body Unlocks (for custom building)
+        var shipBody = ExtendedProgressionData.GetShipBody(level);
+        if (shipBody != null)
+        {
+            unlocks.Add(new UnlockData
+            {
+                type = UnlockType.ShipBody,
+                id = shipBody.bodyId,
+                displayName = shipBody.displayName,
+                description = shipBody.description
+            });
+        }
+
+        // Passive Ability Unlocks
+        var passive = ExtendedProgressionData.GetPassive(level);
+        if (passive != null)
+        {
+            unlocks.Add(new UnlockData
+            {
+                type = UnlockType.Passive,
+                id = passive.passiveId,
+                displayName = passive.displayName,
+                description = passive.description
+            });
+        }
+
+        // Active Ability Unlocks
+        var active = ExtendedProgressionData.GetActive(level);
+        if (active != null)
+        {
+            unlocks.Add(new UnlockData
+            {
+                type = UnlockType.Active,
+                id = active.activeId,
+                displayName = active.displayName,
+                description = active.description
+            });
+        }
+
+        // Missile Unlocks
+        var missile = MissileRetrofitSystem.GetMissileUnlock(level);
+        if (missile != null)
+        {
+            unlocks.Add(new UnlockData
+            {
+                type = UnlockType.Missile,
+                id = missile.missileId,
+                displayName = missile.displayName,
+                description = missile.description
             });
         }
 
@@ -542,8 +595,14 @@ public enum UnlockType
     ShipClass,      // Tank, DD, Controller
     CustomSlot,     // Custom ship loadout slots
     Feature,        // Achievements, Quests, Leaderboard
-    Ship,           // Specific ship models
-    Cosmetic        // Skins, trails, etc.
+    Ship,           // Specific ship models (legacy - use PrebuildShip instead)
+    Cosmetic,       // Skins, trails, etc.
+    PrebuildShip,   // Complete ready-to-use ships with pre-configured stats
+    ShipBody,       // Ship bodies/chassis for custom building
+    Passive,        // Passive abilities for custom ships
+    Active,         // Active abilities for custom ships
+    Missile,        // Missiles for retrofit system
+    Skin            // Ship skins (cosmetic variants)
 }
 
 /// <summary>

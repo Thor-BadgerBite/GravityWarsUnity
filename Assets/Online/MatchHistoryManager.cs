@@ -349,11 +349,65 @@ public class MatchHistoryManager : MonoBehaviour
                 break;
 
             case UnlockType.Ship:
-                // Add specific ship to unlocked ships
+                // Legacy ship unlock (kept for backwards compatibility)
                 if (!profile.unlockedShipModels.Contains(unlock.id))
                 {
                     profile.unlockedShipModels.Add(unlock.id);
                     Debug.Log($"[MatchHistory] Ship unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.PrebuildShip:
+                // Add prebuild ship to unlocked ships
+                if (!profile.unlockedShipModels.Contains(unlock.id))
+                {
+                    profile.unlockedShipModels.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] 🚀 Prebuild ship unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.ShipBody:
+                // Add ship body to unlocked bodies (for custom building)
+                if (!profile.unlockedShipBodies.Contains(unlock.id))
+                {
+                    profile.unlockedShipBodies.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] 🔧 Ship body unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.Passive:
+                // Add passive ability to unlocked passives
+                if (!profile.unlockedPassives.Contains(unlock.id))
+                {
+                    profile.unlockedPassives.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] ⚡ Passive ability unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.Active:
+                // Add active ability to unlocked actives
+                if (!profile.unlockedActives.Contains(unlock.id))
+                {
+                    profile.unlockedActives.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] 💫 Active ability unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.Missile:
+                // Add missile to unlocked missiles (retrofit system)
+                if (!profile.unlockedMissiles.Contains(unlock.id))
+                {
+                    profile.unlockedMissiles.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] 🚀 Missile unlocked: {unlock.displayName}");
+                }
+                break;
+
+            case UnlockType.Skin:
+                // Add skin to unlocked skins
+                if (!profile.unlockedSkins.Contains(unlock.id))
+                {
+                    profile.unlockedSkins.Add(unlock.id);
+                    Debug.Log($"[MatchHistory] 🎨 Skin unlocked: {unlock.displayName}");
                 }
                 break;
 
@@ -364,7 +418,7 @@ public class MatchHistoryManager : MonoBehaviour
                 break;
 
             case UnlockType.Cosmetic:
-                // TODO: Add cosmetic unlock to profile when cosmetics system is implemented
+                // Legacy cosmetic (kept for backwards compatibility)
                 Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.displayName}");
                 break;
         }
