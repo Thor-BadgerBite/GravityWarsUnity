@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -110,49 +111,49 @@ public static class ExtendedProgressionData
 
     /// <summary>
     /// Passive abilities for custom ship building.
-    /// These are from existing prebuild ships and can be used in custom loadouts.
+    /// Passives have archetype restrictions - they can only be equipped on compatible ship bodies.
     /// </summary>
     public static readonly Dictionary<int, PassiveUnlock> PASSIVE_UNLOCKS = new Dictionary<int, PassiveUnlock>
     {
         // Basic Passives (Early game)
-        { 5, new PassiveUnlock("passive_armor_boost_1", "Armor Boost I", "Increases armor by 10%") },
-        { 8, new PassiveUnlock("passive_speed_boost_1", "Speed Boost I", "Increases speed by 10%") },
-        { 11, new PassiveUnlock("passive_damage_boost_1", "Damage Boost I", "Increases damage by 10%") },
-        { 14, new PassiveUnlock("passive_shield_regen", "Shield Regeneration", "Slowly regenerates shields") },
-        { 17, new PassiveUnlock("passive_energy_efficient", "Energy Efficiency", "Reduces energy consumption") },
+        { 5, new PassiveUnlock("passive_armor_boost_1", "Armor Boost I", ShipClass.Tank, "Increases armor by 10%") },
+        { 8, new PassiveUnlock("passive_speed_boost_1", "Speed Boost I", ShipClass.DamageDealer, "Increases speed by 10%") },
+        { 11, new PassiveUnlock("passive_damage_boost_1", "Damage Boost I", ShipClass.DamageDealer, "Increases damage by 10%") },
+        { 14, new PassiveUnlock("passive_shield_regen", "Shield Regeneration", ShipClass.AllAround, "Slowly regenerates shields") },
+        { 17, new PassiveUnlock("passive_energy_efficient", "Energy Efficiency", ShipClass.Controller, "Reduces energy consumption") },
 
         // Intermediate Passives (Mid game)
-        { 22, new PassiveUnlock("passive_armor_boost_2", "Armor Boost II", "Increases armor by 20%") },
-        { 24, new PassiveUnlock("passive_speed_boost_2", "Speed Boost II", "Increases speed by 20%") },
-        { 26, new PassiveUnlock("passive_damage_boost_2", "Damage Boost II", "Increases damage by 20%") },
-        { 29, new PassiveUnlock("passive_critical_strike", "Critical Strike", "15% chance for critical hits") },
-        { 31, new PassiveUnlock("passive_evasion", "Evasion", "10% chance to evade attacks") },
-        { 33, new PassiveUnlock("passive_lifesteal", "Lifesteal", "Heal 5% of damage dealt") },
-        { 35, new PassiveUnlock("passive_fortified", "Fortified", "Reduces incoming damage by 10%") },
-        { 37, new PassiveUnlock("passive_overcharge", "Overcharge", "Boosts all systems by 5%") },
+        { 22, new PassiveUnlock("passive_armor_boost_2", "Armor Boost II", ShipClass.Tank, "Increases armor by 20%") },
+        { 24, new PassiveUnlock("passive_speed_boost_2", "Speed Boost II", ShipClass.DamageDealer, "Increases speed by 20%") },
+        { 26, new PassiveUnlock("passive_damage_boost_2", "Damage Boost II", ShipClass.DamageDealer, "Increases damage by 20%") },
+        { 29, new PassiveUnlock("passive_critical_strike", "Critical Strike", ShipClass.DamageDealer, "15% chance for critical hits") },
+        { 31, new PassiveUnlock("passive_evasion", "Evasion", ShipClass.AllAround, "10% chance to evade attacks") },
+        { 33, new PassiveUnlock("passive_lifesteal", "Lifesteal", ShipClass.DamageDealer, "Heal 5% of damage dealt") },
+        { 35, new PassiveUnlock("passive_fortified", "Fortified", ShipClass.Tank, "Reduces incoming damage by 10%") },
+        { 37, new PassiveUnlock("passive_overcharge", "Overcharge", ShipClass.AllAround, "Boosts all systems by 5%") },
 
         // Advanced Passives (Late game)
-        { 46, new PassiveUnlock("passive_armor_boost_3", "Armor Boost III", "Increases armor by 30%") },
-        { 49, new PassiveUnlock("passive_speed_boost_3", "Speed Boost III", "Increases speed by 30%") },
-        { 51, new PassiveUnlock("passive_damage_boost_3", "Damage Boost III", "Increases damage by 30%") },
-        { 54, new PassiveUnlock("passive_berserker", "Berserker", "Damage increases as health decreases") },
-        { 58, new PassiveUnlock("passive_juggernaut", "Juggernaut", "Immune to crowd control") },
-        { 63, new PassiveUnlock("passive_phantom", "Phantom", "Chance to become untargetable") },
-        { 66, new PassiveUnlock("passive_adaptive_armor", "Adaptive Armor", "Armor increases over time in combat") },
+        { 46, new PassiveUnlock("passive_armor_boost_3", "Armor Boost III", ShipClass.Tank, "Increases armor by 30%") },
+        { 49, new PassiveUnlock("passive_speed_boost_3", "Speed Boost III", ShipClass.DamageDealer, "Increases speed by 30%") },
+        { 51, new PassiveUnlock("passive_damage_boost_3", "Damage Boost III", ShipClass.DamageDealer, "Increases damage by 30%") },
+        { 54, new PassiveUnlock("passive_berserker", "Berserker", ShipClass.DamageDealer, "Damage increases as health decreases") },
+        { 58, new PassiveUnlock("passive_juggernaut", "Juggernaut", ShipClass.Tank, "Immune to crowd control") },
+        { 63, new PassiveUnlock("passive_phantom", "Phantom", ShipClass.Controller, "Chance to become untargetable") },
+        { 66, new PassiveUnlock("passive_adaptive_armor", "Adaptive Armor", ShipClass.Tank, "Armor increases over time in combat") },
 
         // Elite Passives (Endgame)
-        { 70, new PassiveUnlock("passive_regeneration_supreme", "Supreme Regeneration", "Fast health and shield regen") },
-        { 74, new PassiveUnlock("passive_overdrive", "Overdrive", "All stats increased by 15%") },
-        { 76, new PassiveUnlock("passive_titan_soul", "Titan Soul", "Massive stat boost when low health") },
-        { 81, new PassiveUnlock("passive_phoenix_rebirth", "Phoenix Rebirth", "Revive once per match at 50% HP") },
-        { 86, new PassiveUnlock("passive_celestial_blessing", "Celestial Blessing", "Random powerful buffs") },
-        { 91, new PassiveUnlock("passive_omega_protocol", "Omega Protocol", "Ultimate passive - all stats +20%") },
+        { 70, new PassiveUnlock("passive_regeneration_supreme", "Supreme Regeneration", ShipClass.Tank, "Fast health and shield regen") },
+        { 74, new PassiveUnlock("passive_overdrive", "Overdrive", ShipClass.AllAround, "All stats increased by 15%") },
+        { 76, new PassiveUnlock("passive_titan_soul", "Titan Soul", ShipClass.Tank, "Massive stat boost when low health") },
+        { 81, new PassiveUnlock("passive_phoenix_rebirth", "Phoenix Rebirth", ShipClass.AllAround, "Revive once per match at 50% HP") },
+        { 86, new PassiveUnlock("passive_celestial_blessing", "Celestial Blessing", ShipClass.AllAround, "Random powerful buffs") },
+        { 91, new PassiveUnlock("passive_omega_protocol", "Omega Protocol", ShipClass.AllAround, "Ultimate passive - all stats +20%") },
 
         // Unique/Special Passives
-        { 47, new PassiveUnlock("passive_gravity_master", "Gravity Master", "Improved planet interactions") },
-        { 64, new PassiveUnlock("passive_momentum", "Momentum", "Damage increases with speed") },
-        { 82, new PassiveUnlock("passive_last_stand", "Last Stand", "Become extremely powerful at <25% HP") },
-        { 96, new PassiveUnlock("passive_god_mode", "Ascension", "Legendary passive - near-invincible") }
+        { 47, new PassiveUnlock("passive_gravity_master", "Gravity Master", ShipClass.Controller, "Improved planet interactions") },
+        { 64, new PassiveUnlock("passive_momentum", "Momentum", ShipClass.DamageDealer, "Damage increases with speed") },
+        { 82, new PassiveUnlock("passive_last_stand", "Last Stand", ShipClass.Tank, "Become extremely powerful at <25% HP") },
+        { 96, new PassiveUnlock("passive_god_mode", "Ascension", ShipClass.AllAround, "Legendary passive - near-invincible") }
     };
 
     #endregion
@@ -160,40 +161,39 @@ public static class ExtendedProgressionData
     #region Active Ability Unlocks (20 actives)
 
     /// <summary>
-    /// Active abilities for custom ship building.
-    /// These are abilities players can manually activate during combat.
+    /// Active abilities (Perks) for custom ship building.
+    /// Organized into 3 tiers - players must select one ability from EACH tier when building.
+    /// Tier 1: Basic abilities (low cooldown, fundamental effects)
+    /// Tier 2: Advanced abilities (moderate cooldown, tactical effects)
+    /// Tier 3: Ultimate abilities (high cooldown, game-changing effects)
     /// </summary>
     public static readonly Dictionary<int, ActiveUnlock> ACTIVE_UNLOCKS = new Dictionary<int, ActiveUnlock>
     {
-        // Basic Actives (Early game)
-        { 9, new ActiveUnlock("active_boost", "Afterburner", 10f, "Temporary speed boost") },
-        { 13, new ActiveUnlock("active_shield", "Energy Shield", 15f, "Temporary invulnerability") },
-        { 16, new ActiveUnlock("active_repair", "Emergency Repair", 30f, "Restore 30% health") },
-        { 19, new ActiveUnlock("active_emp_pulse", "EMP Pulse", 20f, "Disrupt enemy targeting") },
+        // TIER 1 ACTIVES (Basic - 8 total)
+        { 9, new ActiveUnlock("active_boost", "Afterburner", 1, 10f, "Temporary speed boost") },
+        { 13, new ActiveUnlock("active_shield", "Energy Shield", 1, 15f, "Temporary invulnerability") },
+        { 16, new ActiveUnlock("active_repair", "Emergency Repair", 1, 30f, "Restore 30% health") },
+        { 19, new ActiveUnlock("active_emp_pulse", "EMP Pulse", 1, 20f, "Disrupt enemy targeting") },
+        { 27, new ActiveUnlock("active_cloak", "Stealth Cloak", 1, 25f, "Become invisible briefly") },
+        { 30, new ActiveUnlock("active_overload", "Weapon Overload", 1, 15f, "Triple damage for short time") },
+        { 32, new ActiveUnlock("active_blink", "Phase Blink", 1, 12f, "Teleport short distance") },
+        { 50, new ActiveUnlock("active_tactical_swap", "Tactical Swap", 1, 35f, "Swap positions with enemy") },
 
-        // Intermediate Actives (Mid game)
-        { 27, new ActiveUnlock("active_cloak", "Stealth Cloak", 25f, "Become invisible briefly") },
-        { 30, new ActiveUnlock("active_overload", "Weapon Overload", 15f, "Triple damage for short time") },
-        { 32, new ActiveUnlock("active_blink", "Phase Blink", 12f, "Teleport short distance") },
-        { 36, new ActiveUnlock("active_gravity_well", "Gravity Well", 30f, "Pull enemies toward you") },
-        { 40, new ActiveUnlock("active_time_dilation", "Time Dilation", 45f, "Slow time in area") },
+        // TIER 2 ACTIVES (Advanced - 7 total)
+        { 36, new ActiveUnlock("active_gravity_well", "Gravity Well", 2, 30f, "Pull enemies toward you") },
+        { 40, new ActiveUnlock("active_time_dilation", "Time Dilation", 2, 45f, "Slow time in area") },
+        { 48, new ActiveUnlock("active_nova_bomb", "Nova Bomb", 2, 40f, "Massive area explosion") },
+        { 55, new ActiveUnlock("active_fortress_mode", "Fortress Mode", 2, 60f, "Immobile but +100% armor") },
+        { 60, new ActiveUnlock("active_berserker_rage", "Berserker Rage", 2, 50f, "+50% damage, -50% defense") },
+        { 67, new ActiveUnlock("active_mirror_clone", "Mirror Clone", 2, 45f, "Create decoy copy of ship") },
+        { 69, new ActiveUnlock("active_singularity", "Singularity", 2, 90f, "Create black hole") },
 
-        // Advanced Actives (Late game)
-        { 48, new ActiveUnlock("active_nova_bomb", "Nova Bomb", 40f, "Massive area explosion") },
-        { 55, new ActiveUnlock("active_fortress_mode", "Fortress Mode", 60f, "Immobile but +100% armor") },
-        { 60, new ActiveUnlock("active_berserker_rage", "Berserker Rage", 50f, "+50% damage, -50% defense") },
-        { 67, new ActiveUnlock("active_mirror_clone", "Mirror Clone", 45f, "Create decoy copy of ship") },
-        { 69, new ActiveUnlock("active_singularity", "Singularity", 90f, "Create black hole") },
-
-        // Elite Actives (Endgame)
-        { 75, new ActiveUnlock("active_ultima", "Ultima", 120f, "Screen-clearing ultimate attack") },
-        { 83, new ActiveUnlock("active_phoenix_burst", "Phoenix Burst", 180f, "Death-defying resurrection") },
-        { 88, new ActiveUnlock("active_ragnarok", "Ragnarok", 150f, "Apocalyptic destruction") },
-        { 93, new ActiveUnlock("active_ascension", "Ascension", 200f, "Become god-like temporarily") },
-        { 98, new ActiveUnlock("active_omega_strike", "Omega Strike", 300f, "Ultimate one-shot kill ability") },
-
-        // Special/Unique Actives
-        { 50, new ActiveUnlock("active_tactical_swap", "Tactical Swap", 35f, "Swap positions with enemy") }
+        // TIER 3 ACTIVES (Ultimate - 5 total)
+        { 75, new ActiveUnlock("active_ultima", "Ultima", 3, 120f, "Screen-clearing ultimate attack") },
+        { 83, new ActiveUnlock("active_phoenix_burst", "Phoenix Burst", 3, 180f, "Death-defying resurrection") },
+        { 88, new ActiveUnlock("active_ragnarok", "Ragnarok", 3, 150f, "Apocalyptic destruction") },
+        { 93, new ActiveUnlock("active_ascension", "Ascension", 3, 200f, "Become god-like temporarily") },
+        { 98, new ActiveUnlock("active_omega_strike", "Omega Strike", 3, 300f, "Ultimate one-shot kill ability") }
     };
 
     #endregion
@@ -230,6 +230,30 @@ public static class ExtendedProgressionData
     public static ActiveUnlock GetActive(int level)
     {
         return ACTIVE_UNLOCKS.ContainsKey(level) ? ACTIVE_UNLOCKS[level] : null;
+    }
+
+    /// <summary>
+    /// Get all ship bodies (for custom ship builder UI).
+    /// </summary>
+    public static List<ShipBodyUnlock> GetAllShipBodies()
+    {
+        return SHIP_BODY_UNLOCKS.Values.ToList();
+    }
+
+    /// <summary>
+    /// Get all passives (for custom ship builder UI).
+    /// </summary>
+    public static List<PassiveUnlock> GetAllPassives()
+    {
+        return PASSIVE_UNLOCKS.Values.ToList();
+    }
+
+    /// <summary>
+    /// Get all actives (for custom ship builder UI).
+    /// </summary>
+    public static List<ActiveUnlock> GetAllActives()
+    {
+        return ACTIVE_UNLOCKS.Values.ToList();
     }
 
     #endregion
@@ -279,37 +303,46 @@ public class ShipBodyUnlock
 
 /// <summary>
 /// Passive ability unlock.
+/// Passives have archetype restrictions - they can only be used on compatible ship bodies.
 /// </summary>
 [Serializable]
 public class PassiveUnlock
 {
     public string passiveId;
     public string displayName;
+    public ShipClass compatibleArchetype;  // Which ship archetype can use this passive
     public string description;
 
-    public PassiveUnlock(string id, string name, string desc)
+    public PassiveUnlock(string id, string name, ShipClass archetype, string desc)
     {
         this.passiveId = id;
         this.displayName = name;
+        this.compatibleArchetype = archetype;
         this.description = desc;
     }
 }
 
 /// <summary>
-/// Active ability unlock.
+/// Active ability unlock (also called "Perks").
+/// Actives are organized into 3 tiers - players select one from each tier when building custom ships.
+/// Tier 1: Basic abilities (low cooldown, basic effects)
+/// Tier 2: Advanced abilities (moderate cooldown, stronger effects)
+/// Tier 3: Ultimate abilities (high cooldown, game-changing effects)
 /// </summary>
 [Serializable]
 public class ActiveUnlock
 {
     public string activeId;
     public string displayName;
+    public int tier;                // 1, 2, or 3 (player must select one from each tier)
     public float cooldown;          // Cooldown in seconds
     public string description;
 
-    public ActiveUnlock(string id, string name, float cd, string desc)
+    public ActiveUnlock(string id, string name, int tier, float cd, string desc)
     {
         this.activeId = id;
         this.displayName = name;
+        this.tier = tier;
         this.cooldown = cd;
         this.description = desc;
     }
