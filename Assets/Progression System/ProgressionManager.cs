@@ -346,9 +346,9 @@ public class ProgressionManager : MonoBehaviour
         }
 
         // Grant currency
-        if (reward.creditsAmount > 0 || reward.gemsAmount > 0)
+        if (reward.softCurrencyAmount > 0 || reward.hardCurrencyAmount > 0)
         {
-            currentPlayerData.AddCurrency(reward.creditsAmount, reward.gemsAmount);
+            currentPlayerData.AddCurrency(reward.softCurrencyAmount, reward.hardCurrencyAmount);
         }
 
         // Grant XP

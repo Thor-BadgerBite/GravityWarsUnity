@@ -228,7 +228,7 @@ namespace GravityWars.Networking
                 if (quest != null)
                 {
                     _activeQuests.Add(quest);
-                    Log($"Generated daily quest: {quest.username}");
+                    Log($"Generated daily quest: {quest.displayName}");
                 }
             }
 
@@ -240,7 +240,7 @@ namespace GravityWars.Networking
                 if (quest != null)
                 {
                     _activeQuests.Add(quest);
-                    Log($"Generated weekly quest: {quest.username}");
+                    Log($"Generated weekly quest: {quest.displayName}");
                 }
             }
 
@@ -252,7 +252,7 @@ namespace GravityWars.Networking
                 if (quest != null)
                 {
                     _activeQuests.Add(quest);
-                    Log($"Generated season quest: {quest.username}");
+                    Log($"Generated season quest: {quest.displayName}");
                 }
             }
         }
@@ -339,7 +339,7 @@ namespace GravityWars.Networking
                 if (quest.currentProgress > oldProgress)
                 {
                     anyUpdated = true;
-                    Log($"Quest progress: {quest.username} ({quest.currentProgress}/{quest.targetValue})");
+                    Log($"Quest progress: {quest.displayName} ({quest.currentProgress}/{quest.targetValue})");
 
                     // Check if completed
                     if (quest.IsCompleted)
@@ -389,7 +389,7 @@ namespace GravityWars.Networking
         /// </summary>
         private void OnQuestCompleted(QuestInstance quest)
         {
-            Log($"Quest completed: {quest.username}");
+            Log($"Quest completed: {quest.displayName}");
 
             // Award rewards
             AwardQuestRewards(quest);
@@ -414,17 +414,17 @@ namespace GravityWars.Networking
             }
 
             // Award soft currency
-            if (quest.creditsReward > 0)
+            if (quest.softCurrencyReward > 0)
             {
-                progressionManager.currentPlayerData.AddCurrency(quest.creditsReward, 0);
-                Log($"Awarded {quest.creditsReward} soft currency");
+                progressionManager.currentPlayerData.AddCurrency(quest.softCurrencyReward, 0);
+                Log($"Awarded {quest.softCurrencyReward} soft currency");
             }
 
             // Award hard currency
-            if (quest.gemsReward > 0)
+            if (quest.hardCurrencyReward > 0)
             {
-                progressionManager.currentPlayerData.AddCurrency(0, quest.gemsReward);
-                Log($"Awarded {quest.gemsReward} hard currency");
+                progressionManager.currentPlayerData.AddCurrency(0, quest.hardCurrencyReward);
+                Log($"Awarded {quest.hardCurrencyReward} hard currency");
             }
 
             // Award account XP
@@ -461,7 +461,7 @@ namespace GravityWars.Networking
                 analyticsService.TrackQuestCompleted(
                     questID: quest.questID,
                     timeToComplete: timeToComplete,
-                    reward: $"{quest.creditsReward} coins, {quest.accountXPReward} XP"
+                    reward: $"{quest.softCurrencyReward} coins, {quest.accountXPReward} XP"
                 );
             }
         }
@@ -473,7 +473,7 @@ namespace GravityWars.Networking
         {
             // In production, this would trigger a UI popup
             // For now, just log
-            Debug.Log($"[QuestService] 🎉 Quest Complete: {quest.username}!");
+            Debug.Log($"[QuestService] 🎉 Quest Complete: {quest.displayName}!");
         }
 
         #endregion
@@ -524,7 +524,7 @@ namespace GravityWars.Networking
             // Save
             _ = SaveQuestsToCloud();
 
-            Log($"Quest claimed and removed: {quest.username}");
+            Log($"Quest claimed and removed: {quest.displayName}");
             return true;
         }
 

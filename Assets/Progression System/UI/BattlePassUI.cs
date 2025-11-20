@@ -70,7 +70,7 @@ public class BattlePassUI : MonoBehaviour
     {
         // Title
         if (battlePassTitleText != null)
-            battlePassTitleText.text = battlePass.username;
+            battlePassTitleText.text = battlePass.displayName;
 
         // Current tier
         if (currentTierText != null)
@@ -144,7 +144,7 @@ public class BattlePassUI : MonoBehaviour
     /// <summary>
     /// Sets up a single tier item display
     /// </summary>
-    private void SetupTierItem(GameObject tierObj, BattlePassTier tier, PlayerProfileData data, int tierIndex)
+    private void SetupTierItem(GameObject tierObj, BattlePassTier tier, PlayerAccountData data, int tierIndex)
     {
         // Tier number
         TextMeshProUGUI tierNumberText = tierObj.transform.Find("TierNumber")?.GetComponent<TextMeshProUGUI>();
