@@ -311,17 +311,7 @@ public class BattlePassSystem : MonoBehaviour
 
 #region Data Structures
 
-public enum RewardType
-{
-    Credits,
-    Gems,
-    PrebuildShip,
-    ShipBody,
-    Passive,
-    Active,
-    Missile,
-    Skin
-}
+// Note: RewardType enum is defined in BattlePassData.cs
 
 [Serializable]
 public class BattlePassReward
