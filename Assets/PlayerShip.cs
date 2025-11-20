@@ -544,11 +544,12 @@ void Update()
     float rotationAmount = rotationInput * usedRotationSpeed * Time.deltaTime;
 
     // NETWORK ROUTING: Send rotation to network if in networked mode
-    if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
-    {
-        networkAdapter.RoutePlayerRotation(this, rotationAmount);
-    }
-    else if (!isNetworkedMode)
+    // TEMPORARILY DISABLED - networkAdapter needs proper implementation
+    // if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
+    // {
+    //     networkAdapter.RoutePlayerRotation(this, rotationAmount);
+    // }
+    // else if (!isNetworkedMode)
     {
         // LOCAL MODE: Apply rotation directly
         currentZRotation = Mathf.Repeat(currentZRotation + rotationAmount, 360f);
@@ -598,12 +599,13 @@ void Update()
     {
         if (currentMode == PlayerActionMode.Fire)
         {
-            if (isNetworkedMode)
-            {
-                // NETWORK MODE: Send fire action to network
-                SendNetworkFireAction(networkAdapter);
-            }
-            else
+            // TEMPORARILY DISABLED - networkAdapter needs proper implementation
+            // if (isNetworkedMode)
+            // {
+            //     // NETWORK MODE: Send fire action to network
+            //     SendNetworkFireAction(networkAdapter);
+            // }
+            // else
             {
                 // LOCAL MODE: Fire directly
                 FireMissile();
@@ -611,12 +613,13 @@ void Update()
         }
         else
         {
-            if (isNetworkedMode)
-            {
-                // NETWORK MODE: Send move action to network
-                SendNetworkMoveAction(networkAdapter);
-            }
-            else
+            // TEMPORARILY DISABLED - networkAdapter needs proper implementation
+            // if (isNetworkedMode)
+            // {
+            //     // NETWORK MODE: Send move action to network
+            //     SendNetworkMoveAction(networkAdapter);
+            // }
+            // else
             {
                 // LOCAL MODE: Move directly
                 PerformSlingshotMove();
