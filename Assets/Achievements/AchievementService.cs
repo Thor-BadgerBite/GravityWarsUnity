@@ -458,9 +458,20 @@ namespace GravityWars.Networking
             var analyticsService = ServiceLocator.Instance?.Analytics;
             if (analyticsService != null)
             {
+                // Map achievement tier to rarity string
+                string rarity = achievement.tier switch
+                {
+                    AchievementTier.Bronze => "common",
+                    AchievementTier.Silver => "rare",
+                    AchievementTier.Gold => "epic",
+                    AchievementTier.Platinum => "legendary",
+                    _ => "common"
+                };
+
                 analyticsService.TrackAchievementUnlocked(
                     achievementID: achievement.achievementID,
-                    achievementName: achievement.displayName
+                    rarity: rarity,
+                    completionPercentage: 1.0f // Achievement is unlocked = 100% complete
                 );
             }
         }

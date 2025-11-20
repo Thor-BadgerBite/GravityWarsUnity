@@ -375,7 +375,7 @@ namespace GravityWars.DebugUI
                 {
                     // Add progress to first quest
                     var quest = quests[0];
-                    QuestService.Instance.UpdateQuestProgress(quest.data.objectiveType, 1);
+                    QuestService.Instance.UpdateQuestProgress(quest.objectiveType, 1);
                     LogStatus($"✓ Added progress to quest: {quest.questID}");
                 }
                 else
@@ -393,7 +393,7 @@ namespace GravityWars.DebugUI
                 LogStatus($"=== ACTIVE QUESTS ({quests.Count}) ===");
                 foreach (var quest in quests)
                 {
-                    string status = quest.isCompleted ? "COMPLETED" : $"{quest.currentProgress}/{quest.data.targetValue}";
+                    string status = quest.isCompleted ? "COMPLETED" : $"{quest.currentProgress}/{quest.targetValue}";
                     LogStatus($"- {quest.questID}: {status}");
                 }
             }
@@ -458,8 +458,8 @@ namespace GravityWars.DebugUI
                 LogStatus($"=== ACHIEVEMENTS ({achievements.Count}) ===");
                 foreach (var ach in achievements)
                 {
-                    string status = ach.isUnlocked ? "UNLOCKED" : $"{ach.currentProgress}/{ach.data.targetValue}";
-                    LogStatus($"- {ach.achievementID}: {status} ({ach.data.points}pts)");
+                    string status = ach.isUnlocked ? "UNLOCKED" : $"{ach.currentProgress}/{ach.targetValue}";
+                    LogStatus($"- {ach.achievementID}: {status} ({ach.achievementPoints}pts)");
                 }
             }
         }
