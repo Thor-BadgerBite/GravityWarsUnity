@@ -1,15 +1,17 @@
 // TODO: Install Unity Gaming Services packages and uncomment
 // using Unity.Netcode;
 using UnityEngine;
-using GravityWars.Multiplayer;
+// using GravityWars.Multiplayer;
 using System.Collections;
+
+#if UNITY_NETCODE_GAMEOBJECTS
+using GravityWars.Multiplayer;
 
 /// <summary>
 /// Coordinates turn-based gameplay in deterministic peer-to-peer multiplayer.
 /// Server manages turn state machine, timing, and validation.
 /// Clients execute game logic locally with synchronized inputs.
 /// </summary>
-#if UNITY_NETCODE_GAMEOBJECTS
 public class NetworkTurnCoordinator : NetworkBehaviour
 {
     #region Singleton
