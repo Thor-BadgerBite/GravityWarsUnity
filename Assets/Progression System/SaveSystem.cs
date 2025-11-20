@@ -83,22 +83,25 @@ public static class SaveSystem
     /// </summary>
     public static async void SavePlayerDataToCloudAsync(PlayerAccountData data)
     {
+        // TEMPORARILY DISABLED - CloudSaveService type mismatch (expects SaveData, not PlayerAccountData)
+        // try
+        // {
+        //     var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
+        //     if (cloudSave != null)
+        //     {
+        //         bool success = await cloudSave.SaveToCloud(data);
+        //         if (!success)
+        //         {
+        //             Debug.LogWarning("[SaveSystem] Cloud save queued for later (offline or failed)");
+        //         }
+        //     }
+        //     else
+        //     {
+                Debug.LogWarning("[SaveSystem] CloudSaveService disabled - type mismatch needs fix");
+        //     }
+        // }
         try
-        {
-            var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-            if (cloudSave != null)
-            {
-                bool success = await cloudSave.SaveToCloud(data);
-                if (!success)
-                {
-                    Debug.LogWarning("[SaveSystem] Cloud save queued for later (offline or failed)");
-                }
-            }
-            else
-            {
-                Debug.LogWarning("[SaveSystem] CloudSaveService not available - skipping cloud sync");
-            }
-        }
+        {}
         catch (Exception e)
         {
             Debug.LogError($"[SaveSystem] Cloud save failed: {e.Message}");
@@ -165,70 +168,18 @@ public static class SaveSystem
     /// </summary>
     public static async Task<PlayerAccountData> LoadPlayerDataWithCloudMergeAsync()
     {
+        // TEMPORARILY DISABLED - CloudSaveService type mismatch (expects SaveData, not PlayerAccountData)
+        // Cloud sync functionality disabled until type conversion is implemented
+        await Task.CompletedTask; // Satisfy async requirement
+
         try
         {
-            PlayerAccountData cloudData = null;
-            PlayerAccountData localData = null;
+            // Load from local only
+            PlayerAccountData localData = LoadPlayerDataLocal();
+            Debug.Log($"[SaveSystem] Local data loaded: {(localData != null ? localData.username : "none")}");
+            Debug.LogWarning("[SaveSystem] Cloud sync disabled - using local save only");
 
-            // Load from cloud if online
-            if (enableCloudSync && Application.internetReachability != NetworkReachability.NotReachable)
-            {
-                var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-                if (cloudSave != null)
-                {
-                    cloudData = await cloudSave.LoadFromCloud();
-                    Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.username : "none")}");
-                }
-            }
-
-            // Load from local
-            localData = LoadPlayerDataLocal();
-            Debug.Log($"[SaveSystem] Local data: {(localData != null ? localData.username : "none")}");
-
-            // Merge data
-            PlayerAccountData mergedData = null;
-
-            if (cloudData != null && localData != null)
-            {
-                // Both exist - merge them
-                Debug.Log("[SaveSystem] Merging cloud and local data...");
-                var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-                mergedData = cloudSave.MergeData(cloudData, localData);
-
-                // Save merged result
-                SavePlayerDataLocal(mergedData);
-                if (enableCloudSync)
-                    await cloudSave.SaveToCloud(mergedData);
-            }
-            else if (cloudData != null)
-            {
-                // Cloud only - use cloud data
-                Debug.Log("[SaveSystem] Using cloud data (no local save)");
-                mergedData = cloudData;
-                SavePlayerDataLocal(cloudData); // Cache locally
-            }
-            else if (localData != null)
-            {
-                // Local only - use local data
-                Debug.Log("[SaveSystem] Using local data (no cloud save)");
-                mergedData = localData;
-
-                // Upload to cloud for future sync
-                if (enableCloudSync)
-                {
-                    var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-                    await cloudSave.SaveToCloud(localData);
-                }
-            }
-            else
-            {
-                // Neither exists - new player
-                Debug.Log("[SaveSystem] No save data found (new player)");
-                return null;
-            }
-
-            Debug.Log($"[SaveSystem] Load complete: {mergedData.username}");
-            return mergedData;
+            return localData;
         }
         catch (Exception e)
         {
