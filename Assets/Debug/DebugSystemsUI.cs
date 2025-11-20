@@ -554,14 +554,16 @@ namespace GravityWars.DebugUI
         {
             if (AnalyticsService.Instance != null)
             {
-                AnalyticsService.Instance.TrackMatchCompleted(
-                    isWin: true,
-                    duration: 120,
-                    damageDealt: 500,
-                    missilesHit: 10,
-                    missilesFired: 15
-                );
-                LogStatus("✓ Tracked test match event");
+                // TEMPORARILY DISABLED - TrackMatchCompleted signature changed to TrackMatchComplete(MatchAnalytics)
+                // Need to create MatchAnalytics object instead
+                // AnalyticsService.Instance.TrackMatchCompleted(
+                //     isWin: true,
+                //     duration: 120,
+                //     damageDealt: 500,
+                //     missilesHit: 10,
+                //     missilesFired: 15
+                // );
+                LogStatus("⚠ Analytics tracking temporarily disabled - needs MatchAnalytics object");
             }
         }
 

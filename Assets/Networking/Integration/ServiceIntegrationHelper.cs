@@ -143,11 +143,12 @@ namespace GravityWars.Integration
 
         private void CollectEconomyData(SaveData saveData)
         {
-            if (EconomyService.Instance == null)
-            {
-                Debug.LogWarning("[ServiceIntegration] EconomyService not found");
-                return;
-            }
+            // TEMPORARILY DISABLED - EconomyService not available
+            // if (EconomyService.Instance == null)
+            // {
+            //     Debug.LogWarning("[ServiceIntegration] EconomyService not found");
+            //     return;
+            // }
 
             // TODO: Uncomment when EconomyService has these methods
             /*
@@ -161,7 +162,8 @@ namespace GravityWars.Integration
 
         private void DistributeEconomyData(SaveData saveData)
         {
-            if (EconomyService.Instance == null) return;
+            // TEMPORARILY DISABLED - EconomyService not available
+            // if (EconomyService.Instance == null) return;
 
             // TODO: Uncomment when EconomyService has these methods
             /*
