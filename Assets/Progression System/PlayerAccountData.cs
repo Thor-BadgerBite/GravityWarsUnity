@@ -20,8 +20,8 @@ public class PlayerAccountData
     public DateTime lastLoginDate;
 
     [Header("Account Progression")]
-    public int accountLevel = 1;
-    public int accountXP = 0;
+    public int level = 1;
+    public int currentXP = 0;
 
     [Header("Currency")]
     public int credits = 0;      // Renamed from softCurrency - Earned through gameplay
@@ -211,8 +211,8 @@ public class PlayerAccountData
     /// </summary>
     public void AddAccountXP(int amount)
     {
-        accountXP += amount;
-        Debug.Log($"[PlayerAccountData] +{amount} Account XP (Total: {accountXP})");
+        currentXP += amount;
+        Debug.Log($"[PlayerAccountData] +{amount} Account XP (Total: {currentXP})");
     }
 
     /// <summary>

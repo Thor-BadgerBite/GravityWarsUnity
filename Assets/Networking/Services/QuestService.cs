@@ -292,7 +292,7 @@ namespace GravityWars.Networking
                 return true; // Default to allowing if no player data
 
             // Check account level requirement
-            return progressionManager.currentPlayerData.accountLevel >= quest.requiredAccountLevel;
+            return progressionManager.currentPlayerData.level >= quest.requiredAccountLevel;
         }
 
         /// <summary>
@@ -430,7 +430,7 @@ namespace GravityWars.Networking
             // Award account XP
             if (quest.accountXPReward > 0)
             {
-                progressionManager.currentPlayerData.AddAccountXP(quest.accountXPReward);
+                progressionManager.currentPlayerData.currentXP += quest.accountXPReward;
                 Log($"Awarded {quest.accountXPReward} account XP");
 
                 // Check for level up

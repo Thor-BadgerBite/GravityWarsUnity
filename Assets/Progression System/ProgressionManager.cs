@@ -70,7 +70,7 @@ public class ProgressionManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[ProgressionManager] Loaded account: {currentPlayerData.username} (Level {currentPlayerData.accountLevel})");
+            Debug.Log($"[ProgressionManager] Loaded account: {currentPlayerData.username} (Level {currentPlayerData.level})");
             currentPlayerData.UpdateLastLogin();
         }
 
@@ -225,7 +225,7 @@ public class ProgressionManager : MonoBehaviour
         }
 
         // Award account XP
-        currentPlayerData.AddAccountXP(totalAccountXP);
+        currentPlayerData.currentXP += totalAccountXP;
         CheckAccountLevelUp();
 
         // Award ship XP
@@ -256,17 +256,17 @@ public class ProgressionManager : MonoBehaviour
     public void CheckAccountLevelUp()
     {
         // Account level formula (simple linear for now, can be quadratic like ships)
-        int xpForNextLevel = 1000 + (currentPlayerData.accountLevel * 500);
+        int xpForNextLevel = 1000 + (currentPlayerData.level * 500);
 
-        while (currentPlayerData.accountXP >= xpForNextLevel && currentPlayerData.accountLevel < 50)
+        while (currentPlayerData.currentXP >= xpForNextLevel && currentPlayerData.level < 50)
         {
-            currentPlayerData.accountLevel++;
-            Debug.Log($"[ProgressionManager] ACCOUNT LEVEL UP! Now Level {currentPlayerData.accountLevel}");
+            currentPlayerData.level++;
+            Debug.Log($"[ProgressionManager] ACCOUNT LEVEL UP! Now Level {currentPlayerData.level}");
 
             // Grant level-up rewards (check free battle pass)
-            GrantAccountLevelRewards(currentPlayerData.accountLevel);
+            GrantAccountLevelRewards(currentPlayerData.level);
 
-            xpForNextLevel = 1000 + (currentPlayerData.accountLevel * 500);
+            xpForNextLevel = 1000 + (currentPlayerData.level * 500);
         }
     }
 
@@ -354,7 +354,7 @@ public class ProgressionManager : MonoBehaviour
         // Grant XP
         if (reward.accountXP > 0)
         {
-            currentPlayerData.AddAccountXP(reward.accountXP);
+            currentPlayerData.currentXP += reward.accountXP;
         }
 
         // Unlock cosmetics
