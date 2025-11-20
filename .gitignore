@@ -107,3 +107,5 @@ InitTestScene*.unity*
 /Assets/2D Space Kit/
 
 .codegpt
+Assets/Online/PlayerProfileData.cs.meta
+Assets/Progression System/PlayerAccountData.cs.meta
