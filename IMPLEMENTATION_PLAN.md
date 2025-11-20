@@ -1,4 +1,7 @@
 # Gravity Wars - Complete Implementation Plan
+**Focus: Online Multiplayer as Core Feature**
+
+---
 
 ## 📋 Current State
 
@@ -9,270 +12,467 @@
 - **Progression System** - ProgressionManager handles XP, levels, currency, unlocks
 - **Save System** - Local JSON saves working, cloud sync ready
 - **Lobby System** - LobbyManager code ready, needs Unity Netcode package
+- **Matchmaking System** - MatchmakingService ready for online play
+- **ELO Rating System** - Competitive ranking system implemented
 - **Analytics System** - AnalyticsService ready for tracking
 
 ### 🔧 What Needs Implementation
-1. **Unity Gaming Services Setup** (for cloud save & online multiplayer)
-2. **UI Screens** (Main Menu, Ship Selection, Progression, Battle Pass, etc.)
-3. **Content Creation** (Ships, Perks, Passives, Quests, Achievements)
-4. **Visual Polish** (Ship 3D models, VFX, UI styling)
-5. **Online Multiplayer Integration** (netcode setup)
-6. **Testing & Balancing**
+1. **Unity Gaming Services Setup** (REQUIRED for online multiplayer)
+2. **Unity Netcode Integration** (REQUIRED for online multiplayer)
+3. **Online Multiplayer Testing** (matchmaking, lobbies, netcode synchronization)
+4. **UI Screens** (Main Menu, Matchmaking, Ship Selection, etc.)
+5. **Content Creation** (Ships, Perks, Passives, Quests, Achievements)
+6. **Visual Polish** (Ship 3D models, VFX, UI styling)
+7. **Testing & Balancing**
 
 ---
 
-## 🎯 Implementation Phases
+## 🎯 Implementation Phases (Online-First Approach)
 
-### **Phase 1: Unity Project Setup** (1-2 hours)
-**Goal:** Install required packages and configure services
+### **Phase 1: Unity Gaming Services + Netcode Setup** (2-3 hours)
+**Goal:** Get online multiplayer infrastructure running
+
+**CRITICAL - DO THIS FIRST:**
 
 **Tasks:**
-1. Install Unity Gaming Services packages
-2. Configure Unity Cloud Save
-3. Install Unity Netcode for GameObjects (optional for now)
-4. Configure project settings
-5. Test authentication
+1. ✅ Install Unity Gaming Services packages (Authentication, Cloud Save, Lobby, Relay)
+2. ✅ **Install Unity Netcode for GameObjects** (REQUIRED)
+3. ✅ Configure Unity Cloud Save
+4. ✅ Configure Unity Lobby Service
+5. ✅ Configure Unity Relay Service (for NAT punchthrough)
+6. ✅ Set up scripting define symbols
+7. ✅ Test authentication & cloud save
+8. ✅ Test basic netcode connection
 
-**See:** `UNITY_SETUP_GUIDE.md`
+**Critical Packages (ALL REQUIRED):**
+- `com.unity.services.core`
+- `com.unity.services.authentication`
+- `com.unity.services.cloudsave`
+- `com.unity.services.lobby`
+- `com.unity.services.relay`
+- `com.unity.netcode.gameobjects`
+- `com.unity.transport`
+
+**See:** `UNITY_SETUP_GUIDE.md` (Section: Online Multiplayer Setup)
+
+**Success Criteria:**
+- [ ] All packages installed
+- [ ] Unity Gaming Services authenticated
+- [ ] Test lobby created successfully
+- [ ] Two clients can connect via Relay
+- [ ] Network variables sync between clients
 
 ---
 
-### **Phase 2: Core UI Screens** (4-6 hours)
-**Goal:** Create all main menu and game UI
+### **Phase 2: Online Match Flow** (6-8 hours)
+**Goal:** Complete end-to-end online match experience
+
+**Tasks:**
+
+#### **A. Matchmaking UI** (2 hours)
+1. Create Online Matchmaking screen:
+   - Quick Match button (finds opponent automatically)
+   - Create Private Lobby button
+   - Join by Code input field
+   - Region selection dropdown
+   - Ranked/Casual toggle
+
+2. Create Lobby UI:
+   - Show lobby code
+   - Player list (host + opponent)
+   - Ready/Not Ready indicators
+   - Ship selection preview
+   - Chat (optional)
+   - Start Match button (host only)
+
+3. Create Searching UI:
+   - Animated "Searching..." indicator
+   - Cancel button
+   - Estimated wait time
+   - Player count in queue
+
+#### **B. Network Synchronization** (3-4 hours)
+1. Convert PlayerShip to NetworkBehaviour:
+   - Position/rotation synchronization
+   - Velocity synchronization
+   - Health synchronization
+   - Missile firing synchronization
+
+2. Convert Missile to NetworkBehaviour:
+   - Trajectory synchronization
+   - Hit detection (server-authoritative)
+   - Destroy synchronization
+
+3. Implement NetworkGameManager:
+   - Match state synchronization (countdown, playing, ended)
+   - Score synchronization
+   - Round transitions
+   - Victory/defeat conditions
+
+4. Add lag compensation:
+   - Client-side prediction
+   - Server reconciliation
+   - Interpolation for smooth movement
+
+#### **C. Matchmaking Integration** (1-2 hours)
+1. Connect UI to LobbyManager
+2. Implement Quick Match flow:
+   - Search for available lobbies
+   - Auto-join if found
+   - Create new lobby if none available
+   - Start match when 2 players ready
+
+3. Implement ELO matchmaking:
+   - Match players within ±200 ELO range
+   - Expand range after 30 seconds
+   - Record match results
+   - Update ELO ratings post-match
+
+**See:** `ONLINE_MULTIPLAYER_GUIDE.md`
+
+**Success Criteria:**
+- [ ] Can find opponent via Quick Match
+- [ ] Can create private lobby and share code
+- [ ] Two players see each other's ships move in real-time
+- [ ] Missiles hit and deal damage correctly
+- [ ] Match ends properly, winner declared
+- [ ] ELO ratings update after match
+
+---
+
+### **Phase 3: Core UI Screens** (4-6 hours)
+**Goal:** Polish main menu and core game UI
 
 **Screens to Create:**
-1. **Main Menu Screen**
-   - Player profile display (username, level, XP bar)
-   - Currency display (credits, gems)
-   - Navigation buttons (Play, Ships, Battle Pass, Achievements, Settings)
 
-2. **Ship Selection Screen**
-   - 3D ship viewer (rotate, zoom)
-   - Ship stats panel
-   - Loadout editor
-   - Ship unlock requirements
+#### **1. Main Menu Screen** (1 hour)
+- Player profile display (username, level, XP bar, ELO rating)
+- Currency display (credits, gems)
+- **PLAY Button** (most prominent - goes to Online Matchmaking)
+- Ships button
+- Battle Pass button
+- Achievements button
+- Settings button
+- Friends/Social button (optional)
 
-3. **Battle Pass Screen**
-   - Tier progress bar
-   - Reward grid (free & premium tracks)
-   - XP display
-   - Purchase premium button
+#### **2. Ship Selection Screen** (2 hours)
+- 3D ship viewer (rotate, zoom)
+- Ship stats panel (health, speed, damage, special abilities)
+- Loadout editor:
+  - Select ship body
+  - Select 3 perks (tier 1, 2, 3)
+  - Select passive
+  - Select move type
+  - Select missile
+- Unlock requirements display
+- "Equip for Ranked" button
+- "Equip for Casual" button
 
-4. **Achievements Screen**
-   - Achievement list with progress bars
-   - Filter by type (Single, Incremental, Tiered)
-   - Claim rewards button
+#### **3. Post-Match Results Screen** (1 hour)
+- Winner/Loser banner
+- Match statistics:
+  - Damage dealt
+  - Missiles fired/hit
+  - Accuracy percentage
+  - Kill/death ratio
+- XP gained
+- Currency gained
+- ELO change (+15, -10, etc.)
+- Quest progress updates
+- Achievement unlocks
+- "Play Again" button
+- "Return to Menu" button
 
-5. **Quest Screen**
-   - Daily quests section
-   - Weekly quests section
-   - Season quests section
-   - Progress tracking
+#### **4. Battle Pass Screen** (1 hour)
+- Tier progress bar (1-30)
+- Reward grid:
+  - Free track rewards
+  - Premium track rewards
+  - "Locked" overlay for premium
+- XP display (current/needed for next tier)
+- "Purchase Premium" button (1000 gems)
+- "Claim Tier" buttons
 
-6. **Settings Screen**
-   - Audio sliders
-   - Graphics options
-   - Controls settings
-   - Account management
+#### **5. Achievements Screen** (1 hour)
+- Achievement grid
+- Filter by category (Combat, Progression, Social, etc.)
+- Search bar
+- Progress bars for incomplete achievements
+- "Claim Reward" buttons
+
+#### **6. Settings Screen** (30 min)
+- Audio: Master, Music, SFX sliders
+- Graphics: Quality dropdown, VSync toggle
+- Controls: Sensitivity slider
+- Account: Username, Change Password, Log Out
 
 **See:** `UI_CREATION_GUIDE.md`
 
 ---
 
-### **Phase 3: Content Creation** (8-12 hours)
-**Goal:** Create all game content as ScriptableObjects
+### **Phase 4: Content Creation** (8-12 hours)
+**Goal:** Create all game content
 
-**Content Types:**
+**Priority Order (for online play):**
 
-#### **A. Ships (10-15 ships)**
-Create `ShipBodySO` ScriptableObjects:
-- **Starter Ships** (3): Basic ships players start with
-- **Common Ships** (4): Unlocked early through progression
-- **Rare Ships** (4): Unlocked mid-game
-- **Epic Ships** (3): High-tier unlocks
-- **Legendary Ships** (1-2): Premium/endgame ships
+#### **A. Ships** (3-4 hours) - **START HERE**
+Create at least **8-10 ships** for variety:
+
+**Starter Ships** (Free, unlocked by default):
+1. **Scout** - Fast, low health (Tank archetype)
+2. **Fighter** - Balanced stats (AllAround archetype)
+3. **Interceptor** - High speed, medium health (DamageDealer archetype)
+
+**Unlockable Ships** (Level/Currency requirements):
+4. **Heavy** - Slow, high health (Tank)
+5. **Sniper** - Long-range damage (DamageDealer)
+6. **Support** - Utility-focused (Controller)
+7. **Assassin** - High burst damage (DamageDealer)
+8. **Fortress** - Extreme tankiness (Tank)
+
+**Premium Ships** (Gem-only or high progression):
+9. **Phantom** - Stealth mechanics (DamageDealer)
+10. **Titan** - Massive ship with unique abilities (Tank)
 
 **For Each Ship:**
-- Name, description, tier
-- Base stats (health, speed, damage)
-- Archetype (Tank, DamageDealer, AllAround, Controller)
-- 3D model/sprite
-- Unlock requirements (level, currency, quest)
+- Name, description
+- Base stats: Health (100-300), Speed (5-15), Damage multiplier (0.8-1.5)
+- Archetype
+- 3D model or sprite
+- Unlock requirement (e.g., Level 5, 2000 credits, or 100 gems)
 
-#### **B. Perks (24-30 perks)**
-Create `ActivePerkSO` ScriptableObjects:
-- **Tier 1 Perks** (8-10): Weak but cheap
-- **Tier 2 Perks** (8-10): Moderate power/cost
-- **Tier 3 Perks** (8-10): Powerful but expensive
+#### **B. Perks** (3-4 hours)
+Create **24-30 perks** (8-10 per tier):
 
-**For Each Perk:**
-- Name, description, tier
-- Cooldown, energy cost
-- Effect implementation
-- VFX/SFX
-- Unlock requirements
+**Tier 1 Perks** (Low cost, low cooldown):
+- Speed Boost (15s cooldown): +50% speed for 3s
+- Shield (20s cooldown): Block next 50 damage
+- Quick Fire (10s cooldown): Fire 3 missiles rapidly
+- Dash (12s cooldown): Instant movement in direction
+- Heal (30s cooldown): Restore 50 HP
+- Decoy (25s cooldown): Create fake ship
+- etc.
 
-#### **C. Passive Abilities (12-16)**
-Create `PassiveAbilitySO` ScriptableObjects:
-- Stat boosts (damage +10%, health +15%, etc.)
-- Special effects (shield regeneration, lifesteal, etc.)
-- Archetype restrictions (some only work on certain ship types)
+**Tier 2 Perks** (Medium cost/cooldown):
+- Cloak (40s cooldown): Invisible for 5s
+- Reflect Shield (45s cooldown): Reflect projectiles for 4s
+- Missile Barrage (35s cooldown): Fire 5 homing missiles
+- Time Slow (60s cooldown): Slow enemy for 3s
+- etc.
 
-#### **D. Quests (30-40 quests)**
-Create `QuestDataSO` ScriptableObjects:
-- **Daily Quests** (10): Reset every 24h, quick objectives
-- **Weekly Quests** (10): Reset weekly, more challenging
-- **Season Quests** (10-20): One-time, progression milestones
+**Tier 3 Perks** (High cost/cooldown):
+- Black Hole (90s cooldown): Pull enemy toward point
+- Nuke (120s cooldown): Massive AoE damage
+- Resurrection (One-time): Revive on death
+- Ultimate Weapon (90s cooldown): Super powerful attack
+- etc.
 
-**Quest Types:**
-- Win X matches
-- Deal X damage
-- Use specific ship/perk X times
+#### **C. Passives** (1-2 hours)
+Create **12-16 passives**:
+- +10% Max Health
+- +15% Speed
+- +20% Damage
+- Shield Regeneration (5 HP/s)
+- Missile Accuracy +15%
+- Cooldown Reduction -10%
+- Lifesteal 20%
+- Damage Reduction 10%
+- etc.
+
+#### **D. Quests** (1-2 hours)
+Create **30-40 quests** (focused on online play):
+
+**Daily Quests** (10):
+- Win 3 matches
+- Deal 500 damage
+- Win using [specific ship]
+- Fire 20 missiles
+- Achieve 70% accuracy
 - Win without taking damage
-- Hit X missiles in a row
+- etc.
 
-#### **E. Achievements (40-60 achievements)**
-Create `AchievementTemplateSO` ScriptableObjects:
-- **Single Achievements**: One-time accomplishments
-- **Incremental Achievements**: Track progress (win 10/50/100 matches)
-- **Tiered Achievements**: Bronze/Silver/Gold tiers
+**Weekly Quests** (10):
+- Win 15 matches
+- Reach ELO 1300
+- Play 5 different ships
+- Complete 10 daily quests
+- etc.
 
-**Categories:**
-- Combat achievements
-- Progression achievements
-- Skill achievements
-- Special achievements
+**Season Quests** (10-20):
+- Reach Level 10
+- Unlock 5 ships
+- Win 50 matches
+- Complete Battle Pass tier 20
+- etc.
 
-#### **F. Battle Pass (30 tiers)**
-Create `BattlePassData` ScriptableObject:
-- Define 30 tiers with rewards each
-- Free track rewards (currency, common ships)
-- Premium track rewards (exclusive ships, gems, cosmetics)
-- XP required per tier
+#### **E. Achievements** (2-3 hours)
+Create **40-60 achievements**:
+
+**Combat**:
+- First Blood: Win your first match
+- Sharpshooter: 90% accuracy in a match
+- Untouchable: Win without taking damage
+- Comeback King: Win from 50+ HP deficit
+- etc.
+
+**Progression**:
+- Level Up: Reach Level 5/10/20/50
+- Ship Collector: Unlock 5/10/15 ships
+- Currency Hoarder: Accumulate 10K credits
+- etc.
+
+**Competitive**:
+- Ranked Warrior: Play 10/50/100 ranked matches
+- ELO Climber: Reach 1400/1600/1800 ELO
+- Win Streak: Win 3/5/10 matches in a row
+- etc.
+
+#### **F. Battle Pass** (1 hour)
+Create **Battle Pass with 30 tiers**:
+
+Example tier rewards:
+- Tier 1: 100 credits (free) / 50 gems (premium)
+- Tier 5: Common ship (free) / Rare ship (premium)
+- Tier 10: 500 credits (free) / Epic ship (premium)
+- Tier 15: Rare perk (free) / Cosmetic skin (premium)
+- Tier 20: 1000 credits (free) / Legendary ship (premium)
+- Tier 30: Epic ship (free) / Exclusive legendary ship (premium)
 
 **See:** `CONTENT_CREATION_GUIDE.md`
 
 ---
 
-### **Phase 4: Ship 3D Models & VFX** (Varies based on art style)
-**Goal:** Add visual polish
+### **Phase 5: Visual Polish** (4-8 hours, can be done in parallel)
+**Goal:** Make the game look good
 
+**Priority Items:**
+
+#### **A. Ship Visuals** (2-3 hours)
 **Options:**
-1. **Placeholder Art**: Use Unity primitives + materials (fast, functional)
-2. **2D Sprites**: Create/buy 2D ship sprites (medium time)
-3. **3D Models**: Model ships in Blender (time-consuming but polished)
-4. **Asset Store**: Buy ready-made space ship packs (fastest, costs money)
+1. **Placeholder** (fastest): Unity primitives + materials
+2. **2D Sprites** (fast): Create/buy ship sprites
+3. **3D Models** (best): Create in Blender or buy Asset Store packs
+4. **Recommendation:** Start with **Asset Store** ship packs for speed
 
-**VFX Needed:**
-- Missile trails
-- Hit effects
-- Explosion effects
-- Shield effects
-- Perk activation effects
-- Level-up effects
-- Achievement unlock effects
+**Suggested Asset Packs:**
+- "Space Ship Collection" (free)
+- "Sci-Fi Ships Pack" ($15-30)
+- Various free spaceship models on Sketchfab
+
+#### **B. VFX** (2-3 hours)
+Required effects:
+- **Missile Trail** - Particle system with glow
+- **Hit Impact** - Spark particles
+- **Explosion** - Fire/smoke particles
+- **Shield Effect** - Transparent dome with shimmer
+- **Speed Boost** - Motion blur trails
+- **Level Up** - Golden sparkle burst
+- **Achievement Unlock** - Confetti/celebration
+
+Use Unity's Particle System or buy VFX packs.
+
+#### **C. UI Styling** (2 hours)
+- Color scheme (dark space theme with neon accents)
+- Custom buttons (9-slice sprites)
+- Health bars (gradient fill)
+- XP bars (animated fill)
+- Background patterns
 
 **See:** `ART_PIPELINE_GUIDE.md`
 
 ---
 
-### **Phase 5: Testing & Balancing** (Ongoing)
+### **Phase 6: Testing & Balancing** (Ongoing)
 **Goal:** Ensure everything works and is fun
 
-**Testing Checklist:**
-- [ ] All ships balanced (no overpowered/underpowered ships)
-- [ ] All perks functional and useful
-- [ ] Quests completable and fair
-- [ ] Achievements tracking correctly
-- [ ] Progression feels rewarding
-- [ ] Economy balanced (currency earning/spending)
-- [ ] Cloud save working across devices
+#### **A. Online Multiplayer Testing** (PRIORITY)
+**Test with a friend or two devices:**
+- [ ] Both players can connect
+- [ ] Movement syncs properly (no jittering)
+- [ ] Missiles hit correctly
+- [ ] Health updates in real-time
+- [ ] Winner declared correctly
 - [ ] No game-breaking bugs
+- [ ] Acceptable latency (<150ms)
+- [ ] Reconnection works after disconnect
 
----
+#### **B. Balance Testing**
+- [ ] No ship is overpowered
+- [ ] All perks are useful
+- [ ] Matches last 2-5 minutes (good length)
+- [ ] Economy feels fair (not too grindy)
+- [ ] ELO system works (fair matches)
 
-### **Phase 6: Online Multiplayer** (8-12 hours)
-**Goal:** Enable online PVP
+#### **C. Bug Fixing**
+- [ ] No crashes
+- [ ] No soft-locks
+- [ ] No exploits
+- [ ] UI works on all resolutions
+- [ ] Save/load works reliably
 
-**Tasks:**
-1. Install Unity Netcode for GameObjects
-2. Setup Relay/Lobby services
-3. Implement network synchronization
-4. Test matchmaking
-5. Implement ELO rating system
-6. Add ranked/casual modes
-
-**See:** `ONLINE_MULTIPLAYER_GUIDE.md`
+**See:** `TESTING_GUIDE.md`
 
 ---
 
 ## 📦 What to Create in Unity
 
-### **Prefabs Needed:**
+### **Prefabs (Priority Order)**
 
-#### **UI Prefabs:**
+#### **1. Network Prefabs (CRITICAL)**
 ```
-Assets/UI/Prefabs/
+Assets/Prefabs/Network/
+├── NetworkedPlayerShip.prefab (has NetworkObject + NetworkTransform)
+├── NetworkedMissile.prefab (has NetworkObject + NetworkTransform)
+└── NetworkGameManager.prefab (handles match state)
+```
+
+#### **2. UI Prefabs**
+```
+Assets/Prefabs/UI/
 ├── MainMenuUI.prefab
+├── MatchmakingUI.prefab
+├── LobbyUI.prefab
 ├── ShipSelectionUI.prefab
-├── BattlePassUI.prefab
-├── AchievementsPanelUI.prefab
-├── QuestsPanelUI.prefab
-├── SettingsUI.prefab
-├── LoadoutEditorUI.prefab
 ├── MatchResultsUI.prefab
+├── BattlePassUI.prefab
+├── AchievementsUI.prefab
 └── Components/
-    ├── CurrencyDisplay.prefab
-    ├── XPBar.prefab
-    ├── ShipCard.prefab
-    ├── QuestEntry.prefab
-    ├── AchievementEntry.prefab
-    └── BattlePassTier.prefab
+    ├── PlayerCard.prefab (shows player info in lobby)
+    ├── ShipCard.prefab (ship selection grid)
+    ├── QuestCard.prefab
+    └── AchievementCard.prefab
 ```
 
-#### **Game Prefabs:**
+#### **3. Game Prefabs**
 ```
-Assets/Prefabs/
-├── Ships/
-│   ├── Ship_Starter_01.prefab
-│   ├── Ship_Starter_02.prefab
-│   └── ... (one per ship)
-├── Missiles/
-│   ├── Missile_Standard.prefab
-│   ├── Missile_Heavy.prefab
-│   └── ... (one per missile type)
-├── VFX/
-│   ├── VFX_MissileTrail.prefab
-│   ├── VFX_Explosion.prefab
-│   ├── VFX_HitImpact.prefab
-│   └── VFX_LevelUp.prefab
-└── Managers/
-    ├── GameManager.prefab
-    ├── ProgressionManager.prefab
-    └── UIManager.prefab
+Assets/Prefabs/Ships/
+├── Ship_Scout.prefab
+├── Ship_Fighter.prefab
+└── ... (one per ship)
+
+Assets/Prefabs/VFX/
+├── VFX_MissileTrail.prefab
+├── VFX_Explosion.prefab
+└── VFX_HitImpact.prefab
 ```
 
-### **ScriptableObject Assets:**
+### **ScriptableObject Assets**
 
 ```
 Assets/Data/
 ├── Ships/
-│   ├── Starter/
-│   │   ├── Ship_Starter_Scout.asset
-│   │   ├── Ship_Starter_Fighter.asset
-│   │   └── Ship_Starter_Tank.asset
-│   ├── Common/
-│   ├── Rare/
-│   ├── Epic/
-│   └── Legendary/
+│   ├── Ship_Scout.asset
+│   ├── Ship_Fighter.asset
+│   └── ... (10-15 ships)
 ├── Perks/
 │   ├── Tier1/
+│   │   ├── Perk_SpeedBoost.asset
+│   │   └── ... (8-10 tier 1 perks)
 │   ├── Tier2/
 │   └── Tier3/
 ├── Passives/
-│   ├── Passive_ShieldRegen.asset
-│   ├── Passive_DamageBoost.asset
-│   └── ...
+│   ├── Passive_HealthBoost.asset
+│   └── ... (12-16 passives)
 ├── Quests/
 │   ├── Daily/
 │   ├── Weekly/
@@ -280,180 +480,197 @@ Assets/Data/
 ├── Achievements/
 │   ├── Combat/
 │   ├── Progression/
-│   └── Special/
-├── BattlePass/
-│   ├── Season1_BattlePass.asset
-│   └── Season2_BattlePass.asset
-└── MoveTypes/
-    ├── MoveType_Linear.asset
-    ├── MoveType_Curved.asset
-    └── ...
+│   └── Competitive/
+└── BattlePass/
+    └── Season1_BattlePass.asset
 ```
 
 ---
 
-## 🎮 Gameplay Loop
+## 🎮 Online Multiplayer Flow
 
-### **Session Flow:**
-1. Player opens game → Main Menu loads
-2. ProgressionManager loads PlayerAccountData from save
-3. Player sees their profile, currency, level
-4. Player navigates to:
-   - **Play** → Ship Selection → Match → Results → XP/Currency gained
-   - **Ships** → Browse ships → Unlock new ship → Customize loadout
-   - **Battle Pass** → View rewards → Claim tier → Purchase premium
-   - **Quests** → View progress → Claim rewards
-   - **Achievements** → View progress → Claim rewards
-5. On exit → Auto-save to local + cloud
+### **Complete Match Flow:**
 
-### **Progression Loop:**
-```
-Play Match
-    ↓
-Earn XP + Currency
-    ↓
-Level Up / Unlock Content
-    ↓
-Customize Ships / Loadouts
-    ↓
-Play Match (stronger/different build)
-    ↓
-Complete Quests
-    ↓
-Progress Battle Pass
-    ↓
-Unlock More Content
-    ↓
-Repeat
-```
+1. **Player opens game**
+   - Auto-login with Unity Authentication
+   - Load PlayerAccountData from cloud
+   - Display main menu
+
+2. **Player clicks "PLAY"**
+   - Show Online Matchmaking screen
+   - Options: Quick Match, Create Lobby, Join by Code
+
+3. **Player clicks "Quick Match"**
+   - Search for lobbies with similar ELO (±200)
+   - If found: Join lobby
+   - If not found: Create new lobby and wait
+
+4. **Lobby screen**
+   - Show lobby code
+   - Show both players (host + guest)
+   - Players select ships
+   - Players click "Ready"
+   - Host clicks "Start Match" when both ready
+
+5. **Loading screen**
+   - Initialize Unity Relay connection
+   - Spawn networked PlayerShips
+   - Spawn networked planets/obstacles
+
+6. **Match countdown**
+   - "3... 2... 1... FIGHT!"
+   - Enable player controls
+
+7. **Match gameplay**
+   - Players control ships (movement synced via NetworkTransform)
+   - Players fire missiles (spawned via NetworkObject)
+   - Server handles hit detection
+   - Health updates sync to all clients
+   - First player to 0 HP loses
+
+8. **Match ends**
+   - Show results screen (winner/loser, stats, XP, ELO change)
+   - Update PlayerAccountData (level, currency, quests, achievements)
+   - Save to cloud
+   - Submit stats to leaderboards
+   - "Play Again" or "Return to Menu"
 
 ---
 
-## 📊 Economy Design
+## 📊 Economy Design (Online-Focused)
 
 ### **Currency Types:**
+
 1. **Credits** (Soft Currency)
-   - Earned from: Matches, quests, achievements, battle pass
-   - Used for: Unlocking common/rare ships, perks, passives
-   - Typical earning: 50-200 per match
+   - Earned: 50-150 per match (based on performance)
+   - Used for: Common/Rare ships, perks, passives
 
 2. **Gems** (Hard Currency)
-   - Earned from: Battle pass, achievements, daily rewards
-   - Purchased with: Real money (optional)
-   - Used for: Epic/legendary ships, premium battle pass, cosmetics
-   - Typical earning: 5-20 per day (free)
+   - Earned: 10-20 per day (daily login, quests, battle pass)
+   - Purchased: Real money (optional)
+   - Used for: Premium ships, Battle Pass, cosmetics
 
-### **Unlock Costs Example:**
-```
-Starter Ships:     Free (unlocked by default)
-Common Ships:      500-1000 credits
-Rare Ships:        2000-5000 credits
-Epic Ships:        10000 credits OR 100 gems
-Legendary Ships:   50000 credits OR 500 gems
+### **Progression Curve:**
 
-Tier 1 Perks:      200-500 credits
-Tier 2 Perks:      1000-2000 credits
-Tier 3 Perks:      5000 credits OR 50 gems
+- **Level 1-5**: Tutorial/starter phase (unlock 2-3 common ships)
+- **Level 5-10**: Early game (unlock perks, learn matchmaking)
+- **Level 10-20**: Mid game (unlock rare ships, start ranked)
+- **Level 20+**: Endgame (competitive, legendary ships, high ELO)
 
-Premium Battle Pass: 1000 gems (~$9.99)
-```
+### **Time to Unlock:**
+
+- Common ship: 10-15 matches (~2-3 hours)
+- Rare ship: 30-40 matches (~6-8 hours)
+- Epic ship: 100+ matches or 100 gems
+- Legendary ship: 300+ matches or 500 gems
+- Battle Pass premium: 1000 gems (~$10)
 
 ---
 
 ## 🗂️ File Organization
 
-### **Recommended Folder Structure:**
 ```
 Assets/
 ├── Scenes/
-│   ├── MainMenu.unity
-│   ├── ShipSelection.unity
-│   ├── GameArena.unity
-│   └── Testing.unity
+│   ├── 00_Bootstrap.unity (initializes services)
+│   ├── 01_MainMenu.unity
+│   ├── 02_ShipSelection.unity
+│   ├── 03_OnlineMatch.unity (networked game arena)
+│   └── Testing/
+│       ├── NetworkTest.unity
+│       └── ServicesTest.unity
 ├── Scripts/
-│   ├── Core/
+│   ├── Network/
+│   │   ├── NetworkGameManager.cs
+│   │   ├── NetworkPlayerShip.cs
+│   │   ├── NetworkMissile.cs
+│   │   └── NetworkMatchState.cs
 │   ├── UI/
-│   ├── Gameplay/
-│   ├── Networking/
-│   └── Progression/
-├── Data/
-│   └── (ScriptableObjects as shown above)
+│   │   ├── MatchmakingUI.cs
+│   │   ├── LobbyUI.cs
+│   │   └── MatchResultsUI.cs
+│   ├── Managers/
+│   └── Gameplay/
 ├── Prefabs/
-│   └── (Prefabs as shown above)
-├── Art/
-│   ├── Models/
-│   ├── Textures/
-│   ├── Materials/
-│   └── Sprites/
-├── Audio/
-│   ├── Music/
-│   ├── SFX/
-│   └── Mixers/
-├── VFX/
-│   └── Particles/
-└── Resources/
-    └── (Runtime loaded assets)
+│   ├── Network/ (networked objects)
+│   ├── UI/ (UI panels)
+│   └── Ships/ (ship prefabs)
+└── Data/ (ScriptableObjects)
 ```
 
 ---
 
-## 📝 Next Steps
+## 📝 Recommended Order of Implementation
 
-### **Immediate Actions:**
-1. ✅ Read `UNITY_SETUP_GUIDE.md` - Setup Unity Gaming Services
-2. ✅ Read `UI_CREATION_GUIDE.md` - Create main menu UI
-3. ✅ Read `CONTENT_CREATION_GUIDE.md` - Create starter content
-4. ✅ Test hotseat mode with new content
-5. ✅ Iterate based on feedback
+### **Week 1: Get Online Working**
+1. Day 1-2: Unity Gaming Services + Netcode setup
+2. Day 3-4: Basic online match (two players can connect and move)
+3. Day 5: Missiles work online
+4. Day 6-7: Matchmaking UI + lobby system
 
-### **Before Launch Checklist:**
-- [ ] All core systems implemented
-- [ ] At least 10 ships created
-- [ ] At least 20 perks created
-- [ ] At least 30 quests created
-- [ ] Battle pass with 30 tiers
-- [ ] Main menu polished
-- [ ] Cloud save tested on multiple devices
-- [ ] Tutorial/onboarding created
-- [ ] Game balanced and fun
-- [ ] No critical bugs
+### **Week 2: Content + Polish**
+1. Day 1-2: Create 8-10 ships
+2. Day 3: Create 24 perks
+3. Day 4: Create passives, quests, achievements
+4. Day 5-6: UI polish (ship selection, results screen)
+5. Day 7: Testing + bug fixes
+
+### **Week 3: Battle Pass + Launch Prep**
+1. Day 1: Battle Pass system
+2. Day 2-3: Visual polish (VFX, ship models)
+3. Day 4-5: Extensive testing
+4. Day 6-7: Bug fixes, balancing
 
 ---
 
-## 🆘 Common Issues & Solutions
+## ✅ Launch Checklist
 
-### **Issue: "Cloud save not working"**
-**Solution:** Check Unity Gaming Services setup in `UNITY_SETUP_GUIDE.md` section 3
+Before launching:
+- [ ] Online matchmaking works reliably
+- [ ] At least 8 ships created
+- [ ] At least 20 perks created
+- [ ] Quests functional
+- [ ] Achievements functional
+- [ ] Battle Pass functional
+- [ ] ELO system working
+- [ ] Cloud save works
+- [ ] No critical bugs
+- [ ] Tested on multiple devices
+- [ ] Tested with multiple players
+- [ ] Performance is acceptable (60 FPS+)
+- [ ] Latency is acceptable (<150ms)
 
-### **Issue: "LobbyManager errors"**
-**Solution:** Install Unity Netcode package or keep `#if UNITY_NETCODE_GAMEOBJECTS` directives
+---
 
-### **Issue: "ProgressionManager is null"**
-**Solution:** Ensure ProgressionManager prefab is in scene and has DontDestroyOnLoad
+## 🆘 Common Issues
 
-### **Issue: "ScriptableObject data not showing in game"**
-**Solution:** Assign ScriptableObjects to ProgressionManager's public lists in Inspector
+### **Network Issues:**
+- Players can't connect → Check Unity Relay configuration
+- Ships jitter/lag → Adjust NetworkTransform settings
+- Missiles don't hit → Implement server-authoritative hit detection
+- Desync issues → Use NetworkVariables for all shared state
 
-### **Issue: "Saves not persisting"**
-**Solution:** Check `SaveSystem.autoSave` is enabled and `SaveSystem.SAVE_FOLDER` path is writable
+### **Matchmaking Issues:**
+- Can't find opponents → Lower ELO range requirement
+- Lobbies don't close → Implement proper cleanup
+- Players stuck in lobby → Add timeout/force start
 
 ---
 
 ## 📚 Additional Documentation
 
-- `UNITY_SETUP_GUIDE.md` - Complete Unity project setup
-- `UI_CREATION_GUIDE.md` - Step-by-step UI creation
-- `CONTENT_CREATION_GUIDE.md` - Creating ships, perks, quests, etc.
-- `ART_PIPELINE_GUIDE.md` - Adding 3D models and VFX
-- `ONLINE_MULTIPLAYER_GUIDE.md` - Implementing netcode
-- `TESTING_GUIDE.md` - QA and balancing
-- `MONETIZATION_GUIDE.md` - Optional: IAP and ads
+- `UNITY_SETUP_GUIDE.md` - Complete project setup
+- `ONLINE_MULTIPLAYER_GUIDE.md` - Detailed netcode implementation
+- `UI_CREATION_GUIDE.md` - Building all UI screens
+- `CONTENT_CREATION_GUIDE.md` - Creating ships, perks, etc.
+- `TESTING_GUIDE.md` - QA procedures
 
 ---
 
-**Total Estimated Time:**
-- **Minimum Viable Product:** 20-30 hours
-- **Polished Release:** 60-100 hours
-- **With Online Multiplayer:** +20-30 hours
+**Total Estimated Time for MVP:**
+- **With online multiplayer:** 30-40 hours
+- **Polished release:** 80-120 hours
 
-**Good luck! Start with UNITY_SETUP_GUIDE.md** 🚀
+**Start with:** `UNITY_SETUP_GUIDE.md` → Focus on Netcode section
+
+**Online multiplayer is the CORE of your game. Everything else supports it!** 🚀
