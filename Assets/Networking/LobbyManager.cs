@@ -510,7 +510,7 @@ namespace GravityWars.Networking
             if (playerData != null)
             {
                 data["DisplayName"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.username);
-                data["AccountLevel"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.accountLevel.ToString());
+                data["AccountLevel"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.level.ToString());
             }
 
             return new Player(GetPlayerId(), null, data);
