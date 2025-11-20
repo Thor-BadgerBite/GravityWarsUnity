@@ -502,12 +502,12 @@ namespace GravityWars.CloudSave
             };
 
             // Initialize profile
-            data.playerProfile = new PlayerProfileData
-            {
-                username = "Player",
-                accountCreatedTimestamp = data.lastSaveTimestamp,
-                lastLoginTimestamp = data.lastSaveTimestamp
-            };
+                data.playerProfile = new PlayerAccountData("", "Player")
+                {
+                    username = "Player",
+                    accountCreatedTimestamp = data.lastSaveTimestamp,
+                    lastLoginTimestamp = data.lastSaveTimestamp
+                };
 
             // Initialize currency (starting amounts)
             data.currency = new CurrencyData

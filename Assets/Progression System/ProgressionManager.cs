@@ -10,7 +10,7 @@ public class ProgressionManager : MonoBehaviour
     public static ProgressionManager Instance { get; private set; }
 
     [Header("Player Data")]
-    public PlayerProfileData currentPlayerData;
+    public PlayerAccountData currentPlayerData;
 
     [Header("Battle Pass References")]
     [Tooltip("The permanent free battle pass (account progression)")]
@@ -84,7 +84,7 @@ public class ProgressionManager : MonoBehaviour
     /// </summary>
     public void CreateNewAccount(string displayName, string playerID)
     {
-        currentPlayerData = new PlayerProfileData(playerID, displayName);
+        currentPlayerData = new PlayerAccountData(playerID, displayName);
 
         // Grant starter unlocks
         GrantStarterContent();

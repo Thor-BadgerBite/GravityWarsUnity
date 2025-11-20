@@ -91,7 +91,7 @@ public class MatchmakingService : MonoBehaviour
     /// <summary>
     /// Join ranked matchmaking queue with ELO-based pairing.
     /// </summary>
-    public void JoinRankedQueue(string playerId, PlayerProfileData profile)
+    public void JoinRankedQueue(string playerId, PlayerAccountData profile)
     {
         if (IsPlayerInQueue(playerId))
         {
@@ -117,7 +117,7 @@ public class MatchmakingService : MonoBehaviour
     /// <summary>
     /// Join casual matchmaking queue (no ELO restrictions).
     /// </summary>
-    public void JoinCasualQueue(string playerId, PlayerProfileData profile)
+    public void JoinCasualQueue(string playerId, PlayerAccountData profile)
     {
         if (IsPlayerInQueue(playerId))
         {
@@ -507,7 +507,7 @@ public class MatchmakingService : MonoBehaviour
 public class MatchmakingQueueEntry
 {
     public string playerId;
-    public PlayerProfileData playerProfile;
+    public PlayerAccountData playerProfile;
     public int eloRating;
     public bool isRanked;
     public float joinTime;
@@ -524,8 +524,8 @@ public class MatchFoundData
     public string matchId;
     public string player1Id;
     public string player2Id;
-    public PlayerProfileData player1Profile;
-    public PlayerProfileData player2Profile;
+    public PlayerAccountData player1Profile;
+    public PlayerAccountData player2Profile;
     public bool isRanked;
     public int randomSeed;
     public int roundsToWin;
