@@ -6,9 +6,32 @@ using UnityEngine;
 /// Complete player profile data stored on server (Unity Cloud Save).
 /// This is the master data structure containing everything about a player's account.
 /// </summary>
-[Serializable]
+    [Serializable]
 public class PlayerProfileData
-{
+{ 
+    /// <summary>
+    /// Default constructor for serialization.
+    /// </summary>
+    public PlayerProfileData() { }
+
+    /// <summary>
+    /// Convenience constructor used by offline/online systems when creating a new account.
+    /// </summary>
+    public PlayerProfileData(string playerId, string username)
+    {
+        this.playerId = playerId;
+        this.username = username;
+
+        accountCreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        lastLoginTimestamp = accountCreatedTimestamp;
+
+        accountLevel = level = 1;
+        accountXP = currentXP = 0;
+        xpForNextLevel = ProgressionSystem.CalculateXPForLevel(accountLevel + 1);
+
+        currentEquippedShipId = ProgressionSystem.STARTER_SHIP;
+    }
+
     #region Account Information
 
     /// <summary>
@@ -95,19 +118,31 @@ public class PlayerProfileData
     #region Progression
 
     /// <summary>
-    /// Player account level
+    /// Player account level (legacy field kept for UI systems)
+    /// Mirrors <see cref="accountLevel"/>.
     /// </summary>
     public int level = 1;
 
     /// <summary>
-    /// Current XP
+    /// Current XP toward the next level (legacy remainder value for UI).
+    /// Mirrors <see cref="accountXP"/> progression calculations.
     /// </summary>
     public int currentXP;
 
     /// <summary>
-    /// XP required for next level
+    /// XP required for next level (legacy UI helper for currentXP remainder).
     /// </summary>
     public int xpForNextLevel = 1000;
+
+    /// <summary>
+    /// Total cumulative account XP (authoritative progression value).
+    /// </summary>
+    public int accountXP = 0;
+
+    /// <summary>
+    /// Account level used by progression/battle pass systems (authoritative).
+    /// </summary>
+    public int accountLevel = 1;
 
     /// <summary>
     /// Soft currency (earned through gameplay)
@@ -300,6 +335,44 @@ public class PlayerProfileData
     {
         if (totalMissilesFired == 0) return 0f;
         return (float)totalMissilesHit / totalMissilesFired * 100f;
+    }
+
+    /// <summary>
+    /// Adds account XP and updates both cumulative and legacy UI values.
+    /// </summary>
+    public void AddAccountXP(int amount)
+    {
+        accountXP += amount;
+        currentXP += amount;
+
+        // Level-up loop uses the shared progression curve.
+        while (currentXP >= xpForNextLevel)
+        {
+            currentXP -= xpForNextLevel;
+            accountLevel++;
+            level = accountLevel;
+            xpForNextLevel = ProgressionSystem.CalculateXPForLevel(accountLevel + 1);
+        }
+
+        Debug.Log($"[PlayerProfileData] +{amount} Account XP (Total: {accountXP})");
+    }
+
+    /// <summary>
+    /// Adds soft/hard currency.
+    /// </summary>
+    public void AddCurrency(int creditsAmount, int gemsAmount)
+    {
+        credits += creditsAmount;
+        gems += gemsAmount;
+        Debug.Log($"[PlayerProfileData] Currency: +{creditsAmount} credits, +{gemsAmount} gems");
+    }
+
+    /// <summary>
+    /// Updates the last login timestamp to now.
+    /// </summary>
+    public void UpdateLastLogin()
+    {
+        lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
     /// <summary>
