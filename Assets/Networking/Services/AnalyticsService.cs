@@ -221,6 +221,27 @@ namespace GravityWars.Networking
             });
         }
 
+        // Legacy alias used by debug tools
+        public void TrackMatchCompleted(bool isWin, float duration, int damageDealt, int missilesHit, int missilesFired)
+        {
+            var analytics = new MatchAnalytics
+            {
+                winner = isWin ? "player" : "opponent",
+                duration = duration,
+                roundsPlayed = 0,
+                playerDamageDealt = damageDealt,
+                opponentDamageDealt = 0,
+                playerShotsFired = missilesFired,
+                opponentShotsFired = 0,
+                playerAccuracy = missilesFired > 0 ? (float)missilesHit / missilesFired : 0f,
+                opponentAccuracy = 0f,
+                xpGained = 0,
+                currencyGained = 0
+            };
+
+            TrackMatchComplete(analytics);
+        }
+
         /// <summary>
         /// Tracks when a round completes.
         /// </summary>
@@ -371,6 +392,18 @@ namespace GravityWars.Networking
                 { "rarity", rarity }, // "common", "rare", "epic", "legendary"
                 { "completion_percentage", completionPercentage } // % of players who have this
             });
+        }
+
+        // Legacy overload with explicit achievementName parameter
+        public void TrackAchievementUnlocked(string achievementID, string achievementName, string rarity, float completionPercentage)
+        {
+            TrackAchievementUnlocked(achievementID, rarity, completionPercentage);
+        }
+
+        // Minimal overload used by legacy callers that only provide id + name
+        public void TrackAchievementUnlocked(string achievementID, string achievementName)
+        {
+            TrackAchievementUnlocked(achievementID, achievementName, "unknown", 0f);
         }
 
         /// <summary>

@@ -463,11 +463,11 @@ void Update()
     transform.position = pos;
 
     // Check if in networked mode
-#if UNITY_NETCODE_GAMEOBJECTS
-    GameManagerNetworkAdapter networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
-    bool isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
-#else
+    GameManagerNetworkAdapter networkAdapter = null;
     bool isNetworkedMode = false;
+#if UNITY_NETCODE_GAMEOBJECTS
+    networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
+    isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
 #endif
 
     // Fine tuning if Shift pressed

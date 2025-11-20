@@ -1255,9 +1255,17 @@ namespace GravityWars.Networking
     public class CloudSaveService : MonoBehaviour
     {
         public static CloudSaveService Instance => null;
-        public System.Threading.Tasks.Task<bool> SaveToCloud(PlayerAccountData data) => System.Threading.Tasks.Task.FromResult(false);
+
+        public System.Threading.Tasks.Task<bool> SaveToCloud(GravityWars.CloudSave.SaveData data, bool forceImmediate = false) => System.Threading.Tasks.Task.FromResult(false);
+        public System.Threading.Tasks.Task<bool> SaveToCloud(PlayerAccountData data, bool forceImmediate = false) => System.Threading.Tasks.Task.FromResult(false);
         public System.Threading.Tasks.Task<GravityWars.CloudSave.SaveData> LoadFromCloud() => System.Threading.Tasks.Task.FromResult<GravityWars.CloudSave.SaveData>(null);
+        public System.Threading.Tasks.Task<GravityWars.CloudSave.SaveData> LoadWithConflictResolution(GravityWars.CloudSave.SaveData localData) => System.Threading.Tasks.Task.FromResult(localData);
         public PlayerAccountData MergeData(PlayerAccountData cloudData, PlayerAccountData localData) => cloudData ?? localData;
+        public System.Threading.Tasks.Task<PlayerAccountData> LoadPlayerProfile() => System.Threading.Tasks.Task.FromResult<PlayerAccountData>(null);
+        public System.Threading.Tasks.Task<bool> SavePlayerProfile(PlayerAccountData profile) => System.Threading.Tasks.Task.FromResult(false);
+        public void QueueSave(GravityWars.CloudSave.SaveData data) { }
+        public System.Threading.Tasks.Task<bool> DeleteCloudSave() => System.Threading.Tasks.Task.FromResult(false);
+        public System.Threading.Tasks.Task<bool> DeletePlayerProfile() => System.Threading.Tasks.Task.FromResult(false);
     }
 }
 #endif
