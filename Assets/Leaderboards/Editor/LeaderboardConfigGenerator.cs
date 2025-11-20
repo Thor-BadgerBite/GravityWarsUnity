@@ -220,7 +220,7 @@ public class LeaderboardConfigGenerator : EditorWindow
         // Log configurations for easy setup
         foreach (var lb in leaderboards)
         {
-            Debug.Log($"  - {lb.username} ({lb.leaderboardID})");
+            Debug.Log($"  - {lb.displayName} ({lb.leaderboardID})"); // Fixed: username -> displayName
         }
     }
 
