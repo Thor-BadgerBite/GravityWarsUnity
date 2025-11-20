@@ -782,12 +782,15 @@ void Update()
 
         // Use equipped missile preset stats for prediction, or fallback to prefab
         float missileMass, missileDragCoef, maxVel, velApproachRate;
+        string sourceInfo = "";
+
         if (equippedMissile != null)
         {
             missileMass = equippedMissile.Mass;  // Use calculated physics mass
             missileDragCoef = equippedMissile.drag;
             maxVel = equippedMissile.maxVelocity;
             velApproachRate = equippedMissile.velocityApproachRate;
+            sourceInfo = $"EquippedMissile({equippedMissile.missileName})";
         }
         else if (missilePrefab != null)
         {
@@ -796,6 +799,7 @@ void Update()
             missileDragCoef = m3d.drag;
             maxVel = m3d.maxVelocity;
             velApproachRate = m3d.velocityApproachRate;
+            sourceInfo = "MissilePrefab";
         }
         else
         {
@@ -804,6 +808,13 @@ void Update()
             missileDragCoef = 0.01f;
             maxVel = 10f;
             velApproachRate = 0.1f;
+            sourceInfo = "Fallback Defaults";
+        }
+
+        // Debug log to verify correct stats are being used (only log occasionally to avoid spam)
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"[{playerName}] Trajectory Prediction Stats from {sourceInfo}: Mass={missileMass:F2}, Drag={missileDragCoef:F3}, MaxVel={maxVel:F1}, LaunchVel={launchVelocity:F2}");
         }
 
         for (int i = 1; i <= usedSteps; i++)
@@ -981,10 +992,11 @@ void Update()
         if (equippedMissile != null)
         {
             equippedMissile.ApplyToMissile(missile);
+            Debug.Log($"[{playerName}] Fired {equippedMissile.missileName}: Mass={missile.missileMass:F2}, Drag={missile.drag:F3}, MaxVel={missile.maxVelocity:F1}, LaunchVel={launchVelocity:F2}");
         }
         else
         {
-            Debug.LogWarning($"{playerName}: No missile preset equipped! Using default missile stats.");
+            Debug.LogWarning($"{playerName}: No missile preset equipped! Using default missile stats from prefab - Mass={missile.missileMass:F2}, MaxVel={missile.maxVelocity:F1}");
         }
     }
 
