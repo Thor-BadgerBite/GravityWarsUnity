@@ -83,11 +83,12 @@ namespace GravityWars.Networking.UI
                 errorPanel.SetActive(false);
 
             // Subscribe to lobby events
-            if (LobbyManager.Instance != null)
-            {
-                LobbyManager.Instance.OnLobbyCreated += OnLobbyCreated;
-                LobbyManager.Instance.OnLobbyJoined += OnLobbyJoined;
-            }
+            // TEMPORARILY DISABLED - LobbyManager not available
+            // if (LobbyManager.Instance != null)
+            // {
+            //     LobbyManager.Instance.OnLobbyCreated += OnLobbyCreated;
+            //     LobbyManager.Instance.OnLobbyJoined += OnLobbyJoined;
+            // }
         }
 
         private void OnDestroy()
@@ -109,11 +110,12 @@ namespace GravityWars.Networking.UI
                 errorOkButton.onClick.RemoveListener(OnErrorOkClicked);
 
             // Unsubscribe from lobby events
-            if (LobbyManager.Instance != null)
-            {
-                LobbyManager.Instance.OnLobbyCreated -= OnLobbyCreated;
-                LobbyManager.Instance.OnLobbyJoined -= OnLobbyJoined;
-            }
+            // TEMPORARILY DISABLED - LobbyManager not available
+            // if (LobbyManager.Instance != null)
+            // {
+            //     LobbyManager.Instance.OnLobbyCreated -= OnLobbyCreated;
+            //     LobbyManager.Instance.OnLobbyJoined -= OnLobbyJoined;
+            // }
         }
 
         #endregion
@@ -133,12 +135,15 @@ namespace GravityWars.Networking.UI
             SetSearching(true);
             SetStatus("Searching for match...");
 
-            bool success = await LobbyManager.Instance.QuickMatch();
+            // TEMPORARILY DISABLED - LobbyManager not available
+            // bool success = await LobbyManager.Instance.QuickMatch();
+            bool success = false;
+            await Task.CompletedTask; // Satisfy async requirement
 
             if (!success)
             {
                 SetSearching(false);
-                ShowError("Failed to find or create match. Please try again.");
+                ShowError("Online matchmaking not available. LobbyManager needs implementation.");
             }
 
             // If successful, OnLobbyJoined will be called automatically
@@ -161,12 +166,15 @@ namespace GravityWars.Networking.UI
             SetSearching(true);
             SetStatus("Creating lobby...");
 
-            bool success = await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate: false);
+            // TEMPORARILY DISABLED - LobbyManager not available
+            // bool success = await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate: false);
+            bool success = false;
+            await Task.CompletedTask; // Satisfy async requirement
 
             if (!success)
             {
                 SetSearching(false);
-                ShowError("Failed to create lobby. Please try again.");
+                ShowError("Online matchmaking not available. LobbyManager needs implementation.");
             }
 
             // If successful, OnLobbyCreated will be called automatically
@@ -193,7 +201,10 @@ namespace GravityWars.Networking.UI
             SetSearching(true);
             SetStatus($"Joining lobby {lobbyCode}...");
 
-            bool success = await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
+            // TEMPORARILY DISABLED - LobbyManager not available
+            // bool success = await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
+            bool success = false;
+            await Task.CompletedTask; // Satisfy async requirement
 
             if (!success)
             {
@@ -327,15 +338,16 @@ namespace GravityWars.Networking.UI
                 matchmakingPanel.SetActive(false);
 
             // Show lobby UI (activate LobbyUI component)
-            var lobbyUI = FindObjectOfType<LobbyUI>();
-            if (lobbyUI != null)
-            {
-                lobbyUI.Show();
-            }
-            else
-            {
-                Debug.LogWarning("[OnlineMatchmakingUI] LobbyUI not found!");
-            }
+            // TEMPORARILY DISABLED - LobbyUI not available
+            // var lobbyUI = FindObjectOfType<LobbyUI>();
+            // if (lobbyUI != null)
+            // {
+            //     lobbyUI.Show();
+            // }
+            // else
+            // {
+                Debug.LogWarning("[OnlineMatchmakingUI] LobbyUI not available - needs implementation!");
+            // }
         }
 
         #endregion
