@@ -306,7 +306,7 @@ namespace GravityWars.Networking
         /// </summary>
         private void OnAchievementUnlocked(AchievementInstance achievement)
         {
-            Log($"🏆 Achievement Unlocked: {achievement.username}");
+            Log($"🏆 Achievement Unlocked: {achievement.displayName}");
 
             // Award rewards
             AwardAchievementRewards(achievement);
@@ -378,7 +378,7 @@ namespace GravityWars.Networking
                 Log($"Awarded title: {achievement.titleReward}");
             }
 
-            Log($"Achievement rewards awarded: {achievement.username}");
+            Log($"Achievement rewards awarded: {achievement.displayName}");
         }
 
         #endregion
@@ -460,7 +460,7 @@ namespace GravityWars.Networking
             {
                 analyticsService.TrackAchievementUnlocked(
                     achievementID: achievement.achievementID,
-                    achievementName: achievement.username
+                    achievementName: achievement.displayName
                 );
             }
         }
@@ -476,7 +476,7 @@ namespace GravityWars.Networking
         {
             // In production, this would trigger a UI popup/toast
             // For now, just log
-            Debug.Log($"[AchievementService] 🏆 Achievement Unlocked: {achievement.username}!");
+            Debug.Log($"[AchievementService] 🏆 Achievement Unlocked: {achievement.displayName}!");
 
             // TODO: Integrate with AchievementUI notification system
             // AchievementUI.Instance?.ShowUnlockNotification(achievement);

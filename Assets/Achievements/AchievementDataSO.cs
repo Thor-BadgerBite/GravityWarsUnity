@@ -297,7 +297,7 @@ public class AchievementInstance
 
         // Cache template data
         achievementID = template.achievementID;
-        displayName = template.username;
+        displayName = template.displayName;
         description = template.description;
         achievementType = template.achievementType;
         category = template.category;
