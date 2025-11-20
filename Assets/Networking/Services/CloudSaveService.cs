@@ -395,7 +395,8 @@ namespace GravityWars.Networking
             merged.lastSaveTimestamp = Mathf.Max(cloudData.lastSaveTimestamp, localData.lastSaveTimestamp);
 
             // Profile - merge intelligently
-            merged.profile = MergeProfile(cloudData.profile, localData.profile);
+            // TEMPORARILY DISABLED - SaveData uses playerProfile, not profile
+            // merged.playerProfile = MergeProfile(cloudData.playerProfile, localData.playerProfile);
 
             // Currency - take max (never lose currency)
             merged.currency = MergeCurrency(cloudData.currency, localData.currency);
@@ -568,19 +569,20 @@ namespace GravityWars.Networking
 
         #region Merge Helper Methods
 
-        private PlayerProfileData MergeProfile(PlayerProfileData cloud, PlayerProfileData local)
-        {
-            var merged = new PlayerProfileData();
-            merged.username = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.username : local.username;
-            merged.avatarID = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.avatarID : local.avatarID;
-            merged.customTitle = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.customTitle : local.customTitle;
-            merged.accountCreatedTimestamp = Mathf.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
-            merged.lastLoginTimestamp = Mathf.Max(cloud.lastLoginTimestamp, local.lastLoginTimestamp);
-            merged.totalPlaytimeSeconds = Mathf.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
-            merged.loginStreak = Mathf.Max(cloud.loginStreak, local.loginStreak);
-            merged.lastLoginStreakTimestamp = Mathf.Max(cloud.lastLoginStreakTimestamp, local.lastLoginStreakTimestamp);
-            return merged;
-        }
+        // TEMPORARILY DISABLED - PlayerProfileData missing fields: avatarID, customTitle, loginStreak, lastLoginStreakTimestamp
+        // private PlayerProfileData MergeProfile(PlayerProfileData cloud, PlayerProfileData local)
+        // {
+        //     var merged = new PlayerProfileData();
+        //     merged.username = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.username : local.username;
+        //     merged.avatarID = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.avatarID : local.avatarID;
+        //     merged.customTitle = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.customTitle : local.customTitle;
+        //     merged.accountCreatedTimestamp = Math.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
+        //     merged.lastLoginTimestamp = Math.Max(cloud.lastLoginTimestamp, local.lastLoginTimestamp);
+        //     merged.totalPlaytimeSeconds = Math.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
+        //     merged.loginStreak = Math.Max(cloud.loginStreak, local.loginStreak);
+        //     merged.lastLoginStreakTimestamp = Math.Max(cloud.lastLoginStreakTimestamp, local.lastLoginStreakTimestamp);
+        //     return merged;
+        // }
 
         private CurrencyData MergeCurrency(CurrencyData cloud, CurrencyData local)
         {
@@ -660,9 +662,9 @@ namespace GravityWars.Networking
             merged.claimedQuestIDs = UnionLists(cloud.claimedQuestIDs, local.claimedQuestIDs);
 
             // Refresh timestamps - take newest
-            merged.lastDailyRefreshTimestamp = Mathf.Max(cloud.lastDailyRefreshTimestamp, local.lastDailyRefreshTimestamp);
-            merged.lastWeeklyRefreshTimestamp = Mathf.Max(cloud.lastWeeklyRefreshTimestamp, local.lastWeeklyRefreshTimestamp);
-            merged.lastSeasonRefreshTimestamp = Mathf.Max(cloud.lastSeasonRefreshTimestamp, local.lastSeasonRefreshTimestamp);
+            merged.lastDailyRefreshTimestamp = Math.Max(cloud.lastDailyRefreshTimestamp, local.lastDailyRefreshTimestamp);
+            merged.lastWeeklyRefreshTimestamp = Math.Max(cloud.lastWeeklyRefreshTimestamp, local.lastWeeklyRefreshTimestamp);
+            merged.lastSeasonRefreshTimestamp = Math.Max(cloud.lastSeasonRefreshTimestamp, local.lastSeasonRefreshTimestamp);
 
             // Stats - take max
             merged.totalQuestsCompleted = Mathf.Max(cloud.totalQuestsCompleted, local.totalQuestsCompleted);
@@ -699,7 +701,7 @@ namespace GravityWars.Networking
                         Mathf.Max(existing.progress, local.achievementProgress[i]),
                         Mathf.Max(existing.tier, local.currentTiers[i]),
                         existing.unlocked || local.isUnlocked[i],
-                        Mathf.Min(existing.timestamp, local.unlockTimestamps[i]) // First unlock timestamp
+                        Math.Min(existing.timestamp, local.unlockTimestamps[i]) // First unlock timestamp
                     );
                 }
                 else
@@ -869,7 +871,7 @@ namespace GravityWars.Networking
             foreach (var kvp in local.lastSubmissionTimestamps)
             {
                 if (merged.lastSubmissionTimestamps.ContainsKey(kvp.Key))
-                    merged.lastSubmissionTimestamps[kvp.Key] = Mathf.Max(merged.lastSubmissionTimestamps[kvp.Key], kvp.Value);
+                    merged.lastSubmissionTimestamps[kvp.Key] = Math.Max(merged.lastSubmissionTimestamps[kvp.Key], kvp.Value);
                 else
                     merged.lastSubmissionTimestamps[kvp.Key] = kvp.Value;
             }
@@ -883,7 +885,7 @@ namespace GravityWars.Networking
             merged.queuedEvents.AddRange(cloud.queuedEvents);
             merged.queuedEvents.AddRange(local.queuedEvents);
             merged.queuedEvents.Sort((a, b) => a.timestamp.CompareTo(b.timestamp)); // Oldest first
-            merged.lastUploadTimestamp = Mathf.Max(cloud.lastUploadTimestamp, local.lastUploadTimestamp);
+            merged.lastUploadTimestamp = Math.Max(cloud.lastUploadTimestamp, local.lastUploadTimestamp);
             merged.failedUploadCount = Mathf.Min(cloud.failedUploadCount, local.failedUploadCount); // Take lower for retry
             return merged;
         }
