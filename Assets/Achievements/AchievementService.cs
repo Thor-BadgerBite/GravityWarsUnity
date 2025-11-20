@@ -358,10 +358,10 @@ namespace GravityWars.Networking
             }
 
             // Award XP
-            if (achievement.accountXPReward > 0)
+            if (achievement.currentXPReward > 0)
             {
-                // progressionManager.AddAccountXP(achievement.accountXPReward, "achievement");
-                Log($"Awarded {achievement.accountXPReward} XP");
+                // progressionManager.AddAccountXP(achievement.currentXPReward, "achievement");
+                Log($"Awarded {achievement.currentXPReward} XP");
             }
 
             // Award exclusive item

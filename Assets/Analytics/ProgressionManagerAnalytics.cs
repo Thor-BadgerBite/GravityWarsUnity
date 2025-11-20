@@ -75,7 +75,7 @@ public class ProgressionManagerAnalytics : MonoBehaviour
         // Initialize tracking state
         if (_progressionManager.currentPlayerData != null)
         {
-            _lastAccountLevel = _progressionManager.currentPlayerData.accountLevel;
+            _lastAccountLevel = _progressionManager.currentPlayerData.level;
             _lastLevelUpTime = Time.time;
         }
 
@@ -98,21 +98,21 @@ public class ProgressionManagerAnalytics : MonoBehaviour
         var data = _progressionManager.currentPlayerData;
 
         // Check if leveled up
-        if (data.accountLevel > _lastAccountLevel)
+        if (data.level > _lastAccountLevel)
         {
             // Calculate time since last level
             float timeSinceLastLevel = Time.time - _lastLevelUpTime;
 
             _analyticsService.TrackAccountLevelUp(
-                newLevel: data.accountLevel,
+                newLevel: data.level,
                 xpSource: source,
                 timeSinceLastLevel: timeSinceLastLevel
             );
 
-            Log($"Account level up tracked: Level {data.accountLevel} (from {source})");
+            Log($"Account level up tracked: Level {data.level} (from {source})");
 
             // Update tracking state
-            _lastAccountLevel = data.accountLevel;
+            _lastAccountLevel = data.level;
             _lastLevelUpTime = Time.time;
         }
     }

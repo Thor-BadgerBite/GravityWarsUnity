@@ -308,12 +308,12 @@ public class CosmeticsApplier : MonoBehaviour
     /// <summary>
     /// Gets all unlocked skins for a player
     /// </summary>
-    public List<ShipSkinSO> GetUnlockedSkins(PlayerAccountData playerData)
+    public List<ShipSkinSO> GetUnlockedSkins(PlayerProfileData playerData)
     {
         List<ShipSkinSO> unlocked = new List<ShipSkinSO>();
         foreach (var skin in allSkins)
         {
-            if (playerData.unlockedSkinIDs.Contains(skin.skinID))
+            if (playerData.unlockedSkins.Contains(skin.skinID))
                 unlocked.Add(skin);
         }
         return unlocked;
@@ -322,12 +322,12 @@ public class CosmeticsApplier : MonoBehaviour
     /// <summary>
     /// Gets all unlocked color schemes for a player
     /// </summary>
-    public List<ColorSchemeSO> GetUnlockedColorSchemes(PlayerAccountData playerData)
+    public List<ColorSchemeSO> GetUnlockedColorSchemes(PlayerProfileData playerData)
     {
         List<ColorSchemeSO> unlocked = new List<ColorSchemeSO>();
         foreach (var scheme in allColorSchemes)
         {
-            if (playerData.unlockedColorSchemeIDs.Contains(scheme.colorSchemeID))
+            if (playerData.unlockedSkins.Contains(scheme.colorSchemeID))
                 unlocked.Add(scheme);
         }
         return unlocked;

@@ -107,10 +107,10 @@ public class ProgressionManagerAchievementIntegration : MonoBehaviour
         // Update achievement: Reach Account Level
         _achievementService.SetAchievementProgress(
             AchievementConditionType.ReachAccountLevel,
-            data.accountLevel
+            data.level
         );
 
-        Log($"Account level achievement updated: Level {data.accountLevel}");
+        Log($"Account level achievement updated: Level {data.level}");
     }
 
     #endregion

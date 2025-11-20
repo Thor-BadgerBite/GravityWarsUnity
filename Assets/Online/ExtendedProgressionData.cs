@@ -275,7 +275,7 @@ public class PrebuildShipUnlock
     public PrebuildShipUnlock(string id, string name, ShipClass shipClass, string desc)
     {
         this.shipId = id;
-        this.displayName = name;
+        this.username = name;
         this.shipClass = shipClass;
         this.description = desc;
     }
@@ -295,7 +295,7 @@ public class ShipBodyUnlock
     public ShipBodyUnlock(string id, string name, ShipClass shipClass, string desc)
     {
         this.bodyId = id;
-        this.displayName = name;
+        this.username = name;
         this.shipClass = shipClass;
         this.description = desc;
     }
@@ -316,7 +316,7 @@ public class PassiveUnlock
     public PassiveUnlock(string id, string name, ShipClass archetype, string desc)
     {
         this.passiveId = id;
-        this.displayName = name;
+        this.username = name;
         this.compatibleArchetype = archetype;
         this.description = desc;
     }
@@ -341,7 +341,7 @@ public class ActiveUnlock
     public ActiveUnlock(string id, string name, int tier, float cd, string desc)
     {
         this.activeId = id;
-        this.displayName = name;
+        this.username = name;
         this.tier = tier;
         this.cooldown = cd;
         this.description = desc;

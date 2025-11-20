@@ -56,7 +56,7 @@ public class BattlePassUI : MonoBehaviour
     {
         if (progressionManager == null || battlePass == null) return;
 
-        PlayerAccountData data = progressionManager.currentPlayerData;
+        PlayerProfileData data = progressionManager.currentPlayerData;
 
         UpdateHeader(data);
         UpdateTiers(data);
@@ -66,7 +66,7 @@ public class BattlePassUI : MonoBehaviour
     /// <summary>
     /// Updates header section (title, tier, XP bar)
     /// </summary>
-    private void UpdateHeader(PlayerAccountData data)
+    private void UpdateHeader(PlayerProfileData data)
     {
         // Title
         if (battlePassTitleText != null)
@@ -112,7 +112,7 @@ public class BattlePassUI : MonoBehaviour
     /// <summary>
     /// Updates tier display (scrollable list of all tiers)
     /// </summary>
-    private void UpdateTiers(PlayerAccountData data)
+    private void UpdateTiers(PlayerProfileData data)
     {
         // Clear existing
         foreach (var item in tierItems)
@@ -144,7 +144,7 @@ public class BattlePassUI : MonoBehaviour
     /// <summary>
     /// Sets up a single tier item display
     /// </summary>
-    private void SetupTierItem(GameObject tierObj, BattlePassTier tier, PlayerAccountData data, int tierIndex)
+    private void SetupTierItem(GameObject tierObj, BattlePassTier tier, PlayerProfileData data, int tierIndex)
     {
         // Tier number
         TextMeshProUGUI tierNumberText = tierObj.transform.Find("TierNumber")?.GetComponent<TextMeshProUGUI>();
@@ -230,7 +230,7 @@ public class BattlePassUI : MonoBehaviour
     /// <summary>
     /// Updates the purchase premium panel
     /// </summary>
-    private void UpdatePurchasePanel(PlayerAccountData data)
+    private void UpdatePurchasePanel(PlayerProfileData data)
     {
         if (purchasePremiumPanel == null) return;
 
@@ -285,7 +285,7 @@ public class BattlePassUI : MonoBehaviour
         }
 
         // Show all premium rewards up to current tier
-        PlayerAccountData data = progressionManager.currentPlayerData;
+        PlayerProfileData data = progressionManager.currentPlayerData;
         for (int i = 0; i <= data.battlePassTier; i++)
         {
             BattlePassTier tier = battlePass.GetTier(i);

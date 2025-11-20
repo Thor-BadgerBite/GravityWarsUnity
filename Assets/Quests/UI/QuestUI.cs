@@ -699,9 +699,9 @@ public class QuestCardUI : MonoBehaviour
             rewards.Add($"{Quest.gemsReward} Gems");
         }
 
-        if (Quest.accountXPReward > 0)
+        if (Quest.currentXPReward > 0)
         {
-            rewards.Add($"{Quest.accountXPReward} XP");
+            rewards.Add($"{Quest.currentXPReward} XP");
         }
 
         if (Quest.itemRewards != null && Quest.itemRewards.Count > 0)

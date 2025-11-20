@@ -162,7 +162,7 @@ namespace GravityWars.Networking
 
             TrackEvent("session_start", new Dictionary<string, object>
             {
-                { "account_level", accountData?.accountLevel ?? 0 },
+                { "account_level", accountData?.level ?? 0 },
                 { "total_matches_played", accountData?.totalMatchesPlayed ?? 0 },
                 { "total_play_time", GetTotalPlayTime() },
                 { "days_since_account_created", GetDaysSinceAccountCreated() }
@@ -436,7 +436,7 @@ namespace GravityWars.Networking
 
         private float GetTotalPlayTime()
         {
-            // This would be tracked in PlayerAccountData in a real implementation
+            // This would be tracked in PlayerProfileData in a real implementation
             return Time.realtimeSinceStartup;
         }
 
