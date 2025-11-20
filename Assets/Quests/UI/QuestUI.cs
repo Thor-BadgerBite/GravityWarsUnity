@@ -616,7 +616,7 @@ public class QuestCardUI : MonoBehaviour
         // Update name
         if (questNameText != null)
         {
-            questNameText.text = Quest.username;
+            questNameText.text = Quest.displayName;
         }
 
         // Update description
@@ -689,19 +689,19 @@ public class QuestCardUI : MonoBehaviour
         // Build reward string
         var rewards = new List<string>();
 
-        if (Quest.creditsReward > 0)
+        if (Quest.softCurrencyReward > 0)
         {
-            rewards.Add($"{Quest.creditsReward} Coins");
+            rewards.Add($"{Quest.softCurrencyReward} Coins");
         }
 
-        if (Quest.gemsReward > 0)
+        if (Quest.hardCurrencyReward > 0)
         {
-            rewards.Add($"{Quest.gemsReward} Gems");
+            rewards.Add($"{Quest.hardCurrencyReward} Gems");
         }
 
-        if (Quest.currentXPReward > 0)
+        if (Quest.accountXPReward > 0)
         {
-            rewards.Add($"{Quest.currentXPReward} XP");
+            rewards.Add($"{Quest.accountXPReward} XP");
         }
 
         if (Quest.itemRewards != null && Quest.itemRewards.Count > 0)

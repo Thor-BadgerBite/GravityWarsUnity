@@ -344,24 +344,24 @@ namespace GravityWars.Networking
             }
 
             // Award soft currency
-            if (achievement.creditsReward > 0)
+            if (achievement.softCurrencyReward > 0)
             {
-                // progressionManager.AddCurrency(CurrencyType.Soft, achievement.creditsReward);
-                Log($"Awarded {achievement.creditsReward} coins");
+                // progressionManager.AddCurrency(CurrencyType.Soft, achievement.softCurrencyReward);
+                Log($"Awarded {achievement.softCurrencyReward} coins");
             }
 
             // Award hard currency
-            if (achievement.gemsReward > 0)
+            if (achievement.hardCurrencyReward > 0)
             {
-                // progressionManager.AddCurrency(CurrencyType.Hard, achievement.gemsReward);
-                Log($"Awarded {achievement.gemsReward} gems");
+                // progressionManager.AddCurrency(CurrencyType.Hard, achievement.hardCurrencyReward);
+                Log($"Awarded {achievement.hardCurrencyReward} gems");
             }
 
             // Award XP
-            if (achievement.currentXPReward > 0)
+            if (achievement.accountXPReward > 0)
             {
-                // progressionManager.AddAccountXP(achievement.currentXPReward, "achievement");
-                Log($"Awarded {achievement.currentXPReward} XP");
+                // progressionManager.AddAccountXP(achievement.accountXPReward, "achievement");
+                Log($"Awarded {achievement.accountXPReward} XP");
             }
 
             // Award exclusive item

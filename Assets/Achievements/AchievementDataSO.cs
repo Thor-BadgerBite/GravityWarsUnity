@@ -308,8 +308,8 @@ public class AchievementInstance
         requiredContext = template.requiredContext;
 
         // Cache rewards
-        softCurrencyReward = template.creditsReward;
-        hardCurrencyReward = template.gemsReward;
+        softCurrencyReward = template.softCurrencyReward;
+        hardCurrencyReward = template.hardCurrencyReward;
         accountXPReward = template.accountXPReward;
         exclusiveItemReward = template.exclusiveItemReward;
         titleReward = template.titleReward;
