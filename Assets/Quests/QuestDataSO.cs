@@ -41,6 +41,9 @@ public class QuestDataSO : ScriptableObject
     [Tooltip("Display name shown to player")]
     public string displayName = "Win 3 Matches";
 
+    // Legacy compatibility alias
+    public string username => displayName;
+
     [Tooltip("Description shown to player")]
     [TextArea(2, 4)]
     public string description = "Victory is yours! Win 3 matches to complete this quest.";
@@ -72,6 +75,11 @@ public class QuestDataSO : ScriptableObject
 
     [Tooltip("Hard currency reward (gems)")]
     public int hardCurrencyReward = 0;
+
+    // Legacy reward aliases
+    public int creditsReward => softCurrencyReward;
+    public int gemsReward => hardCurrencyReward;
+    public int currentXPReward => accountXPReward;
 
     [Tooltip("Account XP reward")]
     public int accountXPReward = 50;
@@ -241,6 +249,8 @@ public enum QuestDifficulty
 [Serializable]
 public class QuestInstance
 {
+    [NonSerialized]
+    public QuestDataSO template;
     public string questID;
     public string displayName;
     public string description;
@@ -274,8 +284,9 @@ public class QuestInstance
     // Constructor from ScriptableObject
     public QuestInstance(QuestDataSO template)
     {
+        this.template = template;
         questID = template.questID;
-        displayName = template.username;
+        displayName = template.displayName;
         description = template.description;
         questType = template.questType;
         objectiveType = template.objectiveType;
@@ -292,8 +303,8 @@ public class QuestInstance
             _ => DateTime.UtcNow.AddHours(24)
         };
 
-        softCurrencyReward = template.creditsReward;
-        hardCurrencyReward = template.gemsReward;
+        softCurrencyReward = template.softCurrencyReward;
+        hardCurrencyReward = template.hardCurrencyReward;
         accountXPReward = template.accountXPReward;
         itemRewards = new List<string>(template.itemRewards);
 
@@ -306,6 +317,17 @@ public class QuestInstance
 
     // Parameterless constructor for deserialization
     public QuestInstance() { }
+
+    // Legacy compatibility fields for external integrations
+    public string username => displayName;
+    public long acceptedTimestamp => new DateTimeOffset(assignedAt).ToUnixTimeSeconds();
+    public long expirationTimestamp => new DateTimeOffset(expiresAt).ToUnixTimeSeconds();
+    public bool isCompleted => IsCompleted;
+    public bool isClaimed;
+    public int creditsReward => softCurrencyReward;
+    public int gemsReward => hardCurrencyReward;
+    public int currentXPReward => accountXPReward;
+    public QuestDataSO data => template;
 
     public void AddProgress(int amount)
     {

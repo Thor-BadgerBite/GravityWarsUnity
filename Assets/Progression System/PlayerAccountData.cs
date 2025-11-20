@@ -57,6 +57,7 @@ public class PlayerAccountData
     [Header("Unlocked Content - Ship Bodies")]
     public List<string> unlockedShipBodyIDs = new List<string>();
     public List<string> unlockedShipBodies = new List<string>();
+    public List<string> unlockedShipModels => unlockedShipBodyIDs;
 
     [Header("Unlocked Content - Perks")]
     public List<string> unlockedTier1PerkIDs = new List<string>();

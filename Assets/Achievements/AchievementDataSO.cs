@@ -39,6 +39,9 @@ public class AchievementDataSO : ScriptableObject
     [TextArea(2, 4)]
     public string description = "Win your first match!";
 
+    // Legacy compatibility aliases
+    public string username => displayName;
+
     [Tooltip("Icon for this achievement")]
     public Sprite icon;
 
@@ -89,6 +92,10 @@ public class AchievementDataSO : ScriptableObject
 
     [Tooltip("Hard currency reward")]
     public int hardCurrencyReward = 0;
+
+    // Legacy naming for UI/services
+    public int creditsReward => softCurrencyReward;
+    public int gemsReward => hardCurrencyReward;
 
     [Tooltip("XP reward")]
     public int accountXPReward = 50;
@@ -281,6 +288,14 @@ public class AchievementInstance
     public string exclusiveItemReward;
     public string titleReward;
     public int achievementPoints;
+
+    // Legacy aliases for integrations
+    public string username => displayName;
+    public int creditsReward => softCurrencyReward;
+    public int gemsReward => hardCurrencyReward;
+    public int currentXPReward => accountXPReward;
+    public int currentTier => (int)tier;
+    public AchievementDataSO data => template;
 
     // Required context
     public string requiredContext;

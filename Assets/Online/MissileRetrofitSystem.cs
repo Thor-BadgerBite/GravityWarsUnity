@@ -234,18 +234,25 @@ public enum MissileType
 /// Data for a missile unlock.
 /// </summary>
 [Serializable]
-public class MissileUnlockData
-{
-    public string missileId;            // e.g., "heavy_titan"
-    public string displayName;          // e.g., "Titan Heavy"
-    public MissileType missileType;     // Type of missile
-    public ShipClass preferredClass;    // Which ship class it's designed for
-    public string description;          // Flavor text
+    public class MissileUnlockData
+    {
+        public string missileId;            // e.g., "heavy_titan"
+        public string displayName;          // e.g., "Titan Heavy"
+        public MissileType missileType;     // Type of missile
+        public ShipClass preferredClass;    // Which ship class it's designed for
+        public string description;          // Flavor text
+
+        // Legacy alias
+        public string username
+        {
+            get => displayName;
+            set => displayName = value;
+        }
 
     public MissileUnlockData(string id, string name, MissileType type, ShipClass preferredClass, string desc)
     {
         this.missileId = id;
-        this.username = name;
+        this.displayName = name;
         this.missileType = type;
         this.preferredClass = preferredClass;
         this.description = desc;

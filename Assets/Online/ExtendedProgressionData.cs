@@ -272,10 +272,16 @@ public class PrebuildShipUnlock
     public ShipClass shipClass;
     public string description;
 
+    public string username
+    {
+        get => displayName;
+        set => displayName = value;
+    }
+
     public PrebuildShipUnlock(string id, string name, ShipClass shipClass, string desc)
     {
         this.shipId = id;
-        this.username = name;
+        this.displayName = name;
         this.shipClass = shipClass;
         this.description = desc;
     }
@@ -292,10 +298,16 @@ public class ShipBodyUnlock
     public ShipClass shipClass;
     public string description;
 
+    public string username
+    {
+        get => displayName;
+        set => displayName = value;
+    }
+
     public ShipBodyUnlock(string id, string name, ShipClass shipClass, string desc)
     {
         this.bodyId = id;
-        this.username = name;
+        this.displayName = name;
         this.shipClass = shipClass;
         this.description = desc;
     }
@@ -313,10 +325,16 @@ public class PassiveUnlock
     public ShipClass compatibleArchetype;  // Which ship archetype can use this passive
     public string description;
 
+    public string username
+    {
+        get => displayName;
+        set => displayName = value;
+    }
+
     public PassiveUnlock(string id, string name, ShipClass archetype, string desc)
     {
         this.passiveId = id;
-        this.username = name;
+        this.displayName = name;
         this.compatibleArchetype = archetype;
         this.description = desc;
     }
@@ -338,10 +356,16 @@ public class ActiveUnlock
     public float cooldown;          // Cooldown in seconds
     public string description;
 
+    public string username
+    {
+        get => displayName;
+        set => displayName = value;
+    }
+
     public ActiveUnlock(string id, string name, int tier, float cd, string desc)
     {
         this.activeId = id;
-        this.username = name;
+        this.displayName = name;
         this.tier = tier;
         this.cooldown = cd;
         this.description = desc;

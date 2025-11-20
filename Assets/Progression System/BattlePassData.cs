@@ -16,6 +16,9 @@ public class BattlePassData : ScriptableObject
     [Tooltip("Display name (e.g., 'Season 1: Nebula Storm')")]
     public string displayName;
 
+    // Legacy alias for display name
+    public string username => displayName;
+
     [Tooltip("Is this a seasonal pass (resets) or permanent free pass?")]
     public bool isSeasonal = true;
 
@@ -277,5 +280,9 @@ public enum RewardType
     Missile,
     Skin,
     ColorScheme,
-    Decal
+    Decal,
+    Credits,
+    Gems,
+    PrebuildShip,
+    Active
 }

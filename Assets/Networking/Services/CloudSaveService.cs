@@ -206,6 +206,22 @@ namespace GravityWars.Networking
         }
 
         /// <summary>
+        /// Convenience wrapper to save the unified PlayerAccountData directly.
+        /// </summary>
+        public Task<bool> SaveToCloud(PlayerAccountData accountData, bool forceImmediate = false)
+        {
+            if (accountData == null)
+                return Task.FromResult(false);
+
+            var wrapper = new SaveData
+            {
+                playerProfile = accountData
+            };
+
+            return SaveToCloud(wrapper, forceImmediate);
+        }
+
+        /// <summary>
         /// Queues save data for later cloud sync (offline mode).
         /// </summary>
         public void QueueSave(SaveData data)
@@ -294,6 +310,15 @@ namespace GravityWars.Networking
                 OnSaveError?.Invoke(e.Message);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Loads only the player profile from cloud save data.
+        /// </summary>
+        public async Task<PlayerAccountData> LoadAccountFromCloud()
+        {
+            var save = await LoadFromCloud();
+            return save?.playerProfile;
         }
 
         /// <summary>
@@ -428,6 +453,18 @@ namespace GravityWars.Networking
 
             Debug.Log("[CloudSave] ✓ Merge complete");
             return merged;
+        }
+
+        /// <summary>
+        /// Lightweight merge for PlayerAccountData-only use cases.
+        /// </summary>
+        public PlayerAccountData MergeData(PlayerAccountData cloudData, PlayerAccountData localData)
+        {
+            if (cloudData == null) return localData;
+            if (localData == null) return cloudData;
+
+            // Prefer the most recently updated profile based on last login timestamp
+            return cloudData.lastLoginTimestamp >= localData.lastLoginTimestamp ? cloudData : localData;
         }
 
         #endregion
