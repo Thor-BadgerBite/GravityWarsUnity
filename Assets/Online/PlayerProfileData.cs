@@ -173,6 +173,13 @@ public class PlayerProfileData
     /// </summary>
     public string selectedCasualLoadoutId;
 
+    /// <summary>
+    /// Ship progression data (XP tracking per loadout configuration)
+    /// Key = Unique loadout identifier (NOT including missile!)
+    /// Value = ShipProgressionEntry (XP, level, stats)
+    /// </summary>
+    public List<ShipProgressionEntry> shipProgressionData = new List<ShipProgressionEntry>();
+
     #endregion
 
     #region Achievements & Quests
@@ -309,6 +316,88 @@ public class PlayerProfileData
         else currentRank = CompetitiveRank.Grandmaster;
     }
 
+    /// <summary>
+    /// Checks if a specific ScriptableObject is unlocked
+    /// </summary>
+    public bool IsUnlocked(ScriptableObject item)
+    {
+        if (item == null) return false;
+
+        string itemName = item.name;
+
+        // Check by type (requires ShipBodySO, ActivePerkSO, etc. to be defined)
+        // This uses Unity's type checking for ScriptableObjects
+        if (item.GetType().Name == "ShipBodySO")
+            return unlockedShipBodies.Contains(itemName);
+        else if (item.GetType().Name == "ActivePerkSO")
+            return unlockedActives.Contains(itemName);
+        else if (item.GetType().Name == "PassiveAbilitySO")
+            return unlockedPassives.Contains(itemName);
+        else if (item.GetType().Name == "MoveTypeSO")
+            return unlockedShipBodies.Contains(itemName); // Move types may share same list or need separate check
+        else if (item.GetType().Name == "MissilePresetSO")
+            return unlockedMissiles.Contains(itemName);
+
+        return false;
+    }
+
+    /// <summary>
+    /// Unlocks a specific ScriptableObject
+    /// </summary>
+    public void UnlockItem(ScriptableObject item)
+    {
+        if (item == null || IsUnlocked(item)) return;
+
+        string itemName = item.name;
+
+        // Add to appropriate list
+        if (item.GetType().Name == "ShipBodySO")
+            unlockedShipBodies.Add(itemName);
+        else if (item.GetType().Name == "ActivePerkSO")
+            unlockedActives.Add(itemName);
+        else if (item.GetType().Name == "PassiveAbilitySO")
+            unlockedPassives.Add(itemName);
+        else if (item.GetType().Name == "MoveTypeSO")
+            unlockedShipBodies.Add(itemName); // Move types may share same list
+        else if (item.GetType().Name == "MissilePresetSO")
+            unlockedMissiles.Add(itemName);
+
+        Debug.Log($"[PlayerProfileData] Unlocked: {itemName}");
+    }
+
+    /// <summary>
+    /// Gets progression data for a specific ship loadout (excluding missile!)
+    /// </summary>
+    public ShipProgressionEntry GetShipProgression(CustomShipLoadout loadout)
+    {
+        if (loadout == null) return null;
+
+        // Generate unique ID based on body + perks + passive + move type (NOT missile!)
+        string loadoutKey = loadout.GetProgressionKey();
+
+        // Find existing entry
+        var existing = shipProgressionData.Find(e => e.loadoutKey == loadoutKey);
+        if (existing != null)
+            return existing;
+
+        // Create new entry
+        var newEntry = new ShipProgressionEntry(loadoutKey, loadout.loadoutName);
+        shipProgressionData.Add(newEntry);
+        return newEntry;
+    }
+
+    /// <summary>
+    /// Adds XP to a specific ship loadout
+    /// </summary>
+    public void AddShipXP(CustomShipLoadout loadout, int amount)
+    {
+        var progression = GetShipProgression(loadout);
+        if (progression != null)
+        {
+            progression.AddXP(amount);
+        }
+    }
+
     #endregion
 }
 
@@ -391,4 +480,123 @@ public class PlayerPreferences
     // Privacy
     public bool showProfilePublicly = true;
     public bool allowFriendRequests = true;
+}
+
+/// <summary>
+/// Represents a player-created ship loadout (configuration of components)
+/// </summary>
+[System.Serializable]
+public class CustomShipLoadout
+{
+    public string loadoutID;          // Unique identifier
+    public string loadoutName;        // Display name
+
+    // Core Components (required)
+    public string shipBodyName;       // ShipBodySO.name
+    public string moveTypeName;       // MoveTypeSO.name
+    public string equippedMissileName; // MissilePresetSO.name (can change without resetting XP!)
+
+    // Perks (optional)
+    public string tier1PerkName;      // ActivePerkSO.name
+    public string tier2PerkName;
+    public string tier3PerkName;
+
+    // Passives (1-2 slots, future expansion)
+    public List<string> passiveNames = new List<string>();
+
+    // Cosmetics (optional)
+    public string skinID;
+    public string colorSchemeID;
+    public string decalID;
+
+    /// <summary>
+    /// Generates a unique key for progression tracking (excludes missile and cosmetics!)
+    /// This ensures changing missile doesn't reset ship XP, as per user requirement.
+    /// </summary>
+    public string GetProgressionKey()
+    {
+        // Combine body + perks + passives + move type (NOT missile or cosmetics)
+        string key = $"{shipBodyName}|{tier1PerkName}|{tier2PerkName}|{tier3PerkName}|{moveTypeName}";
+        foreach (var passive in passiveNames)
+            key += $"|{passive}";
+        return key;
+    }
+
+    /// <summary>
+    /// Creates a unique loadout ID
+    /// </summary>
+    public static string GenerateLoadoutID()
+    {
+        return Guid.NewGuid().ToString();
+    }
+}
+
+/// <summary>
+/// Tracks progression (XP, level, stats) for a specific ship configuration
+/// </summary>
+[System.Serializable]
+public class ShipProgressionEntry
+{
+    public string loadoutKey;         // Unique key (see CustomShipLoadout.GetProgressionKey())
+    public string displayName;        // Display name for UI
+
+    public int shipLevel = 1;
+    public int shipXP = 0;
+
+    public long firstUsedTimestamp;   // Changed from DateTime for serialization
+    public long lastUsedTimestamp;
+
+    // Stats for this ship
+    public int matchesPlayed = 0;
+    public int matchesWon = 0;
+    public int roundsWon = 0;
+    public int totalDamage = 0;
+    public int totalKills = 0;
+
+    public ShipProgressionEntry(string key, string name)
+    {
+        loadoutKey = key;
+        displayName = name;
+        firstUsedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        lastUsedTimestamp = firstUsedTimestamp;
+    }
+
+    /// <summary>
+    /// Adds XP and checks for level-up
+    /// </summary>
+    public void AddXP(int amount)
+    {
+        shipXP += amount;
+        lastUsedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+        // Check for level-up (quadratic formula: XP = 200 + 75 × Level²)
+        while (shipLevel < 20 && shipXP >= GetXPRequiredForLevel(shipLevel + 1))
+        {
+            shipLevel++;
+            Debug.Log($"[ShipProgression] {displayName} leveled up to {shipLevel}!");
+        }
+    }
+
+    /// <summary>
+    /// Calculates XP required for a specific level
+    /// </summary>
+    public static int GetXPRequiredForLevel(int level)
+    {
+        return 200 + (75 * level * level);
+    }
+
+    /// <summary>
+    /// Gets XP progress toward next level (0.0 to 1.0)
+    /// </summary>
+    public float GetLevelProgress()
+    {
+        if (shipLevel >= 20) return 1.0f;
+
+        int currentLevelXP = GetXPRequiredForLevel(shipLevel);
+        int nextLevelXP = GetXPRequiredForLevel(shipLevel + 1);
+        int xpIntoLevel = shipXP - currentLevelXP;
+        int xpNeededForLevel = nextLevelXP - currentLevelXP;
+
+        return Mathf.Clamp01((float)xpIntoLevel / xpNeededForLevel);
+    }
 }

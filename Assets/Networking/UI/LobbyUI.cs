@@ -1,9 +1,11 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using Unity.Services.Lobbies.Models;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Services.Lobbies.Models;
 using System.Collections.Generic;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking.UI
 {
     /// <summary>
@@ -386,3 +388,4 @@ namespace GravityWars.Networking.UI
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

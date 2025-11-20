@@ -28,7 +28,7 @@ public static class SaveSystem
     /// Saves player data to local JSON file.
     /// If cloud sync is enabled, also queues for cloud save.
     /// </summary>
-    public static void SavePlayerData(PlayerAccountData data)
+    public static void SavePlayerData(PlayerProfileData data)
     {
         // Save locally (instant, synchronous)
         SavePlayerDataLocal(data);
@@ -43,7 +43,7 @@ public static class SaveSystem
     /// <summary>
     /// Saves player data to local JSON file only (no cloud sync).
     /// </summary>
-    public static void SavePlayerDataLocal(PlayerAccountData data)
+    public static void SavePlayerDataLocal(PlayerProfileData data)
     {
         try
         {
@@ -80,7 +80,7 @@ public static class SaveSystem
     /// Saves player data to cloud asynchronously (non-blocking).
     /// If offline, data is queued and will sync when connection is restored.
     /// </summary>
-    public static async void SavePlayerDataToCloudAsync(PlayerAccountData data)
+    public static async void SavePlayerDataToCloudAsync(PlayerProfileData data)
     {
         try
         {
@@ -112,7 +112,7 @@ public static class SaveSystem
     /// Loads player data from local JSON file.
     /// LEGACY METHOD: For offline-only use. Consider using LoadPlayerDataWithCloudMerge() instead.
     /// </summary>
-    public static PlayerAccountData LoadPlayerData()
+    public static PlayerProfileData LoadPlayerData()
     {
         return LoadPlayerDataLocal();
     }
@@ -120,7 +120,7 @@ public static class SaveSystem
     /// <summary>
     /// Loads player data from local file only (no cloud sync).
     /// </summary>
-    public static PlayerAccountData LoadPlayerDataLocal()
+    public static PlayerProfileData LoadPlayerDataLocal()
     {
         try
         {
@@ -136,9 +136,9 @@ public static class SaveSystem
             string json = File.ReadAllText(savePath);
 
             // Deserialize
-            PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
+            PlayerProfileData data = JsonUtility.FromJson<PlayerProfileData>(json);
 
-            Debug.Log($"[SaveSystem] Loaded local player data: {data.displayName}");
+            Debug.Log($"[SaveSystem] Loaded local player data: {data.username}");
             return data;
         }
         catch (Exception e)
@@ -162,12 +162,12 @@ public static class SaveSystem
     ///
     /// Returns: Merged player data, or null if both cloud and local are empty (new player)
     /// </summary>
-    public static async Task<PlayerAccountData> LoadPlayerDataWithCloudMergeAsync()
+    public static async Task<PlayerProfileData> LoadPlayerDataWithCloudMergeAsync()
     {
         try
         {
-            PlayerAccountData cloudData = null;
-            PlayerAccountData localData = null;
+            PlayerProfileData cloudData = null;
+            PlayerProfileData localData = null;
 
             // Load from cloud if online
             if (enableCloudSync && Application.internetReachability != NetworkReachability.NotReachable)
@@ -176,16 +176,16 @@ public static class SaveSystem
                 if (cloudSave != null)
                 {
                     cloudData = await cloudSave.LoadFromCloud();
-                    Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.displayName : "none")}");
+                    Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.username : "none")}");
                 }
             }
 
             // Load from local
             localData = LoadPlayerDataLocal();
-            Debug.Log($"[SaveSystem] Local data: {(localData != null ? localData.displayName : "none")}");
+            Debug.Log($"[SaveSystem] Local data: {(localData != null ? localData.username : "none")}");
 
             // Merge data
-            PlayerAccountData mergedData = null;
+            PlayerProfileData mergedData = null;
 
             if (cloudData != null && localData != null)
             {
@@ -226,7 +226,7 @@ public static class SaveSystem
                 return null;
             }
 
-            Debug.Log($"[SaveSystem] Load complete: {mergedData.displayName}");
+            Debug.Log($"[SaveSystem] Load complete: {mergedData.username}");
             return mergedData;
         }
         catch (Exception e)
@@ -243,7 +243,7 @@ public static class SaveSystem
     /// <summary>
     /// Loads backup save file
     /// </summary>
-    private static PlayerAccountData LoadBackup()
+    private static PlayerProfileData LoadBackup()
     {
         try
         {
@@ -256,9 +256,9 @@ public static class SaveSystem
             }
 
             string json = File.ReadAllText(backupPath);
-            PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
+            PlayerProfileData data = JsonUtility.FromJson<PlayerProfileData>(json);
 
-            Debug.Log($"[SaveSystem] Loaded backup data: {data.displayName}");
+            Debug.Log($"[SaveSystem] Loaded backup data: {data.username}");
             return data;
         }
         catch (Exception e)
@@ -316,7 +316,7 @@ public static class SaveSystem
     {
         try
         {
-            PlayerAccountData data = LoadPlayerData();
+            PlayerProfileData data = LoadPlayerData();
             if (data == null)
             {
                 Debug.LogError("[SaveSystem] No data to export");
@@ -337,7 +337,7 @@ public static class SaveSystem
     /// <summary>
     /// Imports save data from an external JSON file
     /// </summary>
-    public static PlayerAccountData ImportSaveData(string importPath)
+    public static PlayerProfileData ImportSaveData(string importPath)
     {
         try
         {
@@ -348,12 +348,12 @@ public static class SaveSystem
             }
 
             string json = File.ReadAllText(importPath);
-            PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
+            PlayerProfileData data = JsonUtility.FromJson<PlayerProfileData>(json);
 
             // Save as current player data
             SavePlayerData(data);
 
-            Debug.Log($"[SaveSystem] Imported save data: {data.displayName}");
+            Debug.Log($"[SaveSystem] Imported save data: {data.username}");
             return data;
         }
         catch (Exception e)

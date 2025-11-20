@@ -463,8 +463,12 @@ void Update()
     transform.position = pos;
 
     // Check if in networked mode
+#if UNITY_NETCODE_GAMEOBJECTS
     GameManagerNetworkAdapter networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
     bool isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
+#else
+    bool isNetworkedMode = false;
+#endif
 
     // Fine tuning if Shift pressed
     isFineTuning = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
@@ -628,6 +632,7 @@ void Update()
     // NETWORK MULTIPLAYER SUPPORT
     // ---------------------------------------------------------
 
+#if UNITY_NETCODE_GAMEOBJECTS
     /// <summary>
     /// Sends fire action to network (called from Update when player presses fire in networked mode)
     /// </summary>
@@ -722,6 +727,7 @@ void Update()
         // Update cooldown
         lastFireTime = Time.time;
     }
+#endif // UNITY_NETCODE_GAMEOBJECTS
 
     // ---------------------------------------------------------
     // END NETWORK MULTIPLAYER SUPPORT

@@ -1,10 +1,12 @@
-using Unity.Netcode;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Netcode;
 using UnityEngine;
 
 /// <summary>
 /// Network message structures for deterministic peer-to-peer gameplay.
 /// These messages ensure both clients execute the same actions with identical parameters.
 /// </summary>
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Multiplayer
 {
     #region Player Input Messages
@@ -287,3 +289,4 @@ namespace GravityWars.Multiplayer
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

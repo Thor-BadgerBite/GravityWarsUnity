@@ -6,6 +6,7 @@ using Unity.Services.CloudSave;
 using System.Security.Cryptography;
 using System.Text;
 using GravityWars.CloudSave;
+using SaveData = GravityWars.CloudSave.SaveData;
 
 namespace GravityWars.Networking
 {
@@ -570,7 +571,7 @@ namespace GravityWars.Networking
         private PlayerProfileData MergeProfile(PlayerProfileData cloud, PlayerProfileData local)
         {
             var merged = new PlayerProfileData();
-            merged.displayName = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.displayName : local.displayName;
+            merged.username = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.username : local.username;
             merged.avatarID = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.avatarID : local.avatarID;
             merged.customTitle = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.customTitle : local.customTitle;
             merged.accountCreatedTimestamp = Mathf.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
@@ -584,8 +585,8 @@ namespace GravityWars.Networking
         private CurrencyData MergeCurrency(CurrencyData cloud, CurrencyData local)
         {
             var merged = new CurrencyData();
-            merged.softCurrency = Mathf.Max(cloud.softCurrency, local.softCurrency);
-            merged.hardCurrency = Mathf.Max(cloud.hardCurrency, local.hardCurrency);
+            merged.credits = Mathf.Max(cloud.credits, local.credits);
+            merged.gems = Mathf.Max(cloud.gems, local.gems);
             merged.premiumCurrency = Mathf.Max(cloud.premiumCurrency, local.premiumCurrency);
             merged.lifetimeSoftCurrencyEarned = Mathf.Max(cloud.lifetimeSoftCurrencyEarned, local.lifetimeSoftCurrencyEarned);
             merged.lifetimeSoftCurrencySpent = Mathf.Max(cloud.lifetimeSoftCurrencySpent, local.lifetimeSoftCurrencySpent);

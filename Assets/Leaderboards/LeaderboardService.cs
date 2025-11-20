@@ -231,7 +231,7 @@ namespace GravityWars.Networking
                 // );
 
                 // For now, simulate success
-                Log($"Submitted to leaderboard: {definition.displayName} = {score}");
+                Log($"Submitted to leaderboard: {definition.username} = {score}");
 
                 // Invalidate cache for this leaderboard
                 InvalidateCache(definition.GetLeaderboardKey());

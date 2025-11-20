@@ -1,7 +1,11 @@
-using Unity.Netcode;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Netcode;
 using UnityEngine;
-using GravityWars.Multiplayer;
+// using GravityWars.Multiplayer;
 using System.Collections.Generic;
+
+#if UNITY_NETCODE_GAMEOBJECTS
+using GravityWars.Multiplayer;
 
 /// <summary>
 /// Manages deterministic input synchronization for peer-to-peer gameplay.
@@ -423,3 +427,4 @@ public class NetworkInputManager : NetworkBehaviour
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

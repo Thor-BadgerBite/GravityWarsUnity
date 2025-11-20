@@ -58,7 +58,7 @@ public class ProgressionUI : MonoBehaviour
         if (progressionManager == null || progressionManager.currentPlayerData == null)
             return;
 
-        PlayerAccountData data = progressionManager.currentPlayerData;
+        PlayerProfileData data = progressionManager.currentPlayerData;
 
         UpdateAccountInfo(data);
         UpdateCurrency(data);
@@ -70,22 +70,22 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates account info section
     /// </summary>
-    private void UpdateAccountInfo(PlayerAccountData data)
+    private void UpdateAccountInfo(PlayerProfileData data)
     {
         // Player name
         if (playerNameText != null)
-            playerNameText.text = data.displayName;
+            playerNameText.text = data.username;
 
         // Account level
         if (accountLevelText != null)
-            accountLevelText.text = $"Level {data.accountLevel}";
+            accountLevelText.text = $"Level {data.level}";
 
         // XP bar
         if (accountXPBar != null && accountXPText != null)
         {
-            int currentLevelXP = GetXPForLevel(data.accountLevel);
-            int nextLevelXP = GetXPForLevel(data.accountLevel + 1);
-            int xpIntoLevel = data.accountXP - currentLevelXP;
+            int currentLevelXP = GetXPForLevel(data.level);
+            int nextLevelXP = GetXPForLevel(data.level + 1);
+            int xpIntoLevel = data.currentXP - currentLevelXP;
             int xpNeeded = nextLevelXP - currentLevelXP;
 
             float fillAmount = (float)xpIntoLevel / xpNeeded;
@@ -97,19 +97,19 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates currency display
     /// </summary>
-    private void UpdateCurrency(PlayerAccountData data)
+    private void UpdateCurrency(PlayerProfileData data)
     {
         if (softCurrencyText != null)
-            softCurrencyText.text = data.softCurrency.ToString();
+            softCurrencyText.text = data.credits.ToString();
 
         if (hardCurrencyText != null)
-            hardCurrencyText.text = data.hardCurrency.ToString();
+            hardCurrencyText.text = data.gems.ToString();
     }
 
     /// <summary>
     /// Updates stats display
     /// </summary>
-    private void UpdateStats(PlayerAccountData data)
+    private void UpdateStats(PlayerProfileData data)
     {
         if (totalMatchesText != null)
             totalMatchesText.text = $"Matches: {data.totalMatchesPlayed}";
@@ -141,7 +141,7 @@ public class ProgressionUI : MonoBehaviour
         if (shipProgressionPanel != null)
             shipProgressionPanel.SetActive(true);
 
-        PlayerAccountData data = progressionManager.currentPlayerData;
+        PlayerProfileData data = progressionManager.currentPlayerData;
         ShipProgressionEntry progression = data.GetShipProgression(currentlyViewedShip);
 
         if (progression == null) return;
@@ -186,7 +186,7 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates next unlock preview
     /// </summary>
-    private void UpdateNextUnlock(PlayerAccountData data)
+    private void UpdateNextUnlock(PlayerProfileData data)
     {
         if (nextUnlockPanel == null) return;
 
@@ -197,7 +197,7 @@ public class ProgressionUI : MonoBehaviour
             return;
         }
 
-        int nextLevel = data.accountLevel + 1;
+        int nextLevel = data.level + 1;
         if (nextLevel > progressionManager.freeBattlePass.GetTierCount())
         {
             nextUnlockPanel.SetActive(false);

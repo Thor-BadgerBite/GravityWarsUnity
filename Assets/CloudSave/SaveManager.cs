@@ -248,7 +248,7 @@ namespace GravityWars.CloudSave
                 Log($"=== LOAD GAME COMPLETED ===");
                 Log($"  Player: {saveData.playerID}");
                 Log($"  Level: {saveData.progression.level}");
-                Log($"  Currency: {saveData.currency.softCurrency}c / {saveData.currency.hardCurrency}g");
+                Log($"  Currency: {saveData.currency.credits}c / {saveData.currency.gems}g");
 
                 return true;
             }
@@ -290,12 +290,15 @@ namespace GravityWars.CloudSave
             }
 
             // Collect from EconomyService
+            // TODO: Implement EconomyService or use ProgressionManager directly
+            /* COMMENTED OUT - EconomyService not implemented yet
             if (EconomyService.Instance != null)
             {
-                data.currency.softCurrency = EconomyService.Instance.GetSoftCurrency();
-                data.currency.hardCurrency = EconomyService.Instance.GetHardCurrency();
+                data.currency.credits = EconomyService.Instance.GetSoftCurrency();
+                data.currency.gems = EconomyService.Instance.GetHardCurrency();
                 // Note: EconomyService would need methods to expose these values
             }
+            */
 
             // Collect from QuestService
             if (QuestService.Instance != null)
@@ -383,12 +386,15 @@ namespace GravityWars.CloudSave
             }
 
             // Distribute to EconomyService
+            // TODO: Implement EconomyService or use ProgressionManager directly
+            /* COMMENTED OUT - EconomyService not implemented yet
             if (EconomyService.Instance != null)
             {
-                EconomyService.Instance.SetSoftCurrency(data.currency.softCurrency);
-                EconomyService.Instance.SetHardCurrency(data.currency.hardCurrency);
+                EconomyService.Instance.SetSoftCurrency(data.currency.credits);
+                EconomyService.Instance.SetHardCurrency(data.currency.gems);
                 // Note: EconomyService would need setter methods
             }
+            */
 
             // Distribute to QuestService
             if (QuestService.Instance != null)
@@ -496,14 +502,11 @@ namespace GravityWars.CloudSave
             };
 
             // Initialize profile
-            data.profile = new PlayerProfileData
+            data.playerProfile = new PlayerProfileData
             {
-                displayName = "Player",
-                avatarID = 0,
+                username = "Player",
                 accountCreatedTimestamp = data.lastSaveTimestamp,
-                lastLoginTimestamp = data.lastSaveTimestamp,
-                lastLoginStreakTimestamp = data.lastSaveTimestamp,
-                loginStreak = 1
+                lastLoginTimestamp = data.lastSaveTimestamp
             };
 
             // Initialize currency (starting amounts)

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using UnityEngine;
 using Unity.Services.Authentication;
 using Unity.Services.Core;
+using GravityWars.Networking;
 
 /// <summary>
 /// Manages player accounts with username/password authentication.

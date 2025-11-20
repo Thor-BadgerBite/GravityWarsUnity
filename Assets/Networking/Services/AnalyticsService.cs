@@ -21,6 +21,42 @@ namespace GravityWars.Networking
     /// </summary>
     public class AnalyticsService : MonoBehaviour
     {
+        #region Singleton
+
+        private static AnalyticsService _instance;
+        public static AnalyticsService Instance
+        {
+            get
+            {
+                if (_instance == null)
+                {
+                    _instance = FindObjectOfType<AnalyticsService>();
+                    if (_instance == null)
+                    {
+                        GameObject go = new GameObject("AnalyticsService");
+                        _instance = go.AddComponent<AnalyticsService>();
+                        DontDestroyOnLoad(go);
+                    }
+                }
+                return _instance;
+            }
+        }
+
+        private void Awake()
+        {
+            if (_instance == null)
+            {
+                _instance = this;
+                DontDestroyOnLoad(gameObject);
+            }
+            else if (_instance != this)
+            {
+                Destroy(gameObject);
+            }
+        }
+
+        #endregion
+
         #region Configuration
 
         [Header("Analytics Configuration")]
@@ -39,8 +75,9 @@ namespace GravityWars.Networking
             if (analyticsEnabled)
             {
                 // Start analytics session
-                AnalyticsService.Instance.StartDataCollection();
-                Debug.Log("[Analytics] Analytics started");
+                // TODO: Install Unity Analytics package and uncomment
+                // Unity.Services.Analytics.AnalyticsService.Instance.StartDataCollection();
+                Debug.Log("[Analytics] Analytics started (Unity Analytics package not installed yet)");
 
                 // Track session start
                 TrackSessionStart();
@@ -55,7 +92,8 @@ namespace GravityWars.Networking
                 TrackSessionEnd();
 
                 // Flush any pending events
-                AnalyticsService.Instance.Flush();
+                // TODO: Install Unity Analytics package and uncomment
+                // Unity.Services.Analytics.AnalyticsService.Instance.Flush();
             }
         }
 
@@ -78,13 +116,15 @@ namespace GravityWars.Networking
 
                 // Add standard metadata
                 parameters["timestamp"] = DateTime.UtcNow.ToString("o");
-                parameters["player_id"] = ServiceLocator.Instance.GetPlayerId();
+                if (ServiceLocator.Instance != null)
+                    parameters["player_id"] = ServiceLocator.Instance.GetPlayerId();
 
                 // Send to Unity Analytics
-                AnalyticsService.Instance.CustomData(eventName, parameters);
+                // TODO: Install Unity Analytics package and uncomment
+                // Unity.Services.Analytics.AnalyticsService.Instance.CustomData(eventName, parameters);
 
                 // Debug logging
-                if (debugLogging && Debug.isDebugBuild)
+                if (debugLogging)
                 {
                     Debug.Log($"[Analytics] {eventName}: {JsonUtility.ToJson(parameters)}");
                 }
@@ -122,7 +162,7 @@ namespace GravityWars.Networking
 
             TrackEvent("session_start", new Dictionary<string, object>
             {
-                { "account_level", accountData?.accountLevel ?? 0 },
+                { "account_level", accountData?.level ?? 0 },
                 { "total_matches_played", accountData?.totalMatchesPlayed ?? 0 },
                 { "total_play_time", GetTotalPlayTime() },
                 { "days_since_account_created", GetDaysSinceAccountCreated() }
@@ -396,7 +436,7 @@ namespace GravityWars.Networking
 
         private float GetTotalPlayTime()
         {
-            // This would be tracked in PlayerAccountData in a real implementation
+            // This would be tracked in PlayerProfileData in a real implementation
             return Time.realtimeSinceStartup;
         }
 

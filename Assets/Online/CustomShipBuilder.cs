@@ -72,7 +72,7 @@ public static class CustomShipBuilder
         else if (passive.compatibleArchetype != shipBody.shipClass)
         {
             validation.isValid = false;
-            validation.errors.Add($"Passive '{passive.displayName}' is not compatible with {shipBody.shipClass} archetype");
+            validation.errors.Add($"Passive '{passive.username}' is not compatible with {shipBody.shipClass} archetype");
         }
 
         // Check Tier 1 active
@@ -133,7 +133,7 @@ public static class CustomShipBuilder
 
         if (active.tier != expectedTier)
         {
-            error = $"Active '{active.displayName}' is Tier {active.tier}, but Tier {expectedTier} is required";
+            error = $"Active '{active.username}' is Tier {active.tier}, but Tier {expectedTier} is required";
             return false;
         }
 
@@ -228,8 +228,10 @@ public static class CustomShipBuilder
 
             if (loadout != null)
             {
+                var progression = profile.GetShipProgression(loadout);
+                int shipLevel = progression != null ? progression.shipLevel : 1;
                 profile.customLoadouts.Remove(loadout);
-                Debug.Log($"[CustomShipBuilder] Deleted custom ship '{loadout.loadoutName}' (Level {loadout.shipLevel})");
+                Debug.Log($"[CustomShipBuilder] Deleted custom ship '{loadout.loadoutName}' (Level {shipLevel})");
                 return true;
             }
             else

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using GravityWars.Multiplayer;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using GravityWars.Multiplayer;
+// using GravityWars.Networking;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 /// <summary>
 /// Manages match history tracking and statistics updates.
 /// Records match results, updates player profiles, and calculates ELO changes.
@@ -322,7 +325,7 @@ public class MatchHistoryManager : MonoBehaviour
                 Debug.Log($"[MatchHistory]   🔓 New unlocks:");
                 foreach (var unlock in reward.unlocks)
                 {
-                    Debug.Log($"[MatchHistory]      - {unlock.displayName}: {unlock.description}");
+                    Debug.Log($"[MatchHistory]      - {unlock.username}: {unlock.description}");
 
                     // Add unlock to player profile based on type
                     ApplyUnlock(profile, unlock);
@@ -340,12 +343,12 @@ public class MatchHistoryManager : MonoBehaviour
         {
             case UnlockType.ShipClass:
                 // Ship class unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Ship class unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Ship class unlocked: {unlock.username}");
                 break;
 
             case UnlockType.CustomSlot:
                 // Custom slot unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Custom slot unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Custom slot unlocked: {unlock.username}");
                 break;
 
             case UnlockType.Ship:
@@ -353,7 +356,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedShipModels.Contains(unlock.id))
                 {
                     profile.unlockedShipModels.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] Ship unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] Ship unlocked: {unlock.username}");
                 }
                 break;
 
@@ -362,7 +365,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedShipModels.Contains(unlock.id))
                 {
                     profile.unlockedShipModels.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🚀 Prebuild ship unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🚀 Prebuild ship unlocked: {unlock.username}");
                 }
                 break;
 
@@ -371,7 +374,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedShipBodies.Contains(unlock.id))
                 {
                     profile.unlockedShipBodies.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🔧 Ship body unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🔧 Ship body unlocked: {unlock.username}");
                 }
                 break;
 
@@ -380,7 +383,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedPassives.Contains(unlock.id))
                 {
                     profile.unlockedPassives.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] ⚡ Passive ability unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] ⚡ Passive ability unlocked: {unlock.username}");
                 }
                 break;
 
@@ -389,7 +392,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedActives.Contains(unlock.id))
                 {
                     profile.unlockedActives.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 💫 Active ability unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 💫 Active ability unlocked: {unlock.username}");
                 }
                 break;
 
@@ -398,7 +401,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedMissiles.Contains(unlock.id))
                 {
                     profile.unlockedMissiles.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🚀 Missile unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🚀 Missile unlocked: {unlock.username}");
                 }
                 break;
 
@@ -407,19 +410,19 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedSkins.Contains(unlock.id))
                 {
                     profile.unlockedSkins.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🎨 Skin unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🎨 Skin unlocked: {unlock.username}");
                 }
                 break;
 
             case UnlockType.Feature:
             case UnlockType.GameMode:
                 // Feature unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Feature unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Feature unlocked: {unlock.username}");
                 break;
 
             case UnlockType.Cosmetic:
                 // Legacy cosmetic (kept for backwards compatibility)
-                Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.username}");
                 break;
         }
     }
@@ -584,3 +587,4 @@ public class PlayerStatsSummary
     public int bestWinStreak;
     public float missileAccuracy;
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

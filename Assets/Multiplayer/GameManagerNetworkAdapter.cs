@@ -1,6 +1,8 @@
 using UnityEngine;
-using GravityWars.Multiplayer;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using GravityWars.Multiplayer;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 /// <summary>
 /// Extends GameManager with network multiplayer support.
 /// Provides bridge between deterministic network input and existing game logic.
@@ -325,3 +327,4 @@ public class GameManagerNetworkAdapter : MonoBehaviour
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

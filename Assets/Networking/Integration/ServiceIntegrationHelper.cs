@@ -151,8 +151,8 @@ namespace GravityWars.Integration
 
             // TODO: Uncomment when EconomyService has these methods
             /*
-            saveData.currency.softCurrency = EconomyService.Instance.GetSoftCurrency();
-            saveData.currency.hardCurrency = EconomyService.Instance.GetHardCurrency();
+            saveData.currency.credits = EconomyService.Instance.GetSoftCurrency();
+            saveData.currency.gems = EconomyService.Instance.GetHardCurrency();
             */
 
             Debug.Log("[ServiceIntegration] Economy data collected (MOCK)");
@@ -165,11 +165,11 @@ namespace GravityWars.Integration
 
             // TODO: Uncomment when EconomyService has these methods
             /*
-            EconomyService.Instance.SetSoftCurrency(saveData.currency.softCurrency);
-            EconomyService.Instance.SetHardCurrency(saveData.currency.hardCurrency);
+            EconomyService.Instance.SetSoftCurrency(saveData.currency.credits);
+            EconomyService.Instance.SetHardCurrency(saveData.currency.gems);
             */
 
-            Debug.Log($"[ServiceIntegration] Economy restored: {saveData.currency.softCurrency}c / {saveData.currency.hardCurrency}g");
+            Debug.Log($"[ServiceIntegration] Economy restored: {saveData.currency.credits}c / {saveData.currency.gems}g");
         }
 
         #endregion

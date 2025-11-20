@@ -1,7 +1,11 @@
-using Unity.Netcode;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Netcode;
 using UnityEngine;
-using GravityWars.Multiplayer;
+// using GravityWars.Multiplayer;
 using System.Collections;
+
+#if UNITY_NETCODE_GAMEOBJECTS
+using GravityWars.Multiplayer;
 
 /// <summary>
 /// Coordinates turn-based gameplay in deterministic peer-to-peer multiplayer.
@@ -637,3 +641,4 @@ public class NetworkTurnCoordinator : NetworkBehaviour
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

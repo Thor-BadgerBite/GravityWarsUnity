@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
-using Unity.Services.Relay;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Services.Lobbies;
+// using Unity.Services.Lobbies.Models;
+// using Unity.Services.Relay;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking
 {
     /// <summary>
@@ -507,7 +509,7 @@ namespace GravityWars.Networking
             var playerData = ProgressionManager.Instance?.currentPlayerData;
             if (playerData != null)
             {
-                data["DisplayName"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.displayName);
+                data["DisplayName"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.username);
                 data["AccountLevel"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.accountLevel.ToString());
             }
 
@@ -536,3 +538,4 @@ namespace GravityWars.Networking
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

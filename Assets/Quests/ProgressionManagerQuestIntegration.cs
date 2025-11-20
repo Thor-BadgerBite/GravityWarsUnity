@@ -76,7 +76,7 @@ public class ProgressionManagerQuestIntegration : MonoBehaviour
         // Initialize tracking state
         if (_progressionManager.currentPlayerData != null)
         {
-            _lastAccountLevel = _progressionManager.currentPlayerData.accountLevel;
+            _lastAccountLevel = _progressionManager.currentPlayerData.level;
         }
 
         Log("Quest integration initialized");
@@ -98,17 +98,17 @@ public class ProgressionManagerQuestIntegration : MonoBehaviour
         var data = _progressionManager.currentPlayerData;
 
         // Check if leveled up
-        if (data.accountLevel > _lastAccountLevel)
+        if (data.level > _lastAccountLevel)
         {
             // Update quest: Reach Account Level
             _questService.UpdateQuestProgress(
                 QuestObjectiveType.ReachAccountLevel,
-                data.accountLevel // Pass current level as amount
+                data.level // Pass current level as amount
             );
 
-            Log($"Account level quest updated: Level {data.accountLevel}");
+            Log($"Account level quest updated: Level {data.level}");
 
-            _lastAccountLevel = data.accountLevel;
+            _lastAccountLevel = data.level;
         }
     }
 

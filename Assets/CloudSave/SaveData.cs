@@ -19,7 +19,7 @@ namespace GravityWars.CloudSave
         public int saveCount = 0;
 
         // Player Profile
-        public PlayerProfileData profile = new PlayerProfileData();
+        public PlayerProfileData playerProfile = new PlayerProfileData();
 
         // Currency & Economy
         public CurrencyData currency = new CurrencyData();
@@ -69,7 +69,7 @@ namespace GravityWars.CloudSave
         {
             if (string.IsNullOrEmpty(playerID)) return false;
             if (currency == null || progression == null) return false;
-            if (currency.softCurrency < 0 || currency.hardCurrency < 0) return false;
+            if (currency.credits < 0 || currency.gems < 0) return false;
             if (progression.level < 1 || progression.experience < 0) return false;
             return true;
         }
@@ -78,7 +78,7 @@ namespace GravityWars.CloudSave
     #region Player Profile
 
     [Serializable]
-    public class PlayerProfileData
+    public class BasicProfileData
     {
         public string displayName = "Player";
         public int avatarID = 0;
@@ -89,7 +89,7 @@ namespace GravityWars.CloudSave
         public int loginStreak = 0;
         public long lastLoginStreakTimestamp;
 
-        public PlayerProfileData()
+        public BasicProfileData()
         {
             accountCreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             lastLoginTimestamp = accountCreatedTimestamp;

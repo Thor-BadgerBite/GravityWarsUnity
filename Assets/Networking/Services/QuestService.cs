@@ -153,7 +153,7 @@ namespace GravityWars.Networking
             var progressionManager = ProgressionManager.Instance;
             if (progressionManager != null && progressionManager.currentPlayerData != null)
             {
-                // Load quests from player data (if you've added a quests list to PlayerAccountData)
+                // Load quests from player data (if you've added a quests list to PlayerProfileData)
                 // For now, we'll initialize with empty list
                 _activeQuests = new List<QuestInstance>();
                 Log("Quests loaded from player data");
@@ -228,7 +228,7 @@ namespace GravityWars.Networking
                 if (quest != null)
                 {
                     _activeQuests.Add(quest);
-                    Log($"Generated daily quest: {quest.displayName}");
+                    Log($"Generated daily quest: {quest.username}");
                 }
             }
 
@@ -240,7 +240,7 @@ namespace GravityWars.Networking
                 if (quest != null)
                 {
                     _activeQuests.Add(quest);
-                    Log($"Generated weekly quest: {quest.displayName}");
+                    Log($"Generated weekly quest: {quest.username}");
                 }
             }
 
@@ -252,7 +252,7 @@ namespace GravityWars.Networking
                 if (quest != null)
                 {
                     _activeQuests.Add(quest);
-                    Log($"Generated season quest: {quest.displayName}");
+                    Log($"Generated season quest: {quest.username}");
                 }
             }
         }
@@ -339,7 +339,7 @@ namespace GravityWars.Networking
                 if (quest.currentProgress > oldProgress)
                 {
                     anyUpdated = true;
-                    Log($"Quest progress: {quest.displayName} ({quest.currentProgress}/{quest.targetValue})");
+                    Log($"Quest progress: {quest.username} ({quest.currentProgress}/{quest.targetValue})");
 
                     // Check if completed
                     if (quest.IsCompleted)
@@ -389,7 +389,7 @@ namespace GravityWars.Networking
         /// </summary>
         private void OnQuestCompleted(QuestInstance quest)
         {
-            Log($"Quest completed: {quest.displayName}");
+            Log($"Quest completed: {quest.username}");
 
             // Award rewards
             AwardQuestRewards(quest);
@@ -414,17 +414,17 @@ namespace GravityWars.Networking
             }
 
             // Award soft currency
-            if (quest.softCurrencyReward > 0)
+            if (quest.creditsReward > 0)
             {
-                progressionManager.currentPlayerData.AddCurrency(quest.softCurrencyReward, 0);
-                Log($"Awarded {quest.softCurrencyReward} soft currency");
+                progressionManager.currentPlayerData.AddCurrency(quest.creditsReward, 0);
+                Log($"Awarded {quest.creditsReward} soft currency");
             }
 
             // Award hard currency
-            if (quest.hardCurrencyReward > 0)
+            if (quest.gemsReward > 0)
             {
-                progressionManager.currentPlayerData.AddCurrency(0, quest.hardCurrencyReward);
-                Log($"Awarded {quest.hardCurrencyReward} hard currency");
+                progressionManager.currentPlayerData.AddCurrency(0, quest.gemsReward);
+                Log($"Awarded {quest.gemsReward} hard currency");
             }
 
             // Award account XP
@@ -461,7 +461,7 @@ namespace GravityWars.Networking
                 analyticsService.TrackQuestCompleted(
                     questID: quest.questID,
                     timeToComplete: timeToComplete,
-                    reward: $"{quest.softCurrencyReward} coins, {quest.accountXPReward} XP"
+                    reward: $"{quest.creditsReward} coins, {quest.accountXPReward} XP"
                 );
             }
         }
@@ -473,7 +473,7 @@ namespace GravityWars.Networking
         {
             // In production, this would trigger a UI popup
             // For now, just log
-            Debug.Log($"[QuestService] 🎉 Quest Complete: {quest.displayName}!");
+            Debug.Log($"[QuestService] 🎉 Quest Complete: {quest.username}!");
         }
 
         #endregion
@@ -524,7 +524,7 @@ namespace GravityWars.Networking
             // Save
             _ = SaveQuestsToCloud();
 
-            Log($"Quest claimed and removed: {quest.displayName}");
+            Log($"Quest claimed and removed: {quest.username}");
             return true;
         }
 
