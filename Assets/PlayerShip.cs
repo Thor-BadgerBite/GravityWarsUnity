@@ -463,10 +463,9 @@ void Update()
     transform.position = pos;
 
     // Check if in networked mode
-    GameManagerNetworkAdapter networkAdapter = null;
     bool isNetworkedMode = false;
 #if UNITY_NETCODE_GAMEOBJECTS
-    networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
+    GameManagerNetworkAdapter networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
     isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
 #endif
 
