@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using GravityWars.Multiplayer;
-using GravityWars.Networking;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using GravityWars.Multiplayer;
+// using GravityWars.Networking;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 /// <summary>
 /// Manages match history tracking and statistics updates.
 /// Records match results, updates player profiles, and calculates ELO changes.
@@ -585,3 +587,4 @@ public class PlayerStatsSummary
     public int bestWinStreak;
     public float missileAccuracy;
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking.UI
 {
     /// <summary>
@@ -270,3 +271,4 @@ namespace GravityWars.Networking.UI
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

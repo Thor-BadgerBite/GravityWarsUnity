@@ -467,6 +467,8 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] Spawned {planetComponents.Count} planets deterministically");
     }
 
+    #region Network Multiplayer Support (Planet Spawning)
+#if UNITY_NETCODE_GAMEOBJECTS
     /// <summary>
     /// Get spawned planet data for network synchronization.
     /// Server calls this to get planet data to send to clients.
@@ -544,6 +546,8 @@ public class GameManager : MonoBehaviour
 
         Debug.Log($"[GameManager] Finished spawning planets from network data");
     }
+#endif // UNITY_NETCODE_GAMEOBJECTS
+    #endregion
 
     void InitializeAvailablePlanets()
     {
@@ -1493,6 +1497,8 @@ public class GameManager : MonoBehaviour
         // Additional setup if needed
     }
 
+    #region Network Multiplayer Support (Callbacks)
+#if UNITY_NETCODE_GAMEOBJECTS
     /// <summary>
     /// Called by NetworkTurnCoordinator when turn state changes
     /// </summary>
@@ -1573,6 +1579,7 @@ public class GameManager : MonoBehaviour
         Debug.Log($"[GameManager] Match ended - Winner: {winnerId}, Score: {player1Score}-{player2Score}");
         // Show match end screen
     }
-
+#endif // UNITY_NETCODE_GAMEOBJECTS
+    #endregion
 
 }

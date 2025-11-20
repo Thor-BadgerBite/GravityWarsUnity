@@ -38,13 +38,16 @@ namespace GravityWars.Networking
 
         #region Service References
 
+#if UNITY_NETCODE_GAMEOBJECTS
         private NetworkService _networkService;
+#endif
         private CloudSaveService _cloudSaveService;
         private AnalyticsService _analyticsService;
         private QuestService _questService;
         private AchievementService _achievementService;
         private LeaderboardService _leaderboardService;
 
+#if UNITY_NETCODE_GAMEOBJECTS
         /// <summary>Network service for online multiplayer, matchmaking, and relay connections.</summary>
         public NetworkService Network
         {
@@ -55,6 +58,7 @@ namespace GravityWars.Networking
                 return _networkService;
             }
         }
+#endif
 
         /// <summary>Cloud save service for server-side player data synchronization.</summary>
         public CloudSaveService CloudSave
