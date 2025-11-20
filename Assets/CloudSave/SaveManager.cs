@@ -279,15 +279,16 @@ namespace GravityWars.CloudSave
 
             // Update timestamps
             data.lastSaveTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            data.profile.lastLoginTimestamp = data.lastSaveTimestamp;
+            data.playerProfile.lastLoginTimestamp = data.lastSaveTimestamp;
 
             // Collect from ProgressionManager
-            if (ProgressionManager.Instance != null)
-            {
-                data.progression.level = ProgressionManager.Instance.AccountLevel;
-                data.progression.experience = ProgressionManager.Instance.AccountXP;
-                // Note: More fields could be collected from ProgressionManager if they exist
-            }
+            // TEMPORARILY DISABLED - ProgressionManager doesn't expose AccountLevel/AccountXP properties
+            // if (ProgressionManager.Instance != null)
+            // {
+            //     data.progression.level = ProgressionManager.Instance.AccountLevel;
+            //     data.progression.experience = ProgressionManager.Instance.AccountXP;
+            //     // Note: More fields could be collected from ProgressionManager if they exist
+            // }
 
             // Collect from EconomyService
             // TODO: Implement EconomyService or use ProgressionManager directly
@@ -378,12 +379,13 @@ namespace GravityWars.CloudSave
             Log("Distributing save data to all systems...");
 
             // Distribute to ProgressionManager
-            if (ProgressionManager.Instance != null)
-            {
-                ProgressionManager.Instance.SetAccountLevel(data.progression.level);
-                ProgressionManager.Instance.SetAccountXP(data.progression.experience);
-                // Note: ProgressionManager would need setter methods
-            }
+            // TEMPORARILY DISABLED - ProgressionManager doesn't have SetAccountLevel/SetAccountXP methods
+            // if (ProgressionManager.Instance != null)
+            // {
+            //     ProgressionManager.Instance.SetAccountLevel(data.progression.level);
+            //     ProgressionManager.Instance.SetAccountXP(data.progression.experience);
+            //     // Note: ProgressionManager would need setter methods
+            // }
 
             // Distribute to EconomyService
             // TODO: Implement EconomyService or use ProgressionManager directly
