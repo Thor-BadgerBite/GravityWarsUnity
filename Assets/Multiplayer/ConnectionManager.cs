@@ -10,6 +10,7 @@ using Unity.Services.Relay;
 using Unity.Services.Relay.Models;
 #endif
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Multiplayer
 {
     /// <summary>
@@ -508,3 +509,4 @@ namespace GravityWars.Multiplayer
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

@@ -7,6 +7,7 @@ using UnityEngine;
 // using Unity.Services.Lobbies.Models;
 // using Unity.Services.Relay;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking
 {
     /// <summary>
@@ -537,3 +538,4 @@ namespace GravityWars.Networking
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

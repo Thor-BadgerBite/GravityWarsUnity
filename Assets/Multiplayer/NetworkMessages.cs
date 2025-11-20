@@ -6,6 +6,7 @@ using UnityEngine;
 /// Network message structures for deterministic peer-to-peer gameplay.
 /// These messages ensure both clients execute the same actions with identical parameters.
 /// </summary>
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Multiplayer
 {
     #region Player Input Messages
@@ -288,3 +289,4 @@ namespace GravityWars.Multiplayer
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

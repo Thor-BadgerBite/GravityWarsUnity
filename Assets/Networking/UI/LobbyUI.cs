@@ -5,6 +5,7 @@ using TMPro;
 // using Unity.Services.Lobbies.Models;
 using System.Collections.Generic;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking.UI
 {
     /// <summary>
@@ -387,3 +388,4 @@ namespace GravityWars.Networking.UI
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

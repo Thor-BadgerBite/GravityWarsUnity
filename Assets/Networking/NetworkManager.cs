@@ -2,6 +2,7 @@ using UnityEngine;
 // TODO: Install Unity Gaming Services packages and uncomment
 // using Unity.Netcode;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking
 {
     /// <summary>
@@ -266,3 +267,4 @@ namespace GravityWars.Networking
         #endregion
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

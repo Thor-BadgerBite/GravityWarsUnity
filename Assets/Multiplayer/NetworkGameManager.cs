@@ -6,6 +6,7 @@ using System.Collections;
 using System;
 using GravityWars.Networking;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Multiplayer
 {
     /// <summary>
@@ -758,3 +759,4 @@ namespace GravityWars.Multiplayer
         public static implicit operator NetworkString(string s) => new NetworkString(s);
     }
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

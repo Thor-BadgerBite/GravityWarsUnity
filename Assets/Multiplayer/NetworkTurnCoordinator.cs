@@ -9,6 +9,7 @@ using System.Collections;
 /// Server manages turn state machine, timing, and validation.
 /// Clients execute game logic locally with synchronized inputs.
 /// </summary>
+#if UNITY_NETCODE_GAMEOBJECTS
 public class NetworkTurnCoordinator : NetworkBehaviour
 {
     #region Singleton
@@ -638,3 +639,4 @@ public class NetworkTurnCoordinator : NetworkBehaviour
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS

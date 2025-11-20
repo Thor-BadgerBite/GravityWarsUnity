@@ -9,6 +9,7 @@ using System.Collections.Generic;
 /// Captures local player input, sends to server, and broadcasts to all clients.
 /// Both clients execute the same inputs on their local game engines.
 /// </summary>
+#if UNITY_NETCODE_GAMEOBJECTS
 public class NetworkInputManager : NetworkBehaviour
 {
     #region Singleton
@@ -424,3 +425,4 @@ public class NetworkInputManager : NetworkBehaviour
 
     #endregion
 }
+#endif // UNITY_NETCODE_GAMEOBJECTS
