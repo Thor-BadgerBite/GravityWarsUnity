@@ -274,6 +274,12 @@ public class AchievementInstance
     public bool isUnlocked = false;
     public DateTime unlockedAt;
 
+    // Tier tracking (for tiered achievements)
+    public int currentTier = 0; // Current tier achieved for tiered achievements
+
+    // Timestamp alias for compatibility with cloud save systems
+    public long unlockTimestamp => isUnlocked ? (long)(unlockedAt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds : 0;
+
     // Rewards
     public int softCurrencyReward;
     public int hardCurrencyReward;

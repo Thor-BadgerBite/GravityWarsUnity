@@ -326,7 +326,7 @@ public class BattlePassReward
     {
         this.type = type;
         this.amount = amount;
-        this.username = displayName;
+        this.displayName = displayName;
         this.rewardId = rewardId;
         this.shipClass = shipClass;
     }

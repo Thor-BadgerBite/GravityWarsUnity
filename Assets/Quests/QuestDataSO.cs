@@ -265,11 +265,19 @@ public class QuestInstance
     // Visual
     public QuestDifficulty difficulty;
 
+    // Status tracking
+    public bool isClaimed = false;
+
     // Computed properties
     public bool IsCompleted => currentProgress >= targetValue;
+    public bool isCompleted => IsCompleted; // Alias for compatibility
     public float ProgressPercentage => targetValue > 0 ? (float)currentProgress / targetValue : 0f;
     public TimeSpan TimeRemaining => expiresAt - DateTime.UtcNow;
     public bool IsExpired => DateTime.UtcNow > expiresAt;
+
+    // Timestamp aliases for compatibility with cloud save systems
+    public long acceptedTimestamp => (long)(assignedAt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+    public long expirationTimestamp => (long)(expiresAt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
     // Constructor from ScriptableObject
     public QuestInstance(QuestDataSO template)
