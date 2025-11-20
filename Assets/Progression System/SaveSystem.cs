@@ -34,10 +34,11 @@ public static class SaveSystem
         SavePlayerDataLocal(data);
 
         // Queue cloud save (async, non-blocking)
-        if (enableCloudSync)
-        {
-            SavePlayerDataToCloudAsync(data);
-        }
+        // TEMPORARILY DISABLED - CloudSaveService needs type conversion fixes
+        // if (enableCloudSync)
+        // {
+        //     SavePlayerDataToCloudAsync(data);
+        // }
     }
 
     /// <summary>
