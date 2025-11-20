@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using GravityWars.Online;
 
 /// <summary>
 /// Defines all progression unlocks and rewards for player leveling.

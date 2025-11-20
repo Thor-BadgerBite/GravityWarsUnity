@@ -5,7 +5,7 @@ using GravityWars.Networking;
 using GravityWars.CloudSave;
 using System.Text;
 
-namespace GravityWars.Debug
+namespace GravityWars.DebugUI
 {
     /// <summary>
     /// Debug UI for testing all Phase 4+ systems.

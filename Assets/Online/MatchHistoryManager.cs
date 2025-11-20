@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using GravityWars.Multiplayer;
+using GravityWars.Networking;
 
 /// <summary>
 /// Manages match history tracking and statistics updates.

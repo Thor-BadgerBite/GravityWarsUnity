@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System;
+using GravityWars.Online;
 
 /// <summary>
 /// Manages the main menu UI elements (Brawl Stars style).
@@ -179,7 +180,7 @@ public class MainMenuUI : MonoBehaviour
             eloText.text = $"{profile.eloRating} ELO";
 
         if (rankText != null)
-            rankText.text = ELORatingSystem.GetRankName(profile.currentRank);
+            rankText.text = ELORatingSystem.GetRankDisplayName(profile.currentRank);
 
         if (rankIcon != null)
             rankIcon.sprite = GetRankIcon(profile.currentRank);
