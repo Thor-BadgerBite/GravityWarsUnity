@@ -34,11 +34,10 @@ public static class SaveSystem
         SavePlayerDataLocal(data);
 
         // Queue cloud save (async, non-blocking)
-        // TEMPORARILY DISABLED - CloudSaveService needs type conversion fixes
-        // if (enableCloudSync)
-        // {
-        //     SavePlayerDataToCloudAsync(data);
-        // }
+        if (enableCloudSync)
+        {
+            SavePlayerDataToCloudAsync(data);
+        }
     }
 
     /// <summary>
@@ -83,25 +82,22 @@ public static class SaveSystem
     /// </summary>
     public static async void SavePlayerDataToCloudAsync(PlayerAccountData data)
     {
-        // TEMPORARILY DISABLED - CloudSaveService type mismatch (expects SaveData, not PlayerAccountData)
-        // try
-        // {
-        //     var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-        //     if (cloudSave != null)
-        //     {
-        //         bool success = await cloudSave.SaveToCloud(data);
-        //         if (!success)
-        //         {
-        //             Debug.LogWarning("[SaveSystem] Cloud save queued for later (offline or failed)");
-        //         }
-        //     }
-        //     else
-        //     {
-                Debug.LogWarning("[SaveSystem] CloudSaveService disabled - type mismatch needs fix");
-        //     }
-        // }
         try
-        {}
+        {
+            var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
+            if (cloudSave != null)
+            {
+                bool success = await cloudSave.SavePlayerProfile(data);
+                if (!success)
+                {
+                    Debug.LogWarning("[SaveSystem] Cloud save queued for later (offline or failed)");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[SaveSystem] CloudSaveService not available");
+            }
+        }
         catch (Exception e)
         {
             Debug.LogError($"[SaveSystem] Cloud save failed: {e.Message}");
@@ -168,17 +164,43 @@ public static class SaveSystem
     /// </summary>
     public static async Task<PlayerAccountData> LoadPlayerDataWithCloudMergeAsync()
     {
-        // TEMPORARILY DISABLED - CloudSaveService type mismatch (expects SaveData, not PlayerAccountData)
-        // Cloud sync functionality disabled until type conversion is implemented
-        await Task.CompletedTask; // Satisfy async requirement
-
         try
         {
-            // Load from local only
+            // Load from local
             PlayerAccountData localData = LoadPlayerDataLocal();
             Debug.Log($"[SaveSystem] Local data loaded: {(localData != null ? localData.username : "none")}");
-            Debug.LogWarning("[SaveSystem] Cloud sync disabled - using local save only");
 
+            // Try to load from cloud
+            var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
+            if (cloudSave != null)
+            {
+                PlayerAccountData cloudData = await cloudSave.LoadPlayerProfile();
+
+                if (cloudData != null && localData != null)
+                {
+                    // Both exist - merge them (take newest)
+                    Debug.Log("[SaveSystem] Merging cloud and local data...");
+                    PlayerAccountData merged = (cloudData.lastLoginTimestamp > localData.lastLoginTimestamp)
+                        ? cloudData : localData;
+
+                    // Take max currency
+                    merged.credits = Mathf.Max(cloudData.credits, localData.credits);
+                    merged.gems = Mathf.Max(cloudData.gems, localData.gems);
+
+                    return merged;
+                }
+                else if (cloudData != null)
+                {
+                    Debug.Log("[SaveSystem] Using cloud data only");
+                    return cloudData;
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[SaveSystem] CloudSaveService not available - using local data only");
+            }
+
+            // Fallback to local
             return localData;
         }
         catch (Exception e)

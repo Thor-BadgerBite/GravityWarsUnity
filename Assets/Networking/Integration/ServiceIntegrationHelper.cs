@@ -143,33 +143,28 @@ namespace GravityWars.Integration
 
         private void CollectEconomyData(SaveData saveData)
         {
-            // TEMPORARILY DISABLED - EconomyService not available
-            // if (EconomyService.Instance == null)
-            // {
-            //     Debug.LogWarning("[ServiceIntegration] EconomyService not found");
-            //     return;
-            // }
+            // Use ProgressionManager instead of separate EconomyService
+            if (ProgressionManager.Instance == null || ProgressionManager.Instance.currentPlayerData == null)
+            {
+                Debug.LogWarning("[ServiceIntegration] ProgressionManager not found");
+                return;
+            }
 
-            // TODO: Uncomment when EconomyService has these methods
-            /*
-            saveData.currency.credits = EconomyService.Instance.GetSoftCurrency();
-            saveData.currency.gems = EconomyService.Instance.GetHardCurrency();
-            */
+            saveData.currency.credits = ProgressionManager.Instance.currentPlayerData.credits;
+            saveData.currency.gems = ProgressionManager.Instance.currentPlayerData.gems;
 
-            Debug.Log("[ServiceIntegration] Economy data collected (MOCK)");
+            Debug.Log($"[ServiceIntegration] Economy data collected: {saveData.currency.credits}c / {saveData.currency.gems}g");
             economyIntegrated = true;
         }
 
         private void DistributeEconomyData(SaveData saveData)
         {
-            // TEMPORARILY DISABLED - EconomyService not available
-            // if (EconomyService.Instance == null) return;
+            // Use ProgressionManager instead of separate EconomyService
+            if (ProgressionManager.Instance == null || ProgressionManager.Instance.currentPlayerData == null)
+                return;
 
-            // TODO: Uncomment when EconomyService has these methods
-            /*
-            EconomyService.Instance.SetSoftCurrency(saveData.currency.credits);
-            EconomyService.Instance.SetHardCurrency(saveData.currency.gems);
-            */
+            ProgressionManager.Instance.currentPlayerData.credits = saveData.currency.credits;
+            ProgressionManager.Instance.currentPlayerData.gems = saveData.currency.gems;
 
             Debug.Log($"[ServiceIntegration] Economy restored: {saveData.currency.credits}c / {saveData.currency.gems}g");
         }

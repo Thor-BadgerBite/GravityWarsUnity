@@ -554,16 +554,23 @@ namespace GravityWars.DebugUI
         {
             if (AnalyticsService.Instance != null)
             {
-                // TEMPORARILY DISABLED - TrackMatchCompleted signature changed to TrackMatchComplete(MatchAnalytics)
-                // Need to create MatchAnalytics object instead
-                // AnalyticsService.Instance.TrackMatchCompleted(
-                //     isWin: true,
-                //     duration: 120,
-                //     damageDealt: 500,
-                //     missilesHit: 10,
-                //     missilesFired: 15
-                // );
-                LogStatus("⚠ Analytics tracking temporarily disabled - needs MatchAnalytics object");
+                var testAnalytics = new GravityWars.Networking.MatchAnalytics
+                {
+                    winner = "Player",
+                    duration = 120f,
+                    roundsPlayed = 3,
+                    playerDamageDealt = 500,
+                    opponentDamageDealt = 450,
+                    playerShotsFired = 15,
+                    opponentShotsFired = 14,
+                    playerAccuracy = 0.67f,
+                    opponentAccuracy = 0.64f,
+                    xpGained = 100,
+                    currencyGained = 50
+                };
+
+                AnalyticsService.Instance.TrackMatchComplete(testAnalytics);
+                LogStatus("✓ Test analytics event tracked");
             }
         }
 
