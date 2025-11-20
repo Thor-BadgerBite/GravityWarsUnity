@@ -854,8 +854,8 @@ namespace GravityWars.Networking
         private LeaderboardStatsData MergeLeaderboardStats(LeaderboardStatsData cloud, LeaderboardStatsData local)
         {
             var merged = new LeaderboardStatsData();
-            merged.bestScore = Mathf.Max(cloud.bestScore, local.bestScore);
-            merged.bestWinStreak = Mathf.Max(cloud.bestWinStreak, local.bestWinStreak);
+            merged.bestScore = Math.Max(cloud.bestScore, local.bestScore);
+            merged.bestWinStreak = Math.Max(cloud.bestWinStreak, local.bestWinStreak);
             merged.bestAccuracy = Math.Max(cloud.bestAccuracy, local.bestAccuracy);
             merged.fastestWinSeconds = Math.Min(cloud.fastestWinSeconds, local.fastestWinSeconds);
             merged.highestDamageInMatch = Mathf.Max(cloud.highestDamageInMatch, local.highestDamageInMatch);
