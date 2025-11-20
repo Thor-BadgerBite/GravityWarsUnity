@@ -182,8 +182,8 @@ public class BattlePassTier
 /// Represents a reward that can be unlocked (item + currency)
 /// </summary>
 [System.Serializable]
-public class UnlockableReward
-{
+    public class UnlockableReward
+    {
     [Header("Item Reward")]
     [Tooltip("Type of item to unlock")]
     public RewardType rewardType = RewardType.None;
@@ -192,11 +192,15 @@ public class UnlockableReward
     public ScriptableObject rewardItem;
 
     [Header("Currency Rewards")]
-    [Tooltip("Soft currency (coins) to award")]
-    public int softCurrencyAmount = 0;
+        [Tooltip("Soft currency (coins) to award")]
+        public int softCurrencyAmount = 0;
 
-    [Tooltip("Hard currency (gems) to award")]
-    public int hardCurrencyAmount = 0;
+        // Legacy aliases
+        public int creditsAmount => softCurrencyAmount;
+
+        [Tooltip("Hard currency (gems) to award")]
+        public int hardCurrencyAmount = 0;
+        public int gemsAmount => hardCurrencyAmount;
 
     [Header("XP Rewards")]
     [Tooltip("Account XP to award")]

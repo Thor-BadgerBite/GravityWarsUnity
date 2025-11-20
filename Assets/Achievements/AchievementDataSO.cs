@@ -119,6 +119,7 @@ public class AchievementDataSO : ScriptableObject
 
     [Tooltip("Points awarded for this achievement")]
     public int achievementPoints = 10;
+    public int points => achievementPoints;
 
     [Tooltip("Required account level to see this achievement")]
     public int requiredLevelToView = 1;
@@ -296,6 +297,7 @@ public class AchievementInstance
     public int currentXPReward => accountXPReward;
     public int currentTier => (int)tier;
     public AchievementDataSO data => template;
+    public long unlockTimestamp => new DateTimeOffset(unlockedAt).ToUnixTimeSeconds();
 
     // Required context
     public string requiredContext;

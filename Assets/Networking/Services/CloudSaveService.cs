@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using Unity.Services.CloudSave;
 using System.Security.Cryptography;
 using System.Text;
 using GravityWars.CloudSave;
 using SaveData = GravityWars.CloudSave.SaveData;
+
+#if UNITY_SERVICES_CLOUDSAVE
+using Unity.Services.CloudSave;
 
 namespace GravityWars.Networking
 {
@@ -611,11 +613,11 @@ namespace GravityWars.Networking
             merged.username = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.username : local.username;
             merged.avatarID = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.avatarID : local.avatarID;
             merged.customTitle = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.customTitle : local.customTitle;
-            merged.accountCreatedTimestamp = Mathf.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
-            merged.lastLoginTimestamp = Mathf.Max(cloud.lastLoginTimestamp, local.lastLoginTimestamp);
-            merged.totalPlaytimeSeconds = Mathf.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
-            merged.loginStreak = Mathf.Max(cloud.loginStreak, local.loginStreak);
-            merged.lastLoginStreakTimestamp = Mathf.Max(cloud.lastLoginStreakTimestamp, local.lastLoginStreakTimestamp);
+            merged.accountCreatedTimestamp = Math.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
+            merged.lastLoginTimestamp = Math.Max(cloud.lastLoginTimestamp, local.lastLoginTimestamp);
+            merged.totalPlaytimeSeconds = Math.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
+            merged.loginStreak = Math.Max(cloud.loginStreak, local.loginStreak);
+            merged.lastLoginStreakTimestamp = Math.Max(cloud.lastLoginStreakTimestamp, local.lastLoginStreakTimestamp);
             return merged;
         }
 
@@ -1246,3 +1248,16 @@ namespace GravityWars.Networking
         #endregion
     }
 }
+#else
+namespace GravityWars.Networking
+{
+    /// <summary>Stub cloud save service used when Unity Cloud Save is not installed.</summary>
+    public class CloudSaveService : MonoBehaviour
+    {
+        public static CloudSaveService Instance => null;
+        public System.Threading.Tasks.Task<bool> SaveToCloud(PlayerAccountData data) => System.Threading.Tasks.Task.FromResult(false);
+        public System.Threading.Tasks.Task<GravityWars.CloudSave.SaveData> LoadFromCloud() => System.Threading.Tasks.Task.FromResult<GravityWars.CloudSave.SaveData>(null);
+        public PlayerAccountData MergeData(PlayerAccountData cloudData, PlayerAccountData localData) => cloudData ?? localData;
+    }
+}
+#endif

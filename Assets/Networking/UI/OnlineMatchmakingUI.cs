@@ -3,6 +3,7 @@ using UnityEngine.UI;
 using TMPro;
 using System.Threading.Tasks;
 
+#if UNITY_NETCODE_GAMEOBJECTS
 namespace GravityWars.Networking.UI
 {
     /// <summary>
@@ -367,3 +368,12 @@ namespace GravityWars.Networking.UI
         #endregion
     }
 }
+#else
+namespace GravityWars.Networking.UI
+{
+    /// <summary>Stub matchmaking UI when Netcode is not enabled.</summary>
+    public class OnlineMatchmakingUI : MonoBehaviour
+    {
+    }
+}
+#endif

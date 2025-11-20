@@ -25,6 +25,10 @@ public class PlayerAccountData
     public long accountCreatedTimestamp;
     public long lastLoginTimestamp;
     public long totalPlaytimeSeconds;
+    public int avatarID = 0;
+    public string customTitle = "";
+    public int loginStreak = 0;
+    public long lastLoginStreakTimestamp;
 
     [Header("Account Progression")]
     public int accountLevel = 1;
@@ -57,7 +61,11 @@ public class PlayerAccountData
     [Header("Unlocked Content - Ship Bodies")]
     public List<string> unlockedShipBodyIDs = new List<string>();
     public List<string> unlockedShipBodies = new List<string>();
-    public List<string> unlockedShipModels => unlockedShipBodyIDs;
+    public List<string> unlockedShipModels
+    {
+        get => unlockedShipBodyIDs;
+        set => unlockedShipBodyIDs = value ?? new List<string>();
+    }
 
     [Header("Unlocked Content - Perks")]
     public List<string> unlockedTier1PerkIDs = new List<string>();

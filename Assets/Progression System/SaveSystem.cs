@@ -175,7 +175,8 @@ public static class SaveSystem
                 var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
                 if (cloudSave != null)
                 {
-                    cloudData = await cloudSave.LoadFromCloud();
+                    var cloudSaveData = await cloudSave.LoadFromCloud();
+                    cloudData = cloudSaveData?.playerProfile;
                     Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.username : "none")}");
                 }
             }

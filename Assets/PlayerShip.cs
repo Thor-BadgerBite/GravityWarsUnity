@@ -546,7 +546,9 @@ void Update()
     // NETWORK ROUTING: Send rotation to network if in networked mode
     if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
     {
+    #if UNITY_NETCODE_GAMEOBJECTS
         networkAdapter.RoutePlayerRotation(this, rotationAmount);
+    #endif
     }
     else if (!isNetworkedMode)
     {
@@ -600,8 +602,10 @@ void Update()
         {
             if (isNetworkedMode)
             {
+            #if UNITY_NETCODE_GAMEOBJECTS
                 // NETWORK MODE: Send fire action to network
                 SendNetworkFireAction(networkAdapter);
+            #endif
             }
             else
             {
@@ -613,8 +617,10 @@ void Update()
         {
             if (isNetworkedMode)
             {
+            #if UNITY_NETCODE_GAMEOBJECTS
                 // NETWORK MODE: Send move action to network
                 SendNetworkMoveAction(networkAdapter);
+            #endif
             }
             else
             {
