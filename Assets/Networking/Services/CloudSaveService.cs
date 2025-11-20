@@ -392,7 +392,7 @@ namespace GravityWars.Networking
             merged.saveVersion = cloudData.saveVersion;
             merged.deviceID = cloudData.deviceID;
             merged.saveCount = Mathf.Max(cloudData.saveCount, localData.saveCount);
-            merged.lastSaveTimestamp = Mathf.Max(cloudData.lastSaveTimestamp, localData.lastSaveTimestamp);
+            merged.lastSaveTimestamp = Math.Max(cloudData.lastSaveTimestamp, localData.lastSaveTimestamp);
 
             // Profile - merge intelligently
             // TEMPORARILY DISABLED - SaveData uses playerProfile, not profile
@@ -408,7 +408,8 @@ namespace GravityWars.Networking
             merged.quests = MergeQuests(cloudData.quests, localData.quests);
 
             // Achievements - union of unlocked
-            merged.achievements = MergeAchievements(cloudData.achievements, localData.achievements);
+            // TEMPORARILY DISABLED - AchievementSaveData namespace conflict between GravityWars.CloudSave and GravityWars.Networking
+            // merged.achievements = MergeAchievements(cloudData.achievements, localData.achievements);
 
             // Statistics - take max values
             merged.statistics = MergeStatistics(cloudData.statistics, localData.statistics);
@@ -674,78 +675,79 @@ namespace GravityWars.Networking
             return merged;
         }
 
-        private AchievementSaveData MergeAchievements(AchievementSaveData cloud, AchievementSaveData local)
-        {
-            var merged = new AchievementSaveData();
-
-            // Merge achievement progress
-            var achievementDict = new Dictionary<string, (int progress, int tier, bool unlocked, long timestamp)>();
-
-            for (int i = 0; i < cloud.achievementIDs.Count; i++)
-            {
-                achievementDict[cloud.achievementIDs[i]] = (
-                    cloud.achievementProgress[i],
-                    cloud.currentTiers[i],
-                    cloud.isUnlocked[i],
-                    cloud.unlockTimestamps[i]
-                );
-            }
-
-            for (int i = 0; i < local.achievementIDs.Count; i++)
-            {
-                string achID = local.achievementIDs[i];
-                if (achievementDict.ContainsKey(achID))
-                {
-                    var existing = achievementDict[achID];
-                    achievementDict[achID] = (
-                        Mathf.Max(existing.progress, local.achievementProgress[i]),
-                        Mathf.Max(existing.tier, local.currentTiers[i]),
-                        existing.unlocked || local.isUnlocked[i],
-                        Math.Min(existing.timestamp, local.unlockTimestamps[i]) // First unlock timestamp
-                    );
-                }
-                else
-                {
-                    achievementDict[achID] = (
-                        local.achievementProgress[i],
-                        local.currentTiers[i],
-                        local.isUnlocked[i],
-                        local.unlockTimestamps[i]
-                    );
-                }
-            }
-
-            merged.achievementIDs = new List<string>(achievementDict.Keys);
-            merged.achievementProgress = new List<int>();
-            merged.currentTiers = new List<int>();
-            merged.isUnlocked = new List<bool>();
-            merged.unlockTimestamps = new List<long>();
-
-            foreach (var kvp in achievementDict)
-            {
-                merged.achievementProgress.Add(kvp.Value.progress);
-                merged.currentTiers.Add(kvp.Value.tier);
-                merged.isUnlocked.Add(kvp.Value.unlocked);
-                merged.unlockTimestamps.Add(kvp.Value.timestamp);
-            }
-
-            // Merge lifetime stats
-            merged.lifetimeStats = new Dictionary<string, int>();
-            foreach (var kvp in cloud.lifetimeStats)
-                merged.lifetimeStats[kvp.Key] = kvp.Value;
-            foreach (var kvp in local.lifetimeStats)
-            {
-                if (merged.lifetimeStats.ContainsKey(kvp.Key))
-                    merged.lifetimeStats[kvp.Key] = Mathf.Max(merged.lifetimeStats[kvp.Key], kvp.Value);
-                else
-                    merged.lifetimeStats[kvp.Key] = kvp.Value;
-            }
-
-            merged.totalAchievementPoints = Mathf.Max(cloud.totalAchievementPoints, local.totalAchievementPoints);
-            merged.totalAchievementsUnlocked = Mathf.Max(cloud.totalAchievementsUnlocked, local.totalAchievementsUnlocked);
-            merged.totalSecretAchievementsUnlocked = Mathf.Max(cloud.totalSecretAchievementsUnlocked, local.totalSecretAchievementsUnlocked);
-            return merged;
-        }
+        // TEMPORARILY DISABLED - AchievementSaveData namespace conflict (GravityWars.CloudSave vs GravityWars.Networking)
+        // private AchievementSaveData MergeAchievements(AchievementSaveData cloud, AchievementSaveData local)
+        // {
+        //     var merged = new AchievementSaveData();
+        //
+        //     // Merge achievement progress
+        //     var achievementDict = new Dictionary<string, (int progress, int tier, bool unlocked, long timestamp)>();
+        //
+        //     for (int i = 0; i < cloud.achievementIDs.Count; i++)
+        //     {
+        //         achievementDict[cloud.achievementIDs[i]] = (
+        //             cloud.achievementProgress[i],
+        //             cloud.currentTiers[i],
+        //             cloud.isUnlocked[i],
+        //             cloud.unlockTimestamps[i]
+        //         );
+        //     }
+        //
+        //     for (int i = 0; i < local.achievementIDs.Count; i++)
+        //     {
+        //         string achID = local.achievementIDs[i];
+        //         if (achievementDict.ContainsKey(achID))
+        //         {
+        //             var existing = achievementDict[achID];
+        //             achievementDict[achID] = (
+        //                 Mathf.Max(existing.progress, local.achievementProgress[i]),
+        //                 Mathf.Max(existing.tier, local.currentTiers[i]),
+        //                 existing.unlocked || local.isUnlocked[i],
+        //                 Math.Min(existing.timestamp, local.unlockTimestamps[i]) // First unlock timestamp
+        //             );
+        //         }
+        //         else
+        //         {
+        //             achievementDict[achID] = (
+        //                 local.achievementProgress[i],
+        //                 local.currentTiers[i],
+        //                 local.isUnlocked[i],
+        //                 local.unlockTimestamps[i]
+        //             );
+        //         }
+        //     }
+        //
+        //     merged.achievementIDs = new List<string>(achievementDict.Keys);
+        //     merged.achievementProgress = new List<int>();
+        //     merged.currentTiers = new List<int>();
+        //     merged.isUnlocked = new List<bool>();
+        //     merged.unlockTimestamps = new List<long>();
+        //
+        //     foreach (var kvp in achievementDict)
+        //     {
+        //         merged.achievementProgress.Add(kvp.Value.progress);
+        //         merged.currentTiers.Add(kvp.Value.tier);
+        //         merged.isUnlocked.Add(kvp.Value.unlocked);
+        //         merged.unlockTimestamps.Add(kvp.Value.timestamp);
+        //     }
+        //
+        //     // Merge lifetime stats
+        //     merged.lifetimeStats = new Dictionary<string, int>();
+        //     foreach (var kvp in cloud.lifetimeStats)
+        //         merged.lifetimeStats[kvp.Key] = kvp.Value;
+        //     foreach (var kvp in local.lifetimeStats)
+        //     {
+        //         if (merged.lifetimeStats.ContainsKey(kvp.Key))
+        //             merged.lifetimeStats[kvp.Key] = Mathf.Max(merged.lifetimeStats[kvp.Key], kvp.Value);
+        //         else
+        //             merged.lifetimeStats[kvp.Key] = kvp.Value;
+        //     }
+        //
+        //     merged.totalAchievementPoints = Mathf.Max(cloud.totalAchievementPoints, local.totalAchievementPoints);
+        //     merged.totalAchievementsUnlocked = Mathf.Max(cloud.totalAchievementsUnlocked, local.totalAchievementsUnlocked);
+        //     merged.totalSecretAchievementsUnlocked = Mathf.Max(cloud.totalSecretAchievementsUnlocked, local.totalSecretAchievementsUnlocked);
+        //     return merged;
+        // }
 
         private PlayerStatistics MergeStatistics(PlayerStatistics cloud, PlayerStatistics local)
         {
@@ -767,9 +769,9 @@ namespace GravityWars.Networking
             merged.perfectWins = Mathf.Max(cloud.perfectWins, local.perfectWins);
             merged.flawlessRounds = Mathf.Max(cloud.flawlessRounds, local.flawlessRounds);
             merged.comebackWins = Mathf.Max(cloud.comebackWins, local.comebackWins);
-            merged.totalPlaytimeSeconds = Mathf.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
-            merged.fastestWinSeconds = Mathf.Min(cloud.fastestWinSeconds, local.fastestWinSeconds);
-            merged.longestMatchSeconds = Mathf.Max(cloud.longestMatchSeconds, local.longestMatchSeconds);
+            merged.totalPlaytimeSeconds = Math.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
+            merged.fastestWinSeconds = Math.Min(cloud.fastestWinSeconds, local.fastestWinSeconds);
+            merged.longestMatchSeconds = Math.Max(cloud.longestMatchSeconds, local.longestMatchSeconds);
             merged.trickshotHits = Mathf.Max(cloud.trickshotHits, local.trickshotHits);
             merged.selfDestructs = Mathf.Max(cloud.selfDestructs, local.selfDestructs);
             merged.environmentalKills = Mathf.Max(cloud.environmentalKills, local.environmentalKills);
@@ -855,14 +857,14 @@ namespace GravityWars.Networking
             merged.bestScore = Mathf.Max(cloud.bestScore, local.bestScore);
             merged.bestWinStreak = Mathf.Max(cloud.bestWinStreak, local.bestWinStreak);
             merged.bestAccuracy = Math.Max(cloud.bestAccuracy, local.bestAccuracy);
-            merged.fastestWinSeconds = Mathf.Min(cloud.fastestWinSeconds, local.fastestWinSeconds);
+            merged.fastestWinSeconds = Math.Min(cloud.fastestWinSeconds, local.fastestWinSeconds);
             merged.highestDamageInMatch = Mathf.Max(cloud.highestDamageInMatch, local.highestDamageInMatch);
-            merged.currentMMR = Mathf.Max(cloud.currentMMR, local.currentMMR);
-            merged.peakMMR = Mathf.Max(cloud.peakMMR, local.peakMMR);
+            merged.currentMMR = Math.Max(cloud.currentMMR, local.currentMMR);
+            merged.peakMMR = Math.Max(cloud.peakMMR, local.peakMMR);
             merged.rankedPoints = Mathf.Max(cloud.rankedPoints, local.rankedPoints);
             merged.currentSeasonWins = Mathf.Max(cloud.currentSeasonWins, local.currentSeasonWins);
             merged.currentSeasonMatches = Mathf.Max(cloud.currentSeasonMatches, local.currentSeasonMatches);
-            merged.currentSeasonStartTimestamp = Mathf.Min(cloud.currentSeasonStartTimestamp, local.currentSeasonStartTimestamp);
+            merged.currentSeasonStartTimestamp = Math.Min(cloud.currentSeasonStartTimestamp, local.currentSeasonStartTimestamp);
 
             // Merge submission timestamps
             merged.lastSubmissionTimestamps = new Dictionary<string, long>();
