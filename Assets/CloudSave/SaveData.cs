@@ -19,7 +19,7 @@ namespace GravityWars.CloudSave
         public int saveCount = 0;
 
         // Player Profile
-        public PlayerProfileData playerProfile = new PlayerProfileData();
+        public PlayerAccountData playerProfile = new PlayerAccountData("", "");
 
         // Currency & Economy
         public CurrencyData currency = new CurrencyData();

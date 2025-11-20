@@ -153,7 +153,7 @@ namespace GravityWars.Networking
             var progressionManager = ProgressionManager.Instance;
             if (progressionManager != null && progressionManager.currentPlayerData != null)
             {
-                // Load quests from player data (if you've added a quests list to PlayerProfileData)
+                // Load quests from player data (if you've added a quests list to PlayerAccountData)
                 // For now, we'll initialize with empty list
                 _activeQuests = new List<QuestInstance>();
                 Log("Quests loaded from player data");

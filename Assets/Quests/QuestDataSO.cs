@@ -236,7 +236,7 @@ public enum QuestDifficulty
 
 /// <summary>
 /// Runtime instance of a quest assigned to a player.
-/// Serializable for saving to PlayerProfileData.
+/// Serializable for saving to PlayerAccountData.
 /// </summary>
 [Serializable]
 public class QuestInstance

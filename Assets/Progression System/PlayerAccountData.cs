@@ -18,10 +18,12 @@ public class PlayerAccountData
     public string username;  // Renamed from displayName for consistency
     public DateTime accountCreatedDate;
     public DateTime lastLoginDate;
+    public long totalPlaytimeSeconds = 0; // Total time played in seconds
 
     [Header("Account Progression")]
     public int level = 1;
     public int currentXP = 0;
+    public int xpForNextLevel = 1000; // XP required for next level
 
     [Header("Currency")]
     public int credits = 0;      // Renamed from softCurrency - Earned through gameplay
@@ -46,6 +48,7 @@ public class PlayerAccountData
 
     [Header("Unlocked Content - Ship Bodies")]
     public List<string> unlockedShipBodyIDs = new List<string>();
+    public List<string> unlockedShipModels = new List<string>(); // Prebuilt ship models
 
     [Header("Unlocked Content - Perks")]
     public List<string> unlockedTier1PerkIDs = new List<string>();
@@ -65,6 +68,9 @@ public class PlayerAccountData
     public List<string> unlockedSkinIDs = new List<string>();
     public List<string> unlockedColorSchemeIDs = new List<string>();
     public List<string> unlockedDecalIDs = new List<string>();
+
+    [Header("Unlocked Content - Achievements")]
+    public List<string> unlockedAchievements = new List<string>();
 
     [Header("Ship Progression - Custom Loadouts")]
     public List<CustomShipLoadout> customShipLoadouts = new List<CustomShipLoadout>();
@@ -91,9 +97,14 @@ public class PlayerAccountData
     public int totalMissilesHit = 0;
     public int totalDamageReceived = 0;
     public int totalPlanetsHit = 0;
+    public string favoriteShipModel = ""; // Most used ship model
 
     [Header("Settings & Preferences")]
     public PlayerPreferences preferences = new PlayerPreferences();
+
+    // Timestamp properties for cloud save compatibility (convert DateTime to Unix timestamps)
+    public long accountCreatedTimestamp => (long)(accountCreatedDate.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+    public long lastLoginTimestamp => (long)(lastLoginDate.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
     /// <summary>
     /// Constructor for new accounts
@@ -243,6 +254,58 @@ public class PlayerAccountData
     public void UpdateLastLogin()
     {
         lastLoginDate = DateTime.Now;
+    }
+
+    /// <summary>
+    /// Calculate win rate percentage for ranked matches
+    /// </summary>
+    public float GetRankedWinRate()
+    {
+        if (rankedMatchesPlayed == 0) return 0f;
+        return (float)rankedMatchesWon / rankedMatchesPlayed * 100f;
+    }
+
+    /// <summary>
+    /// Calculate win rate percentage for casual matches
+    /// </summary>
+    public float GetCasualWinRate()
+    {
+        if (casualMatchesPlayed == 0) return 0f;
+        return (float)casualMatchesWon / casualMatchesPlayed * 100f;
+    }
+
+    /// <summary>
+    /// Calculate overall win rate (ranked + casual)
+    /// </summary>
+    public float GetOverallWinRate()
+    {
+        int totalMatches = rankedMatchesPlayed + casualMatchesPlayed;
+        if (totalMatches == 0) return 0f;
+        int totalWins = rankedMatchesWon + casualMatchesWon;
+        return (float)totalWins / totalMatches * 100f;
+    }
+
+    /// <summary>
+    /// Calculate missile accuracy percentage
+    /// </summary>
+    public float GetMissileAccuracy()
+    {
+        if (totalMissilesFired == 0) return 0f;
+        return (float)totalMissilesHit / totalMissilesFired * 100f;
+    }
+
+    /// <summary>
+    /// Update rank based on current ELO
+    /// </summary>
+    public void UpdateRankFromELO()
+    {
+        if (eloRating < 1000) currentRank = CompetitiveRank.Bronze;
+        else if (eloRating < 1200) currentRank = CompetitiveRank.Silver;
+        else if (eloRating < 1400) currentRank = CompetitiveRank.Gold;
+        else if (eloRating < 1600) currentRank = CompetitiveRank.Platinum;
+        else if (eloRating < 1800) currentRank = CompetitiveRank.Diamond;
+        else if (eloRating < 2000) currentRank = CompetitiveRank.Master;
+        else currentRank = CompetitiveRank.Grandmaster;
     }
 }
 

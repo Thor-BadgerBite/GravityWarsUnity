@@ -282,13 +282,11 @@ namespace GravityWars.CloudSave
             data.playerProfile.lastLoginTimestamp = data.lastSaveTimestamp;
 
             // Collect from ProgressionManager
-            // TEMPORARILY DISABLED - ProgressionManager doesn't expose AccountLevel/AccountXP properties
-            // if (ProgressionManager.Instance != null)
-            // {
-            //     data.progression.level = ProgressionManager.Instance.AccountLevel;
-            //     data.progression.experience = ProgressionManager.Instance.AccountXP;
-            //     // Note: More fields could be collected from ProgressionManager if they exist
-            // }
+            if (ProgressionManager.Instance != null && ProgressionManager.Instance.currentPlayerData != null)
+            {
+                data.progression.level = ProgressionManager.Instance.currentPlayerData.level;
+                data.progression.experience = ProgressionManager.Instance.currentPlayerData.currentXP;
+            }
 
             // Collect from EconomyService
             // TODO: Implement EconomyService or use ProgressionManager directly
@@ -379,13 +377,11 @@ namespace GravityWars.CloudSave
             Log("Distributing save data to all systems...");
 
             // Distribute to ProgressionManager
-            // TEMPORARILY DISABLED - ProgressionManager doesn't have SetAccountLevel/SetAccountXP methods
-            // if (ProgressionManager.Instance != null)
-            // {
-            //     ProgressionManager.Instance.SetAccountLevel(data.progression.level);
-            //     ProgressionManager.Instance.SetAccountXP(data.progression.experience);
-            //     // Note: ProgressionManager would need setter methods
-            // }
+            if (ProgressionManager.Instance != null && ProgressionManager.Instance.currentPlayerData != null)
+            {
+                ProgressionManager.Instance.currentPlayerData.level = data.progression.level;
+                ProgressionManager.Instance.currentPlayerData.currentXP = data.progression.experience;
+            }
 
             // Distribute to EconomyService
             // TODO: Implement EconomyService or use ProgressionManager directly
@@ -504,11 +500,10 @@ namespace GravityWars.CloudSave
             };
 
             // Initialize profile
-            data.playerProfile = new PlayerProfileData
+            data.playerProfile = new PlayerAccountData(data.playerID, "Player")
             {
-                username = "Player",
-                accountCreatedTimestamp = data.lastSaveTimestamp,
-                lastLoginTimestamp = data.lastSaveTimestamp
+                accountCreatedDate = DateTime.UtcNow,
+                lastLoginDate = DateTime.UtcNow
             };
 
             // Initialize currency (starting amounts)
