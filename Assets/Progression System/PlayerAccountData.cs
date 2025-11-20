@@ -106,6 +106,23 @@ public class PlayerAccountData
     public long accountCreatedTimestamp => (long)(accountCreatedDate.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
     public long lastLoginTimestamp => (long)(lastLoginDate.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
+    // Compatibility aliases for PlayerProfileData field names
+    public List<string> unlockedShipBodies => unlockedShipBodyIDs;
+    public List<string> unlockedPassives => unlockedPassiveIDs;
+    public List<string> unlockedSkins => unlockedSkinIDs;
+    public List<CustomShipLoadout> customLoadouts => customShipLoadouts;
+    public List<string> unlockedActives
+    {
+        get
+        {
+            var all = new List<string>();
+            all.AddRange(unlockedTier1PerkIDs);
+            all.AddRange(unlockedTier2PerkIDs);
+            all.AddRange(unlockedTier3PerkIDs);
+            return all;
+        }
+    }
+
     /// <summary>
     /// Constructor for new accounts
     /// </summary>

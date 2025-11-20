@@ -279,7 +279,7 @@ namespace GravityWars.CloudSave
 
             // Update timestamps
             data.lastSaveTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            data.playerProfile.lastLoginTimestamp = data.lastSaveTimestamp;
+            data.playerProfile.lastLoginDate = DateTime.UtcNow;
 
             // Collect from ProgressionManager
             if (ProgressionManager.Instance != null && ProgressionManager.Instance.currentPlayerData != null)

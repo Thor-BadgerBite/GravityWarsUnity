@@ -280,7 +280,7 @@ public class AccountSystem : MonoBehaviour
             }
 
             // Update last login timestamp
-            _currentPlayerProfile.lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            _currentPlayerProfile.lastLoginDate = DateTime.UtcNow;
             await SavePlayerProfile(_currentPlayerProfile);
 
             _isSignedIn = true;
