@@ -1,5 +1,6 @@
-using Unity.Netcode;
-using Unity.Netcode.Transports.UTP;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Netcode;
+// using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using System.Threading.Tasks;
 using System;

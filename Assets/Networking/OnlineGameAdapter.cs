@@ -1,5 +1,6 @@
 using UnityEngine;
-using Unity.Netcode;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Netcode;
 
 namespace GravityWars.Networking
 {

@@ -644,7 +644,7 @@ public class ShipUnlockData
     public ShipUnlockData(string id, string name, ShipClass shipClass, string desc)
     {
         this.shipId = id;
-        this.username = name;
+        this.displayName = name;
         this.shipClass = shipClass;
         this.description = desc;
     }

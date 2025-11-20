@@ -1,4 +1,5 @@
-using Unity.Netcode;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Netcode;
 using UnityEngine;
 using System.Collections.Generic;
 using System.Collections;

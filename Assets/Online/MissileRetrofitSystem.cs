@@ -245,7 +245,7 @@ public class MissileUnlockData
     public MissileUnlockData(string id, string name, MissileType type, ShipClass preferredClass, string desc)
     {
         this.missileId = id;
-        this.username = name;
+        this.displayName = name;
         this.missileType = type;
         this.preferredClass = preferredClass;
         this.description = desc;

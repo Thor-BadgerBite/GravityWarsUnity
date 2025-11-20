@@ -228,8 +228,10 @@ public static class CustomShipBuilder
 
             if (loadout != null)
             {
+                var progression = profile.GetShipProgression(loadout);
+                int shipLevel = progression != null ? progression.shipLevel : 1;
                 profile.customLoadouts.Remove(loadout);
-                Debug.Log($"[CustomShipBuilder] Deleted custom ship '{loadout.loadoutName}' (Level {loadout.shipLevel})");
+                Debug.Log($"[CustomShipBuilder] Deleted custom ship '{loadout.loadoutName}' (Level {shipLevel})");
                 return true;
             }
             else

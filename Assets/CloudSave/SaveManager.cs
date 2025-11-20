@@ -290,12 +290,15 @@ namespace GravityWars.CloudSave
             }
 
             // Collect from EconomyService
+            // TODO: Implement EconomyService or use ProgressionManager directly
+            /* COMMENTED OUT - EconomyService not implemented yet
             if (EconomyService.Instance != null)
             {
                 data.currency.credits = EconomyService.Instance.GetSoftCurrency();
                 data.currency.gems = EconomyService.Instance.GetHardCurrency();
                 // Note: EconomyService would need methods to expose these values
             }
+            */
 
             // Collect from QuestService
             if (QuestService.Instance != null)
@@ -383,12 +386,15 @@ namespace GravityWars.CloudSave
             }
 
             // Distribute to EconomyService
+            // TODO: Implement EconomyService or use ProgressionManager directly
+            /* COMMENTED OUT - EconomyService not implemented yet
             if (EconomyService.Instance != null)
             {
                 EconomyService.Instance.SetSoftCurrency(data.currency.credits);
                 EconomyService.Instance.SetHardCurrency(data.currency.gems);
                 // Note: EconomyService would need setter methods
             }
+            */
 
             // Distribute to QuestService
             if (QuestService.Instance != null)

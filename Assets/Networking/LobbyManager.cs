@@ -2,9 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using Unity.Services.Lobbies;
-using Unity.Services.Lobbies.Models;
-using Unity.Services.Relay;
+// TODO: Install Unity Gaming Services packages and uncomment
+// using Unity.Services.Lobbies;
+// using Unity.Services.Lobbies.Models;
+// using Unity.Services.Relay;
 
 namespace GravityWars.Networking
 {
