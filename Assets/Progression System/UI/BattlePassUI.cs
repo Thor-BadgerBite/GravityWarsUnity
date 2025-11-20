@@ -70,7 +70,7 @@ public class BattlePassUI : MonoBehaviour
     {
         // Title
         if (battlePassTitleText != null)
-            battlePassTitleText.text = battlePass.displayName;
+            battlePassTitleText.text = battlePass.username;
 
         // Current tier
         if (currentTierText != null)

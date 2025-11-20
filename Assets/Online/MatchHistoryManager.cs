@@ -53,8 +53,8 @@ public class MatchHistoryManager : MonoBehaviour
         Debug.Log($"[MatchHistory] Recording match result - Winner: {result.winnerId}, Ranked: {result.isRanked}");
 
         // Load both players' profiles
-        PlayerProfileData winnerProfile = LoadPlayerProfile(result.winnerId);
-        PlayerProfileData loserProfile = LoadPlayerProfile(result.loserId);
+        PlayerAccountData winnerProfile = LoadPlayerProfile(result.winnerId);
+        PlayerAccountData loserProfile = LoadPlayerProfile(result.loserId);
 
         if (winnerProfile == null || loserProfile == null)
         {
@@ -94,7 +94,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Update player statistics from match result.
     /// </summary>
-    private void UpdatePlayerStatistics(PlayerProfileData profile, MatchResult result, bool isWinner)
+    private void UpdatePlayerStatistics(PlayerAccountData profile, MatchResult result, bool isWinner)
     {
         var playerStats = isWinner ? result.winnerStats : result.loserStats;
 
@@ -142,7 +142,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Process ELO rating changes for ranked match.
     /// </summary>
-    private void ProcessELOChanges(PlayerProfileData winnerProfile, PlayerProfileData loserProfile, MatchResult result)
+    private void ProcessELOChanges(PlayerAccountData winnerProfile, PlayerAccountData loserProfile, MatchResult result)
     {
         // Calculate winner's ELO change
         var (winnerNewELO, winnerChange) = ELORatingSystem.CalculateNewELO(
@@ -188,7 +188,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Add match to player's match history (limited to maxRecentMatches).
     /// </summary>
-    private void AddToMatchHistory(PlayerProfileData profile, MatchResult result, bool isWinner)
+    private void AddToMatchHistory(PlayerAccountData profile, MatchResult result, bool isWinner)
     {
         var opponentId = isWinner ? result.loserId : result.winnerId;
         var opponentProfile = LoadPlayerProfile(opponentId);
@@ -227,7 +227,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Calculate XP and credits rewards based on match performance.
     /// </summary>
-    private void CalculateRewards(PlayerProfileData profile, MatchResult result, bool isWinner)
+    private void CalculateRewards(PlayerAccountData profile, MatchResult result, bool isWinner)
     {
         var playerStats = isWinner ? result.winnerStats : result.loserStats;
 
@@ -296,7 +296,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// Check if player leveled up and apply level progression with rewards.
     /// Uses ProgressionSystem for unlock management and rewards.
     /// </summary>
-    private void CheckLevelUp(PlayerProfileData profile)
+    private void CheckLevelUp(PlayerAccountData profile)
     {
         while (profile.currentXP >= profile.xpForNextLevel)
         {
@@ -323,7 +323,7 @@ public class MatchHistoryManager : MonoBehaviour
                 Debug.Log($"[MatchHistory]   🔓 New unlocks:");
                 foreach (var unlock in reward.unlocks)
                 {
-                    Debug.Log($"[MatchHistory]      - {unlock.displayName}: {unlock.description}");
+                    Debug.Log($"[MatchHistory]      - {unlock.username}: {unlock.description}");
 
                     // Add unlock to player profile based on type
                     ApplyUnlock(profile, unlock);
@@ -335,18 +335,18 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Apply an unlock to the player profile.
     /// </summary>
-    private void ApplyUnlock(PlayerProfileData profile, UnlockData unlock)
+    private void ApplyUnlock(PlayerAccountData profile, UnlockData unlock)
     {
         switch (unlock.type)
         {
             case UnlockType.ShipClass:
                 // Ship class unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Ship class unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Ship class unlocked: {unlock.username}");
                 break;
 
             case UnlockType.CustomSlot:
                 // Custom slot unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Custom slot unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Custom slot unlocked: {unlock.username}");
                 break;
 
             case UnlockType.Ship:
@@ -354,7 +354,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedShipModels.Contains(unlock.id))
                 {
                     profile.unlockedShipModels.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] Ship unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] Ship unlocked: {unlock.username}");
                 }
                 break;
 
@@ -363,7 +363,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedShipModels.Contains(unlock.id))
                 {
                     profile.unlockedShipModels.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🚀 Prebuild ship unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🚀 Prebuild ship unlocked: {unlock.username}");
                 }
                 break;
 
@@ -372,7 +372,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedShipBodies.Contains(unlock.id))
                 {
                     profile.unlockedShipBodies.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🔧 Ship body unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🔧 Ship body unlocked: {unlock.username}");
                 }
                 break;
 
@@ -381,7 +381,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedPassives.Contains(unlock.id))
                 {
                     profile.unlockedPassives.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] ⚡ Passive ability unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] ⚡ Passive ability unlocked: {unlock.username}");
                 }
                 break;
 
@@ -390,7 +390,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedActives.Contains(unlock.id))
                 {
                     profile.unlockedActives.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 💫 Active ability unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 💫 Active ability unlocked: {unlock.username}");
                 }
                 break;
 
@@ -399,7 +399,7 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedMissiles.Contains(unlock.id))
                 {
                     profile.unlockedMissiles.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🚀 Missile unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🚀 Missile unlocked: {unlock.username}");
                 }
                 break;
 
@@ -408,19 +408,19 @@ public class MatchHistoryManager : MonoBehaviour
                 if (!profile.unlockedSkins.Contains(unlock.id))
                 {
                     profile.unlockedSkins.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🎨 Skin unlocked: {unlock.displayName}");
+                    Debug.Log($"[MatchHistory] 🎨 Skin unlocked: {unlock.username}");
                 }
                 break;
 
             case UnlockType.Feature:
             case UnlockType.GameMode:
                 // Feature unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Feature unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Feature unlocked: {unlock.username}");
                 break;
 
             case UnlockType.Cosmetic:
                 // Legacy cosmetic (kept for backwards compatibility)
-                Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.displayName}");
+                Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.username}");
                 break;
         }
     }
@@ -433,7 +433,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// Load player profile from storage.
     /// Uses CloudSaveService for server-side profile retrieval.
     /// </summary>
-    private PlayerProfileData LoadPlayerProfile(string playerId)
+    private PlayerAccountData LoadPlayerProfile(string playerId)
     {
         Debug.Log($"[MatchHistory] Loading profile for player {playerId}");
 
@@ -466,7 +466,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// Save player profile to storage.
     /// Uses CloudSaveService for server-side profile storage.
     /// </summary>
-    private void SavePlayerProfile(PlayerProfileData profile)
+    private void SavePlayerProfile(PlayerAccountData profile)
     {
         Debug.Log($"[MatchHistory] Saving profile for {profile.username} (ELO: {profile.eloRating})");
 

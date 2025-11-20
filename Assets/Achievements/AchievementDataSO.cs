@@ -297,7 +297,7 @@ public class AchievementInstance
 
         // Cache template data
         achievementID = template.achievementID;
-        displayName = template.displayName;
+        displayName = template.username;
         description = template.description;
         achievementType = template.achievementType;
         category = template.category;
@@ -308,8 +308,8 @@ public class AchievementInstance
         requiredContext = template.requiredContext;
 
         // Cache rewards
-        softCurrencyReward = template.softCurrencyReward;
-        hardCurrencyReward = template.hardCurrencyReward;
+        softCurrencyReward = template.creditsReward;
+        hardCurrencyReward = template.gemsReward;
         accountXPReward = template.accountXPReward;
         exclusiveItemReward = template.exclusiveItemReward;
         titleReward = template.titleReward;

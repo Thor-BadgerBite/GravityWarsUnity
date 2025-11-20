@@ -4,17 +4,18 @@ using UnityEngine;
 
 /// <summary>
 /// Stores all account-wide progression data for a player.
-/// This includes global XP, unlocked content, currency, and ship progression.
+/// This includes global XP, unlocked content, currency, ship progression, and online features.
+/// UNIFIED DATA STRUCTURE - Used for both local and online play.
 /// </summary>
 [System.Serializable]
 public class PlayerAccountData
 {
     [Header("Save Version")]
-    public int saveVersion = 2; // Incremented when data structure changes (for migration)
+    public int saveVersion = 3; // Incremented when data structure changes (for migration)
 
     [Header("Account Info")]
     public string playerID;
-    public string displayName;
+    public string username;  // Renamed from displayName for consistency
     public DateTime accountCreatedDate;
     public DateTime lastLoginDate;
 
@@ -23,8 +24,19 @@ public class PlayerAccountData
     public int accountXP = 0;
 
     [Header("Currency")]
-    public int softCurrency = 0;      // Earned through gameplay (coins)
-    public int hardCurrency = 0;      // Premium currency (gems)
+    public int credits = 0;      // Renamed from softCurrency - Earned through gameplay
+    public int gems = 0;         // Renamed from hardCurrency - Premium currency
+
+    [Header("Competitive Stats - Online Play")]
+    public int eloRating = 1200;
+    public int peakEloRating = 1200;
+    public CompetitiveRank currentRank = CompetitiveRank.Bronze;
+    public int rankedMatchesPlayed = 0;
+    public int rankedMatchesWon = 0;
+    public int casualMatchesPlayed = 0;
+    public int casualMatchesWon = 0;
+    public int currentWinStreak = 0;
+    public int bestWinStreak = 0;
 
     [Header("Battle Pass")]
     public int battlePassTier = 0;
@@ -62,12 +74,26 @@ public class PlayerAccountData
     // Value = ShipProgressionEntry (XP, level, stats)
     public List<ShipProgressionEntry> shipProgressionData = new List<ShipProgressionEntry>();
 
+    [Header("Online Features")]
+    public string currentEquippedShipId = "";
+    public string selectedRankedLoadoutId = "";
+    public string selectedCasualLoadoutId = "";
+    public List<MatchResultData> recentMatches = new List<MatchResultData>();
+    public List<QuestProgressData> activeQuests = new List<QuestProgressData>();
+    public List<string> completedQuests = new List<string>();
+
     [Header("Statistics")]
     public int totalMatchesPlayed = 0;
     public int totalMatchesWon = 0;
     public int totalRoundsWon = 0;
     public int totalDamageDealt = 0;
     public int totalMissilesFired = 0;
+    public int totalMissilesHit = 0;
+    public int totalDamageReceived = 0;
+    public int totalPlanetsHit = 0;
+
+    [Header("Settings & Preferences")]
+    public PlayerPreferences preferences = new PlayerPreferences();
 
     /// <summary>
     /// Constructor for new accounts
@@ -75,7 +101,7 @@ public class PlayerAccountData
     public PlayerAccountData(string id, string name)
     {
         playerID = id;
-        displayName = name;
+        username = name;
         accountCreatedDate = DateTime.Now;
         lastLoginDate = DateTime.Now;
 
@@ -204,11 +230,11 @@ public class PlayerAccountData
     /// <summary>
     /// Adds currency
     /// </summary>
-    public void AddCurrency(int softAmount, int hardAmount)
+    public void AddCurrency(int creditsAmount, int gemsAmount)
     {
-        softCurrency += softAmount;
-        hardCurrency += hardAmount;
-        Debug.Log($"[PlayerAccountData] Currency: +{softAmount} coins, +{hardAmount} gems");
+        credits += creditsAmount;
+        gems += gemsAmount;
+        Debug.Log($"[PlayerAccountData] Currency: +{creditsAmount} credits, +{gemsAmount} gems");
     }
 
     /// <summary>
@@ -337,4 +363,82 @@ public class ShipProgressionEntry
 
         return Mathf.Clamp01((float)xpIntoLevel / xpNeededForLevel);
     }
+}
+
+/// <summary>
+/// Competitive ranking tiers for matchmaking
+/// </summary>
+[System.Serializable]
+public enum CompetitiveRank
+{
+    Bronze,
+    Silver,
+    Gold,
+    Platinum,
+    Diamond,
+    Master,
+    Grandmaster
+}
+
+/// <summary>
+/// Stores data for a completed match
+/// </summary>
+[System.Serializable]
+public class MatchResultData
+{
+    public string matchID;
+    public DateTime matchDate;
+    public bool isRanked;
+    public bool won;
+    public string opponentUsername;
+    public int opponentELO;
+    public int eloChange;
+    public int roundsWon;
+    public int roundsLost;
+    public int damageDealt;
+    public int damageReceived;
+    public string shipUsed;
+}
+
+/// <summary>
+/// Stores quest progress data
+/// </summary>
+[System.Serializable]
+public class QuestProgressData
+{
+    public string questID;
+    public int currentProgress;
+    public int requiredProgress;
+    public bool isCompleted;
+    public bool isClaimed;
+    public DateTime acceptedDate;
+    public DateTime expirationDate;
+}
+
+/// <summary>
+/// Player preferences and settings
+/// </summary>
+[System.Serializable]
+public class PlayerPreferences
+{
+    [Header("Audio")]
+    public float masterVolume = 1.0f;
+    public float musicVolume = 0.7f;
+    public float sfxVolume = 0.8f;
+    public bool muteWhenUnfocused = true;
+
+    [Header("Graphics")]
+    public int qualityLevel = 2;
+    public bool vSync = true;
+    public bool fullscreen = true;
+    public int targetFrameRate = 60;
+
+    [Header("Gameplay")]
+    public bool showTutorialHints = true;
+    public bool autoEquipBestShip = false;
+    public bool confirmBeforeDelete = true;
+
+    [Header("Controls")]
+    public float mouseSensitivity = 1.0f;
+    public bool invertYAxis = false;
 }

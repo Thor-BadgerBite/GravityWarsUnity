@@ -248,7 +248,7 @@ namespace GravityWars.CloudSave
                 Log($"=== LOAD GAME COMPLETED ===");
                 Log($"  Player: {saveData.playerID}");
                 Log($"  Level: {saveData.progression.level}");
-                Log($"  Currency: {saveData.currency.softCurrency}c / {saveData.currency.hardCurrency}g");
+                Log($"  Currency: {saveData.currency.credits}c / {saveData.currency.gems}g");
 
                 return true;
             }
@@ -292,8 +292,8 @@ namespace GravityWars.CloudSave
             // Collect from EconomyService
             if (EconomyService.Instance != null)
             {
-                data.currency.softCurrency = EconomyService.Instance.GetSoftCurrency();
-                data.currency.hardCurrency = EconomyService.Instance.GetHardCurrency();
+                data.currency.credits = EconomyService.Instance.GetSoftCurrency();
+                data.currency.gems = EconomyService.Instance.GetHardCurrency();
                 // Note: EconomyService would need methods to expose these values
             }
 
@@ -385,8 +385,8 @@ namespace GravityWars.CloudSave
             // Distribute to EconomyService
             if (EconomyService.Instance != null)
             {
-                EconomyService.Instance.SetSoftCurrency(data.currency.softCurrency);
-                EconomyService.Instance.SetHardCurrency(data.currency.hardCurrency);
+                EconomyService.Instance.SetSoftCurrency(data.currency.credits);
+                EconomyService.Instance.SetHardCurrency(data.currency.gems);
                 // Note: EconomyService would need setter methods
             }
 
@@ -496,7 +496,7 @@ namespace GravityWars.CloudSave
             };
 
             // Initialize profile
-            data.profile = new PlayerProfileData
+            data.profile = new PlayerAccountData
             {
                 displayName = "Player",
                 avatarID = 0,

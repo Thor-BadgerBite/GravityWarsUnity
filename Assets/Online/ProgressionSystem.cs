@@ -247,7 +247,7 @@ public static class ProgressionSystem
             {
                 type = UnlockType.PrebuildShip,
                 id = prebuildShip.shipId,
-                displayName = prebuildShip.displayName,
+                displayName = prebuildShip.username,
                 description = prebuildShip.description
             });
         }
@@ -260,7 +260,7 @@ public static class ProgressionSystem
             {
                 type = UnlockType.ShipBody,
                 id = shipBody.bodyId,
-                displayName = shipBody.displayName,
+                displayName = shipBody.username,
                 description = shipBody.description
             });
         }
@@ -273,7 +273,7 @@ public static class ProgressionSystem
             {
                 type = UnlockType.Passive,
                 id = passive.passiveId,
-                displayName = passive.displayName,
+                displayName = passive.username,
                 description = passive.description
             });
         }
@@ -286,7 +286,7 @@ public static class ProgressionSystem
             {
                 type = UnlockType.Active,
                 id = active.activeId,
-                displayName = active.displayName,
+                displayName = active.username,
                 description = active.description
             });
         }
@@ -299,7 +299,7 @@ public static class ProgressionSystem
             {
                 type = UnlockType.Missile,
                 id = missile.missileId,
-                displayName = missile.displayName,
+                displayName = missile.username,
                 description = missile.description
             });
         }
@@ -644,7 +644,7 @@ public class ShipUnlockData
     public ShipUnlockData(string id, string name, ShipClass shipClass, string desc)
     {
         this.shipId = id;
-        this.displayName = name;
+        this.username = name;
         this.shipClass = shipClass;
         this.description = desc;
     }

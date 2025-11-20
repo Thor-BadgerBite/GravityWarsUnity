@@ -74,7 +74,7 @@ public class ProgressionUI : MonoBehaviour
     {
         // Player name
         if (playerNameText != null)
-            playerNameText.text = data.displayName;
+            playerNameText.text = data.username;
 
         // Account level
         if (accountLevelText != null)
@@ -100,10 +100,10 @@ public class ProgressionUI : MonoBehaviour
     private void UpdateCurrency(PlayerAccountData data)
     {
         if (softCurrencyText != null)
-            softCurrencyText.text = data.softCurrency.ToString();
+            softCurrencyText.text = data.credits.ToString();
 
         if (hardCurrencyText != null)
-            hardCurrencyText.text = data.hardCurrency.ToString();
+            hardCurrencyText.text = data.gems.ToString();
     }
 
     /// <summary>

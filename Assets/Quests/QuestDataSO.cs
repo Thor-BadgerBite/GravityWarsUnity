@@ -275,7 +275,7 @@ public class QuestInstance
     public QuestInstance(QuestDataSO template)
     {
         questID = template.questID;
-        displayName = template.displayName;
+        displayName = template.username;
         description = template.description;
         questType = template.questType;
         objectiveType = template.objectiveType;
@@ -292,8 +292,8 @@ public class QuestInstance
             _ => DateTime.UtcNow.AddHours(24)
         };
 
-        softCurrencyReward = template.softCurrencyReward;
-        hardCurrencyReward = template.hardCurrencyReward;
+        softCurrencyReward = template.creditsReward;
+        hardCurrencyReward = template.gemsReward;
         accountXPReward = template.accountXPReward;
         itemRewards = new List<string>(template.itemRewards);
 

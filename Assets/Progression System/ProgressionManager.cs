@@ -70,7 +70,7 @@ public class ProgressionManager : MonoBehaviour
         }
         else
         {
-            Debug.Log($"[ProgressionManager] Loaded account: {currentPlayerData.displayName} (Level {currentPlayerData.accountLevel})");
+            Debug.Log($"[ProgressionManager] Loaded account: {currentPlayerData.username} (Level {currentPlayerData.accountLevel})");
             currentPlayerData.UpdateLastLogin();
         }
 
@@ -346,9 +346,9 @@ public class ProgressionManager : MonoBehaviour
         }
 
         // Grant currency
-        if (reward.softCurrencyAmount > 0 || reward.hardCurrencyAmount > 0)
+        if (reward.creditsAmount > 0 || reward.gemsAmount > 0)
         {
-            currentPlayerData.AddCurrency(reward.softCurrencyAmount, reward.hardCurrencyAmount);
+            currentPlayerData.AddCurrency(reward.creditsAmount, reward.gemsAmount);
         }
 
         // Grant XP
@@ -377,8 +377,8 @@ public class ProgressionManager : MonoBehaviour
     /// </summary>
     public bool CanAfford(int softCost, int hardCost)
     {
-        return currentPlayerData.softCurrency >= softCost &&
-               currentPlayerData.hardCurrency >= hardCost;
+        return currentPlayerData.credits >= softCost &&
+               currentPlayerData.gems >= hardCost;
     }
 
     /// <summary>
@@ -392,8 +392,8 @@ public class ProgressionManager : MonoBehaviour
             return false;
         }
 
-        currentPlayerData.softCurrency -= softCost;
-        currentPlayerData.hardCurrency -= hardCost;
+        currentPlayerData.credits -= softCost;
+        currentPlayerData.gems -= hardCost;
 
         Debug.Log($"[ProgressionManager] Spent: {softCost} coins, {hardCost} gems");
 

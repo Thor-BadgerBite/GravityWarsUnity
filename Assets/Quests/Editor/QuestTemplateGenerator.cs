@@ -493,14 +493,14 @@ public class QuestTemplateGenerator : EditorWindow
 
             // Set all properties
             quest.questID = template.fileName.ToLower();
-            quest.displayName = template.displayName;
+            quest.username = template.username;
             quest.description = template.description;
             quest.questType = template.questType;
             quest.objectiveType = template.objectiveType;
             quest.targetValue = template.targetValue;
             quest.difficulty = template.difficulty;
-            quest.softCurrencyReward = template.softCurrencyReward;
-            quest.hardCurrencyReward = template.hardCurrencyReward;
+            quest.creditsReward = template.creditsReward;
+            quest.gemsReward = template.gemsReward;
             quest.accountXPReward = template.accountXPReward;
             quest.requiredArchetype = template.requiredArchetype;
             quest.requiredMissileType = template.requiredMissileType;

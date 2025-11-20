@@ -115,7 +115,7 @@ namespace GravityWars.DebugUI
                 {
                     LogStatus($"✓ SaveManager: Player {data.playerID}");
                     LogStatus($"  Level: {data.progression.level}, XP: {data.progression.experience}");
-                    LogStatus($"  Currency: {data.currency.softCurrency}c / {data.currency.hardCurrency}g");
+                    LogStatus($"  Currency: {data.currency.credits}c / {data.currency.gems}g");
                     LogStatus($"  Active Quests: {data.quests.activeQuests.Count}");
                     LogStatus($"  Achievement Points: {data.achievements.totalAchievementPoints}");
                 }
@@ -528,10 +528,10 @@ namespace GravityWars.DebugUI
             SaveData data = SaveManager.Instance.GetCurrentSaveData();
             if (data != null)
             {
-                data.currency.softCurrency += soft;
-                data.currency.hardCurrency += hard;
+                data.currency.credits += soft;
+                data.currency.gems += hard;
                 LogStatus($"✓ Added {soft}c / {hard}g");
-                LogStatus($"  Total: {data.currency.softCurrency}c / {data.currency.hardCurrency}g");
+                LogStatus($"  Total: {data.currency.credits}c / {data.currency.gems}g");
             }
         }
 
@@ -540,7 +540,7 @@ namespace GravityWars.DebugUI
             SaveData data = SaveManager.Instance.GetCurrentSaveData();
             if (data != null)
             {
-                LogStatus($"Currency: {data.currency.softCurrency}c / {data.currency.hardCurrency}g");
+                LogStatus($"Currency: {data.currency.credits}c / {data.currency.gems}g");
                 LogStatus($"Lifetime Earned: {data.currency.lifetimeSoftCurrencyEarned}c / {data.currency.lifetimeHardCurrencyEarned}g");
                 LogStatus($"Lifetime Spent: {data.currency.lifetimeSoftCurrencySpent}c / {data.currency.lifetimeHardCurrencySpent}g");
             }

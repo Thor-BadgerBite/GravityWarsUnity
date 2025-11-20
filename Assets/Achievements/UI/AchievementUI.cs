@@ -598,7 +598,7 @@ public class AchievementUI : MonoBehaviour
         // Set achievement name
         if (notificationAchievementName != null)
         {
-            notificationAchievementName.text = achievement.displayName;
+            notificationAchievementName.text = achievement.username;
         }
 
         // Set description
@@ -619,7 +619,7 @@ public class AchievementUI : MonoBehaviour
             notificationPointsText.text = $"+{achievement.achievementPoints} Points";
         }
 
-        Log($"Showing unlock notification: {achievement.displayName}");
+        Log($"Showing unlock notification: {achievement.username}");
     }
 
     #endregion

@@ -847,7 +847,7 @@ public class AchievementTemplateGenerator : EditorWindow
 
             // Set all properties
             achievement.achievementID = template.fileName.ToLower();
-            achievement.displayName = template.displayName;
+            achievement.username = template.username;
             achievement.description = template.description;
             achievement.achievementType = template.achievementType;
             achievement.category = template.category;
@@ -855,8 +855,8 @@ public class AchievementTemplateGenerator : EditorWindow
             achievement.targetValue = template.targetValue;
             achievement.isSecret = template.isSecret;
             achievement.tier = template.tier;
-            achievement.softCurrencyReward = template.softCurrencyReward;
-            achievement.hardCurrencyReward = template.hardCurrencyReward;
+            achievement.creditsReward = template.creditsReward;
+            achievement.gemsReward = template.gemsReward;
             achievement.accountXPReward = template.accountXPReward;
             achievement.achievementPoints = template.achievementPoints;
             achievement.requiredContext = template.requiredContext;

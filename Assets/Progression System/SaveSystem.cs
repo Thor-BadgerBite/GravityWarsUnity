@@ -138,7 +138,7 @@ public static class SaveSystem
             // Deserialize
             PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
 
-            Debug.Log($"[SaveSystem] Loaded local player data: {data.displayName}");
+            Debug.Log($"[SaveSystem] Loaded local player data: {data.username}");
             return data;
         }
         catch (Exception e)
@@ -176,13 +176,13 @@ public static class SaveSystem
                 if (cloudSave != null)
                 {
                     cloudData = await cloudSave.LoadFromCloud();
-                    Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.displayName : "none")}");
+                    Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.username : "none")}");
                 }
             }
 
             // Load from local
             localData = LoadPlayerDataLocal();
-            Debug.Log($"[SaveSystem] Local data: {(localData != null ? localData.displayName : "none")}");
+            Debug.Log($"[SaveSystem] Local data: {(localData != null ? localData.username : "none")}");
 
             // Merge data
             PlayerAccountData mergedData = null;
@@ -226,7 +226,7 @@ public static class SaveSystem
                 return null;
             }
 
-            Debug.Log($"[SaveSystem] Load complete: {mergedData.displayName}");
+            Debug.Log($"[SaveSystem] Load complete: {mergedData.username}");
             return mergedData;
         }
         catch (Exception e)
@@ -258,7 +258,7 @@ public static class SaveSystem
             string json = File.ReadAllText(backupPath);
             PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
 
-            Debug.Log($"[SaveSystem] Loaded backup data: {data.displayName}");
+            Debug.Log($"[SaveSystem] Loaded backup data: {data.username}");
             return data;
         }
         catch (Exception e)
@@ -353,7 +353,7 @@ public static class SaveSystem
             // Save as current player data
             SavePlayerData(data);
 
-            Debug.Log($"[SaveSystem] Imported save data: {data.displayName}");
+            Debug.Log($"[SaveSystem] Imported save data: {data.username}");
             return data;
         }
         catch (Exception e)

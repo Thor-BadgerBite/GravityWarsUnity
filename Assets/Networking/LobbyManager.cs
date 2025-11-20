@@ -507,7 +507,7 @@ namespace GravityWars.Networking
             var playerData = ProgressionManager.Instance?.currentPlayerData;
             if (playerData != null)
             {
-                data["DisplayName"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.displayName);
+                data["DisplayName"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.username);
                 data["AccountLevel"] = new PlayerDataObject(PlayerDataObject.VisibilityOptions.Public, playerData.accountLevel.ToString());
             }
 

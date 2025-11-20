@@ -25,7 +25,7 @@ public static class CustomShipBuilder
     /// - Player has an available custom slot
     /// </summary>
     public static ShipBuildValidation ValidateShipBuild(
-        PlayerProfileData profile,
+        PlayerAccountData profile,
         string bodyId,
         string passiveId,
         string tier1ActiveId,
@@ -72,7 +72,7 @@ public static class CustomShipBuilder
         else if (passive.compatibleArchetype != shipBody.shipClass)
         {
             validation.isValid = false;
-            validation.errors.Add($"Passive '{passive.displayName}' is not compatible with {shipBody.shipClass} archetype");
+            validation.errors.Add($"Passive '{passive.username}' is not compatible with {shipBody.shipClass} archetype");
         }
 
         // Check Tier 1 active
@@ -112,7 +112,7 @@ public static class CustomShipBuilder
     /// <summary>
     /// Validate a single active ability (check if unlocked and correct tier).
     /// </summary>
-    private static bool ValidateActiveAbility(PlayerProfileData profile, string activeId, int expectedTier, out string error)
+    private static bool ValidateActiveAbility(PlayerAccountData profile, string activeId, int expectedTier, out string error)
     {
         error = null;
 
@@ -133,7 +133,7 @@ public static class CustomShipBuilder
 
         if (active.tier != expectedTier)
         {
-            error = $"Active '{active.displayName}' is Tier {active.tier}, but Tier {expectedTier} is required";
+            error = $"Active '{active.username}' is Tier {active.tier}, but Tier {expectedTier} is required";
             return false;
         }
 
@@ -145,7 +145,7 @@ public static class CustomShipBuilder
     /// Returns the created loadout or null if validation fails.
     /// </summary>
     public static CustomShipLoadout CreateCustomShip(
-        PlayerProfileData profile,
+        PlayerAccountData profile,
         string bodyId,
         string passiveId,
         string tier1ActiveId,
@@ -204,7 +204,7 @@ public static class CustomShipBuilder
     /// Can delete BOTH prebuild ships and custom ships.
     /// Returns true if successfully deleted.
     /// </summary>
-    public static bool DeleteShip(PlayerProfileData profile, string shipId, bool isPrebuildShip)
+    public static bool DeleteShip(PlayerAccountData profile, string shipId, bool isPrebuildShip)
     {
         if (isPrebuildShip)
         {
@@ -244,7 +244,7 @@ public static class CustomShipBuilder
     /// Get all actives unlocked by player, organized by tier.
     /// Useful for UI to display available actives per tier.
     /// </summary>
-    public static Dictionary<int, List<ActiveUnlock>> GetActivesByTier(PlayerProfileData profile)
+    public static Dictionary<int, List<ActiveUnlock>> GetActivesByTier(PlayerAccountData profile)
     {
         var activesByTier = new Dictionary<int, List<ActiveUnlock>>
         {
@@ -271,7 +271,7 @@ public static class CustomShipBuilder
     /// Get all passives compatible with a specific ship archetype.
     /// Useful for UI to show only compatible passives.
     /// </summary>
-    public static List<PassiveUnlock> GetCompatiblePassives(PlayerProfileData profile, ShipClass archetype)
+    public static List<PassiveUnlock> GetCompatiblePassives(PlayerAccountData profile, ShipClass archetype)
     {
         var compatiblePassives = new List<PassiveUnlock>();
         var allPassives = ExtendedProgressionData.GetAllPassives();
