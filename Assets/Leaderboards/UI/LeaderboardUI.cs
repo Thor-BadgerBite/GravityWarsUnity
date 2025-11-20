@@ -302,7 +302,7 @@ public class LeaderboardUI : MonoBehaviour
 
         foreach (var definition in _leaderboardService.leaderboardDefinitions)
         {
-            leaderboardDropdown.options.Add(new TMP_Dropdown.OptionData(definition.username));
+            leaderboardDropdown.options.Add(new TMP_Dropdown.OptionData(definition.displayName));
         }
 
         leaderboardDropdown.onValueChanged.AddListener(OnLeaderboardDropdownChanged);
@@ -469,7 +469,7 @@ public class LeaderboardUI : MonoBehaviour
         // Update header
         if (leaderboardTitleText != null)
         {
-            leaderboardTitleText.text = leaderboardData.definition.username;
+            leaderboardTitleText.text = leaderboardData.definition.displayName;
         }
 
         if (lastUpdatedText != null)
