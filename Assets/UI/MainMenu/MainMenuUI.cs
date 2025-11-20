@@ -150,7 +150,7 @@ public class MainMenuUI : MonoBehaviour
     /// <summary>
     /// Update all player info displays from profile data.
     /// </summary>
-    public void UpdatePlayerInfo(PlayerAccountData profile)
+    public void UpdatePlayerInfo(PlayerProfileData profile)
     {
         if (profile == null)
         {

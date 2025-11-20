@@ -47,7 +47,7 @@ public class MainMenuController : MonoBehaviour
 
     #region State
 
-    private PlayerAccountData _currentProfile;
+    private PlayerProfileData _currentProfile;
     private bool _isInitialized = false;
 
     #endregion
@@ -446,7 +446,7 @@ public class MainMenuController : MonoBehaviour
     /// <summary>
     /// Get current player profile.
     /// </summary>
-    public PlayerAccountData GetCurrentProfile()
+    public PlayerProfileData GetCurrentProfile()
     {
         return _currentProfile;
     }

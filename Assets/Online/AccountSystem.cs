@@ -32,7 +32,7 @@ public class AccountSystem : MonoBehaviour
 
     private bool _isInitialized = false;
     private bool _isSignedIn = false;
-    private PlayerAccountData _currentPlayerProfile;
+    private PlayerProfileData _currentPlayerProfile;
     private string _currentPlayerId;
 
     #endregion
@@ -41,7 +41,7 @@ public class AccountSystem : MonoBehaviour
 
     public bool IsInitialized => _isInitialized;
     public bool IsSignedIn => _isSignedIn;
-    public PlayerAccountData CurrentPlayerProfile => _currentPlayerProfile;
+    public PlayerProfileData CurrentPlayerProfile => _currentPlayerProfile;
     public string CurrentPlayerId => _currentPlayerId;
     public string CurrentUsername => _currentPlayerProfile?.username;
 
@@ -49,10 +49,10 @@ public class AccountSystem : MonoBehaviour
 
     #region Events
 
-    public event Action<PlayerAccountData> OnLoginSuccess;
+    public event Action<PlayerProfileData> OnLoginSuccess;
     public event Action<string> OnLoginFailed;
     public event Action OnLogout;
-    public event Action<PlayerAccountData> OnRegistrationSuccess;
+    public event Action<PlayerProfileData> OnRegistrationSuccess;
     public event Action<string> OnRegistrationFailed;
 
     #endregion
@@ -209,12 +209,12 @@ public class AccountSystem : MonoBehaviour
     /// - Starting credits: 1000
     /// - Level 1 with 0 XP
     /// </summary>
-    private PlayerAccountData CreateNewPlayerProfile(string playerId, string username)
+    private PlayerProfileData CreateNewPlayerProfile(string playerId, string username)
     {
         const string STARTER_SHIP_ID = "starter_ship";
         const int STARTING_CREDITS = 1000;
 
-        var profile = new PlayerAccountData
+        var profile = new PlayerProfileData
         {
             playerId = playerId,
             username = username,
@@ -387,7 +387,7 @@ public class AccountSystem : MonoBehaviour
     /// <summary>
     /// Save player profile to cloud storage.
     /// </summary>
-    private async Task<bool> SavePlayerProfile(PlayerAccountData profile)
+    private async Task<bool> SavePlayerProfile(PlayerProfileData profile)
     {
         try
         {
@@ -417,7 +417,7 @@ public class AccountSystem : MonoBehaviour
     /// <summary>
     /// Update current player's profile.
     /// </summary>
-    public async Task<bool> UpdateProfileAsync(PlayerAccountData updatedProfile)
+    public async Task<bool> UpdateProfileAsync(PlayerProfileData updatedProfile)
     {
         if (!_isSignedIn)
         {
@@ -655,16 +655,16 @@ public class AccountResult
 {
     public bool IsSuccess { get; private set; }
     public string ErrorMessage { get; private set; }
-    public PlayerAccountData Profile { get; private set; }
+    public PlayerProfileData Profile { get; private set; }
 
-    private AccountResult(bool isSuccess, string errorMessage, PlayerAccountData profile)
+    private AccountResult(bool isSuccess, string errorMessage, PlayerProfileData profile)
     {
         IsSuccess = isSuccess;
         ErrorMessage = errorMessage;
         Profile = profile;
     }
 
-    public static AccountResult Success(PlayerAccountData profile)
+    public static AccountResult Success(PlayerProfileData profile)
     {
         return new AccountResult(true, null, profile);
     }

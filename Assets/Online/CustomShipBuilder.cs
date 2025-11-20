@@ -25,7 +25,7 @@ public static class CustomShipBuilder
     /// - Player has an available custom slot
     /// </summary>
     public static ShipBuildValidation ValidateShipBuild(
-        PlayerAccountData profile,
+        PlayerProfileData profile,
         string bodyId,
         string passiveId,
         string tier1ActiveId,
@@ -112,7 +112,7 @@ public static class CustomShipBuilder
     /// <summary>
     /// Validate a single active ability (check if unlocked and correct tier).
     /// </summary>
-    private static bool ValidateActiveAbility(PlayerAccountData profile, string activeId, int expectedTier, out string error)
+    private static bool ValidateActiveAbility(PlayerProfileData profile, string activeId, int expectedTier, out string error)
     {
         error = null;
 
@@ -145,7 +145,7 @@ public static class CustomShipBuilder
     /// Returns the created loadout or null if validation fails.
     /// </summary>
     public static CustomShipLoadout CreateCustomShip(
-        PlayerAccountData profile,
+        PlayerProfileData profile,
         string bodyId,
         string passiveId,
         string tier1ActiveId,
@@ -204,7 +204,7 @@ public static class CustomShipBuilder
     /// Can delete BOTH prebuild ships and custom ships.
     /// Returns true if successfully deleted.
     /// </summary>
-    public static bool DeleteShip(PlayerAccountData profile, string shipId, bool isPrebuildShip)
+    public static bool DeleteShip(PlayerProfileData profile, string shipId, bool isPrebuildShip)
     {
         if (isPrebuildShip)
         {
@@ -246,7 +246,7 @@ public static class CustomShipBuilder
     /// Get all actives unlocked by player, organized by tier.
     /// Useful for UI to display available actives per tier.
     /// </summary>
-    public static Dictionary<int, List<ActiveUnlock>> GetActivesByTier(PlayerAccountData profile)
+    public static Dictionary<int, List<ActiveUnlock>> GetActivesByTier(PlayerProfileData profile)
     {
         var activesByTier = new Dictionary<int, List<ActiveUnlock>>
         {
@@ -273,7 +273,7 @@ public static class CustomShipBuilder
     /// Get all passives compatible with a specific ship archetype.
     /// Useful for UI to show only compatible passives.
     /// </summary>
-    public static List<PassiveUnlock> GetCompatiblePassives(PlayerAccountData profile, ShipClass archetype)
+    public static List<PassiveUnlock> GetCompatiblePassives(PlayerProfileData profile, ShipClass archetype)
     {
         var compatiblePassives = new List<PassiveUnlock>();
         var allPassives = ExtendedProgressionData.GetAllPassives();

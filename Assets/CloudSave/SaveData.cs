@@ -19,7 +19,7 @@ namespace GravityWars.CloudSave
         public int saveCount = 0;
 
         // Player Profile
-        public PlayerAccountData profile = new PlayerAccountData();
+        public PlayerProfileData playerProfile = new PlayerProfileData();
 
         // Currency & Economy
         public CurrencyData currency = new CurrencyData();
@@ -78,7 +78,7 @@ namespace GravityWars.CloudSave
     #region Player Profile
 
     [Serializable]
-    public class PlayerAccountData
+    public class BasicProfileData
     {
         public string displayName = "Player";
         public int avatarID = 0;
@@ -89,7 +89,7 @@ namespace GravityWars.CloudSave
         public int loginStreak = 0;
         public long lastLoginStreakTimestamp;
 
-        public PlayerAccountData()
+        public BasicProfileData()
         {
             accountCreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             lastLoginTimestamp = accountCreatedTimestamp;

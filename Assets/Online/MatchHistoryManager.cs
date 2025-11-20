@@ -55,8 +55,8 @@ public class MatchHistoryManager : MonoBehaviour
         Debug.Log($"[MatchHistory] Recording match result - Winner: {result.winnerId}, Ranked: {result.isRanked}");
 
         // Load both players' profiles
-        PlayerAccountData winnerProfile = LoadPlayerProfile(result.winnerId);
-        PlayerAccountData loserProfile = LoadPlayerProfile(result.loserId);
+        PlayerProfileData winnerProfile = LoadPlayerProfile(result.winnerId);
+        PlayerProfileData loserProfile = LoadPlayerProfile(result.loserId);
 
         if (winnerProfile == null || loserProfile == null)
         {
@@ -96,7 +96,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Update player statistics from match result.
     /// </summary>
-    private void UpdatePlayerStatistics(PlayerAccountData profile, MatchResult result, bool isWinner)
+    private void UpdatePlayerStatistics(PlayerProfileData profile, MatchResult result, bool isWinner)
     {
         var playerStats = isWinner ? result.winnerStats : result.loserStats;
 
@@ -144,7 +144,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Process ELO rating changes for ranked match.
     /// </summary>
-    private void ProcessELOChanges(PlayerAccountData winnerProfile, PlayerAccountData loserProfile, MatchResult result)
+    private void ProcessELOChanges(PlayerProfileData winnerProfile, PlayerProfileData loserProfile, MatchResult result)
     {
         // Calculate winner's ELO change
         var (winnerNewELO, winnerChange) = ELORatingSystem.CalculateNewELO(
@@ -190,7 +190,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Add match to player's match history (limited to maxRecentMatches).
     /// </summary>
-    private void AddToMatchHistory(PlayerAccountData profile, MatchResult result, bool isWinner)
+    private void AddToMatchHistory(PlayerProfileData profile, MatchResult result, bool isWinner)
     {
         var opponentId = isWinner ? result.loserId : result.winnerId;
         var opponentProfile = LoadPlayerProfile(opponentId);
@@ -229,7 +229,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Calculate XP and credits rewards based on match performance.
     /// </summary>
-    private void CalculateRewards(PlayerAccountData profile, MatchResult result, bool isWinner)
+    private void CalculateRewards(PlayerProfileData profile, MatchResult result, bool isWinner)
     {
         var playerStats = isWinner ? result.winnerStats : result.loserStats;
 
@@ -298,7 +298,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// Check if player leveled up and apply level progression with rewards.
     /// Uses ProgressionSystem for unlock management and rewards.
     /// </summary>
-    private void CheckLevelUp(PlayerAccountData profile)
+    private void CheckLevelUp(PlayerProfileData profile)
     {
         while (profile.currentXP >= profile.xpForNextLevel)
         {
@@ -337,7 +337,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// <summary>
     /// Apply an unlock to the player profile.
     /// </summary>
-    private void ApplyUnlock(PlayerAccountData profile, UnlockData unlock)
+    private void ApplyUnlock(PlayerProfileData profile, UnlockData unlock)
     {
         switch (unlock.type)
         {
@@ -435,7 +435,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// Load player profile from storage.
     /// Uses CloudSaveService for server-side profile retrieval.
     /// </summary>
-    private PlayerAccountData LoadPlayerProfile(string playerId)
+    private PlayerProfileData LoadPlayerProfile(string playerId)
     {
         Debug.Log($"[MatchHistory] Loading profile for player {playerId}");
 
@@ -468,7 +468,7 @@ public class MatchHistoryManager : MonoBehaviour
     /// Save player profile to storage.
     /// Uses CloudSaveService for server-side profile storage.
     /// </summary>
-    private void SavePlayerProfile(PlayerAccountData profile)
+    private void SavePlayerProfile(PlayerProfileData profile)
     {
         Debug.Log($"[MatchHistory] Saving profile for {profile.username} (ELO: {profile.eloRating})");
 
