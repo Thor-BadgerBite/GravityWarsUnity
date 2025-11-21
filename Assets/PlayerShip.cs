@@ -839,7 +839,9 @@ void Update()
                 totalForce += planet.CalculateGravitationalPull(currentPos, missileMass);
             }
             // CRITICAL: Divide by mass to match rb.AddForce(force, ForceMode.Force) behavior
-            // This makes mass cancel out, ensuring prediction matches actual flight
+            // Since Planet.CalculateGravitationalPull no longer multiplies by mass,
+            // we get: acceleration = (G * M / r²) / mass
+            // Result: Heavier missiles accelerate LESS → fly straighter through gravity wells
             currentVel += (totalForce / missileMass) * stepTime;
             currentVel *= (1 - missileDragCoef * stepTime);
 
