@@ -26,20 +26,19 @@ public class MissilePresetSO : ScriptableObject
     public int requiredAccountLevel = 0;
 
     [Header("Physics Properties")]
-    [Tooltip("Display mass shown to player (200-1000 lbs). Physics mass is auto-calculated.")]
-    [Range(200f, 1000f)]
-    public float displayMass = 500f;
-
-    [Tooltip("READONLY: Actual physics mass used in calculations (0.6-3.0). Auto-calculated from displayMass unless overridden.")]
-    public float Mass => overridePhysicsMass ? customPhysicsMass : (displayMass / 333.33f);  // Converts 200-1000 lbs to 0.6-3.0 range, or uses override
-
-    [Header("--- Advanced: Override Physics Mass (Optional) ---")]
-    [Tooltip("If true, uses customPhysicsMass instead of auto-calculated value")]
-    public bool overridePhysicsMass = false;
-
-    [Tooltip("Custom physics mass (only used if overridePhysicsMass is true)")]
+    [Tooltip("Physics mass used in calculations (0.6-3.0). Light missiles = 0.6-1.2, Medium = 1.2-2.0, Heavy = 2.0-3.0")]
     [Range(0.6f, 3.0f)]
-    public float customPhysicsMass = 1.5f;
+    public float physicsMass = 1.5f;
+
+    /// <summary>
+    /// Actual mass value used in all calculations (same as physicsMass field)
+    /// </summary>
+    public float Mass => physicsMass;
+
+    /// <summary>
+    /// Display mass shown to player in UI (200-1000 lbs). Auto-calculated from physicsMass.
+    /// </summary>
+    public float DisplayMassLbs => physicsMass * 333.33f;
 
     [Header("Launch Velocity (Initial Firing Speed)")]
     [Tooltip("Minimum launch velocity - how slow you can fire this missile (m/s)")]
@@ -130,6 +129,14 @@ public class MissilePresetSO : ScriptableObject
     {
         // Physics
         missile.missileMass = Mass;  // Use Mass property which handles override automatically
+
+        // CRITICAL: Update Rigidbody mass to match missileMass for correct physics simulation
+        Rigidbody rb = missile.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.mass = Mass;  // This ensures trajectory prediction matches actual flight
+        }
+
         missile.maxVelocity = maxVelocity;
         missile.drag = drag;
         missile.velocityApproachRate = velocityApproachRate;
@@ -213,7 +220,7 @@ public class MissilePresetSO : ScriptableObject
                $"Damage: {payload}\n" +
                $"Push: {pushStrength}\n" +
                $"Fuel: {fuel} lbs ({GetMaxFlightTime():F1}s)\n" +
-               $"Mass: {displayMass:F0} lbs (Physics: {Mass:F2})";
+               $"Mass: {DisplayMassLbs:F0} lbs";
     }
 }
 

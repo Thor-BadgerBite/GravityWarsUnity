@@ -158,10 +158,24 @@ public class PlayerShip : MonoBehaviour
     private Quaternion initialRotation;
 
     [HideInInspector] public PlayerUI playerUI; // assigned externally
-    [SerializeField] private float warpZoomDuration    = 0.3f; 
-    [SerializeField] private float minScaleFactor     = 0.2f; 
+    [SerializeField] private float warpZoomDuration    = 0.3f;
+    [SerializeField] private float minScaleFactor     = 0.2f;
     [SerializeField] private float postWarpShakeTime  = 1.0f;  // how long to shake after zoom-in
     [SerializeField] private float postWarpShakeAngle = 15f;   // max degrees of rotation +/- on X
+
+    // -----------------------
+    // Public Getters for UI
+    // -----------------------
+
+    /// <summary>
+    /// Gets the effective minimum launch velocity (uses equipped missile if available)
+    /// </summary>
+    public float EffectiveMinLaunchVelocity => equippedMissile != null ? equippedMissile.minLaunchVelocity : minLaunchVelocity;
+
+    /// <summary>
+    /// Gets the effective maximum launch velocity (uses equipped missile if available)
+    /// </summary>
+    public float EffectiveMaxLaunchVelocity => equippedMissile != null ? equippedMissile.maxLaunchVelocity : maxLaunchVelocity;
 
     // -----------------------
     // Unity Setup
