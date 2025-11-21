@@ -2,11 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using UnityEngine;
-using Unity.Services.CloudSave;
 using System.Security.Cryptography;
 using System.Text;
 using GravityWars.CloudSave;
 using SaveData = GravityWars.CloudSave.SaveData;
+
+#if UNITY_SERVICES_CLOUDSAVE
+using Unity.Services.CloudSave;
 
 namespace GravityWars.Networking
 {
@@ -70,7 +72,7 @@ namespace GravityWars.Networking
         private const string BACKUP_DATA_KEY = "player_save_backup_v2";
         private const string LAST_SYNC_TIME_KEY = "last_sync_timestamp_v2";
 
-        // NEW: PlayerProfileData keys for competitive multiplayer
+        // NEW: PlayerAccountData keys for competitive multiplayer
         private const string PLAYER_PROFILE_KEY = "player_profile_data_v1";
         private const string PROFILE_HASH_KEY = "player_profile_hash_v1";
         private const string PROFILE_BACKUP_KEY = "player_profile_backup_v1";
@@ -206,6 +208,22 @@ namespace GravityWars.Networking
         }
 
         /// <summary>
+        /// Convenience wrapper to save the unified PlayerAccountData directly.
+        /// </summary>
+        public Task<bool> SaveToCloud(PlayerAccountData accountData, bool forceImmediate = false)
+        {
+            if (accountData == null)
+                return Task.FromResult(false);
+
+            var wrapper = new SaveData
+            {
+                playerProfile = accountData
+            };
+
+            return SaveToCloud(wrapper, forceImmediate);
+        }
+
+        /// <summary>
         /// Queues save data for later cloud sync (offline mode).
         /// </summary>
         public void QueueSave(SaveData data)
@@ -294,6 +312,15 @@ namespace GravityWars.Networking
                 OnSaveError?.Invoke(e.Message);
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Loads only the player profile from cloud save data.
+        /// </summary>
+        public async Task<PlayerAccountData> LoadAccountFromCloud()
+        {
+            var save = await LoadFromCloud();
+            return save?.playerProfile;
         }
 
         /// <summary>
@@ -428,6 +455,18 @@ namespace GravityWars.Networking
 
             Debug.Log("[CloudSave] ✓ Merge complete");
             return merged;
+        }
+
+        /// <summary>
+        /// Lightweight merge for PlayerAccountData-only use cases.
+        /// </summary>
+        public PlayerAccountData MergeData(PlayerAccountData cloudData, PlayerAccountData localData)
+        {
+            if (cloudData == null) return localData;
+            if (localData == null) return cloudData;
+
+            // Prefer the most recently updated profile based on last login timestamp
+            return cloudData.lastLoginTimestamp >= localData.lastLoginTimestamp ? cloudData : localData;
         }
 
         #endregion
@@ -568,17 +607,17 @@ namespace GravityWars.Networking
 
         #region Merge Helper Methods
 
-        private PlayerProfileData MergeProfile(PlayerProfileData cloud, PlayerProfileData local)
+        private PlayerAccountData MergeProfile(PlayerAccountData cloud, PlayerAccountData local)
         {
-            var merged = new PlayerProfileData();
+            var merged = new PlayerAccountData();
             merged.username = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.username : local.username;
             merged.avatarID = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.avatarID : local.avatarID;
             merged.customTitle = (cloud.lastLoginTimestamp > local.lastLoginTimestamp) ? cloud.customTitle : local.customTitle;
-            merged.accountCreatedTimestamp = Mathf.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
-            merged.lastLoginTimestamp = Mathf.Max(cloud.lastLoginTimestamp, local.lastLoginTimestamp);
-            merged.totalPlaytimeSeconds = Mathf.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
-            merged.loginStreak = Mathf.Max(cloud.loginStreak, local.loginStreak);
-            merged.lastLoginStreakTimestamp = Mathf.Max(cloud.lastLoginStreakTimestamp, local.lastLoginStreakTimestamp);
+            merged.accountCreatedTimestamp = Math.Min(cloud.accountCreatedTimestamp, local.accountCreatedTimestamp);
+            merged.lastLoginTimestamp = Math.Max(cloud.lastLoginTimestamp, local.lastLoginTimestamp);
+            merged.totalPlaytimeSeconds = Math.Max(cloud.totalPlaytimeSeconds, local.totalPlaytimeSeconds);
+            merged.loginStreak = Math.Max(cloud.loginStreak, local.loginStreak);
+            merged.lastLoginStreakTimestamp = Math.Max(cloud.lastLoginStreakTimestamp, local.lastLoginStreakTimestamp);
             return merged;
         }
 
@@ -932,17 +971,17 @@ namespace GravityWars.Networking
 
         #endregion
 
-        #region PlayerProfileData API (Competitive Multiplayer)
+        #region PlayerAccountData API (Competitive Multiplayer)
 
         /// <summary>
         /// Save complete player profile for competitive multiplayer.
         /// Includes ELO rating, match history, statistics, and all account data.
         /// </summary>
-        public async Task<bool> SavePlayerProfile(PlayerProfileData profile)
+        public async Task<bool> SavePlayerProfile(PlayerAccountData profile)
         {
             if (profile == null)
             {
-                Debug.LogError("[CloudSave] Cannot save null PlayerProfileData");
+                Debug.LogError("[CloudSave] Cannot save null PlayerAccountData");
                 return false;
             }
 
@@ -1006,7 +1045,7 @@ namespace GravityWars.Networking
         /// Load complete player profile from cloud storage.
         /// Returns null if no profile exists (new player).
         /// </summary>
-        public async Task<PlayerProfileData> LoadPlayerProfile()
+        public async Task<PlayerAccountData> LoadPlayerProfile()
         {
             if (!IsOnline())
             {
@@ -1030,7 +1069,7 @@ namespace GravityWars.Networking
 
                 // Deserialize profile data
                 string profileJson = cloudData[PLAYER_PROFILE_KEY].Value.GetAsString();
-                PlayerProfileData profile = JsonUtility.FromJson<PlayerProfileData>(profileJson);
+                PlayerAccountData profile = JsonUtility.FromJson<PlayerAccountData>(profileJson);
 
                 // Verify hash (anti-cheat)
                 if (enableAntiCheat && cloudData.ContainsKey(PROFILE_HASH_KEY))
@@ -1080,7 +1119,7 @@ namespace GravityWars.Networking
             try
             {
                 // Load current profile
-                PlayerProfileData profile = await LoadPlayerProfile();
+                PlayerAccountData profile = await LoadPlayerProfile();
                 if (profile == null)
                 {
                     Debug.LogError("[CloudSave] Cannot update - profile does not exist");
@@ -1090,7 +1129,7 @@ namespace GravityWars.Networking
                 // Apply updates using reflection (or manual field updates)
                 foreach (var kvp in updates)
                 {
-                    var field = typeof(PlayerProfileData).GetField(kvp.Key);
+                    var field = typeof(PlayerAccountData).GetField(kvp.Key);
                     if (field != null)
                     {
                         field.SetValue(profile, kvp.Value);
@@ -1145,7 +1184,7 @@ namespace GravityWars.Networking
         /// <summary>
         /// Restore player profile from backup.
         /// </summary>
-        public async Task<PlayerProfileData> RestoreProfileFromBackup()
+        public async Task<PlayerAccountData> RestoreProfileFromBackup()
         {
             if (!IsOnline())
             {
@@ -1166,7 +1205,7 @@ namespace GravityWars.Networking
                 }
 
                 string backupJson = backupData[PROFILE_BACKUP_KEY].Value.GetAsString();
-                PlayerProfileData profile = JsonUtility.FromJson<PlayerProfileData>(backupJson);
+                PlayerAccountData profile = JsonUtility.FromJson<PlayerAccountData>(backupJson);
 
                 Debug.Log($"[CloudSave] ✓ Restored profile from backup: {profile.username}");
                 return profile;
@@ -1209,3 +1248,24 @@ namespace GravityWars.Networking
         #endregion
     }
 }
+#else
+namespace GravityWars.Networking
+{
+    /// <summary>Stub cloud save service used when Unity Cloud Save is not installed.</summary>
+    public class CloudSaveService : MonoBehaviour
+    {
+        public static CloudSaveService Instance => null;
+
+        public System.Threading.Tasks.Task<bool> SaveToCloud(GravityWars.CloudSave.SaveData data, bool forceImmediate = false) => System.Threading.Tasks.Task.FromResult(false);
+        public System.Threading.Tasks.Task<bool> SaveToCloud(PlayerAccountData data, bool forceImmediate = false) => System.Threading.Tasks.Task.FromResult(false);
+        public System.Threading.Tasks.Task<GravityWars.CloudSave.SaveData> LoadFromCloud() => System.Threading.Tasks.Task.FromResult<GravityWars.CloudSave.SaveData>(null);
+        public System.Threading.Tasks.Task<GravityWars.CloudSave.SaveData> LoadWithConflictResolution(GravityWars.CloudSave.SaveData localData) => System.Threading.Tasks.Task.FromResult(localData);
+        public PlayerAccountData MergeData(PlayerAccountData cloudData, PlayerAccountData localData) => cloudData ?? localData;
+        public System.Threading.Tasks.Task<PlayerAccountData> LoadPlayerProfile() => System.Threading.Tasks.Task.FromResult<PlayerAccountData>(null);
+        public System.Threading.Tasks.Task<bool> SavePlayerProfile(PlayerAccountData profile) => System.Threading.Tasks.Task.FromResult(false);
+        public void QueueSave(GravityWars.CloudSave.SaveData data) { }
+        public System.Threading.Tasks.Task<bool> DeleteCloudSave() => System.Threading.Tasks.Task.FromResult(false);
+        public System.Threading.Tasks.Task<bool> DeletePlayerProfile() => System.Threading.Tasks.Task.FromResult(false);
+    }
+}
+#endif

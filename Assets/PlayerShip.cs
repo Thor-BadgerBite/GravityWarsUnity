@@ -463,11 +463,10 @@ void Update()
     transform.position = pos;
 
     // Check if in networked mode
+    bool isNetworkedMode = false;
 #if UNITY_NETCODE_GAMEOBJECTS
     GameManagerNetworkAdapter networkAdapter = GameManager.Instance?.GetComponent<GameManagerNetworkAdapter>();
-    bool isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
-#else
-    bool isNetworkedMode = false;
+    isNetworkedMode = (networkAdapter != null && networkAdapter.IsNetworkedMode);
 #endif
 
     // Fine tuning if Shift pressed
@@ -546,7 +545,9 @@ void Update()
     // NETWORK ROUTING: Send rotation to network if in networked mode
     if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
     {
+    #if UNITY_NETCODE_GAMEOBJECTS
         networkAdapter.RoutePlayerRotation(this, rotationAmount);
+    #endif
     }
     else if (!isNetworkedMode)
     {
@@ -600,8 +601,10 @@ void Update()
         {
             if (isNetworkedMode)
             {
+            #if UNITY_NETCODE_GAMEOBJECTS
                 // NETWORK MODE: Send fire action to network
                 SendNetworkFireAction(networkAdapter);
+            #endif
             }
             else
             {
@@ -613,8 +616,10 @@ void Update()
         {
             if (isNetworkedMode)
             {
+            #if UNITY_NETCODE_GAMEOBJECTS
                 // NETWORK MODE: Send move action to network
                 SendNetworkMoveAction(networkAdapter);
+            #endif
             }
             else
             {

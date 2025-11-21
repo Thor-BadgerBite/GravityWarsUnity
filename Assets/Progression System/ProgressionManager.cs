@@ -10,7 +10,7 @@ public class ProgressionManager : MonoBehaviour
     public static ProgressionManager Instance { get; private set; }
 
     [Header("Player Data")]
-    public PlayerProfileData currentPlayerData;
+    public PlayerAccountData currentPlayerData;
 
     [Header("Battle Pass References")]
     [Tooltip("The permanent free battle pass (account progression)")]
@@ -39,6 +39,9 @@ public class ProgressionManager : MonoBehaviour
     [Tooltip("Auto-save after every change?")]
     public bool autoSave = true;
 
+    public int AccountLevel => currentPlayerData?.accountLevel ?? 0;
+    public int AccountXP => currentPlayerData?.accountXP ?? 0;
+
     void Awake()
     {
         // Singleton pattern
@@ -52,6 +55,18 @@ public class ProgressionManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+    }
+
+    public void SetAccountLevel(int level)
+    {
+        if (currentPlayerData != null)
+            currentPlayerData.accountLevel = level;
+    }
+
+    public void SetAccountXP(int xp)
+    {
+        if (currentPlayerData != null)
+            currentPlayerData.accountXP = xp;
     }
 
     /// <summary>
@@ -84,7 +99,7 @@ public class ProgressionManager : MonoBehaviour
     /// </summary>
     public void CreateNewAccount(string displayName, string playerID)
     {
-        currentPlayerData = new PlayerProfileData(playerID, displayName);
+        currentPlayerData = new PlayerAccountData(playerID, displayName);
 
         // Grant starter unlocks
         GrantStarterContent();
@@ -253,7 +268,7 @@ public class ProgressionManager : MonoBehaviour
     /// <summary>
     /// Checks if account leveled up and grants rewards
     /// </summary>
-    private void CheckAccountLevelUp()
+    public void CheckAccountLevelUp()
     {
         // Account level formula (simple linear for now, can be quadratic like ships)
         int xpForNextLevel = 1000 + (currentPlayerData.accountLevel * 500);

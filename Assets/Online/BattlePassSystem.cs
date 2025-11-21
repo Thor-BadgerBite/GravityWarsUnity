@@ -314,19 +314,26 @@ public class BattlePassSystem : MonoBehaviour
 // Note: RewardType enum is defined in BattlePassData.cs
 
 [Serializable]
-public class BattlePassReward
-{
-    public RewardType type;
-    public int amount;              // For credits/gems
-    public string displayName;
-    public string rewardId;         // For unlockables
-    public ShipClass shipClass;     // For ships/bodies
+    public class BattlePassReward
+    {
+        public RewardType type;
+        public int amount;              // For credits/gems
+        public string displayName;
+        public string rewardId;         // For unlockables
+        public ShipClass shipClass;     // For ships/bodies
+
+        // Legacy alias
+        public string username
+        {
+            get => displayName;
+            set => displayName = value;
+        }
 
     public BattlePassReward(RewardType type, int amount, string displayName, string rewardId = "", ShipClass shipClass = ShipClass.AllAround)
     {
         this.type = type;
         this.amount = amount;
-        this.username = displayName;
+        this.displayName = displayName;
         this.rewardId = rewardId;
         this.shipClass = shipClass;
     }

@@ -191,6 +191,13 @@ namespace GravityWars.Networking
         public string displayName;
         public string description;
 
+        // Legacy alias for display name
+        public string username
+        {
+            get => displayName;
+            set => displayName = value;
+        }
+
         // Configuration
         public LeaderboardScope scope;
         public LeaderboardStatType statType;

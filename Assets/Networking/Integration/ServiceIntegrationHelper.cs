@@ -143,33 +143,12 @@ namespace GravityWars.Integration
 
         private void CollectEconomyData(SaveData saveData)
         {
-            if (EconomyService.Instance == null)
-            {
-                Debug.LogWarning("[ServiceIntegration] EconomyService not found");
-                return;
-            }
-
-            // TODO: Uncomment when EconomyService has these methods
-            /*
-            saveData.currency.credits = EconomyService.Instance.GetSoftCurrency();
-            saveData.currency.gems = EconomyService.Instance.GetHardCurrency();
-            */
-
-            Debug.Log("[ServiceIntegration] Economy data collected (MOCK)");
-            economyIntegrated = true;
+            Debug.Log("[ServiceIntegration] Economy data collection skipped (service not present)");
         }
 
         private void DistributeEconomyData(SaveData saveData)
         {
-            if (EconomyService.Instance == null) return;
-
-            // TODO: Uncomment when EconomyService has these methods
-            /*
-            EconomyService.Instance.SetSoftCurrency(saveData.currency.credits);
-            EconomyService.Instance.SetHardCurrency(saveData.currency.gems);
-            */
-
-            Debug.Log($"[ServiceIntegration] Economy restored: {saveData.currency.credits}c / {saveData.currency.gems}g");
+            Debug.Log($"[ServiceIntegration] Economy restoration skipped (service not present)");
         }
 
         #endregion

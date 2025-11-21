@@ -10,18 +10,32 @@ using UnityEngine;
 [System.Serializable]
 public class PlayerAccountData
 {
+    [Header("Data Versioning")]
+    public int dataVersion = 1;
+
     [Header("Save Version")]
     public int saveVersion = 3; // Incremented when data structure changes (for migration)
 
     [Header("Account Info")]
     public string playerID;
+    public string playerId; // Alias used by online systems
     public string username;  // Renamed from displayName for consistency
     public DateTime accountCreatedDate;
     public DateTime lastLoginDate;
+    public long accountCreatedTimestamp;
+    public long lastLoginTimestamp;
+    public long totalPlaytimeSeconds;
+    public int avatarID = 0;
+    public string customTitle = "";
+    public int loginStreak = 0;
+    public long lastLoginStreakTimestamp;
 
     [Header("Account Progression")]
     public int accountLevel = 1;
     public int accountXP = 0;
+    public int level = 1;          // Alias for accountLevel (online systems)
+    public int currentXP = 0;      // Alias for accountXP
+    public int xpForNextLevel = 1000;
 
     [Header("Currency")]
     public int credits = 0;      // Renamed from softCurrency - Earned through gameplay
@@ -46,28 +60,42 @@ public class PlayerAccountData
 
     [Header("Unlocked Content - Ship Bodies")]
     public List<string> unlockedShipBodyIDs = new List<string>();
+    public List<string> unlockedShipBodies = new List<string>();
+    public List<string> unlockedShipModels
+    {
+        get => unlockedShipBodyIDs;
+        set => unlockedShipBodyIDs = value ?? new List<string>();
+    }
 
     [Header("Unlocked Content - Perks")]
     public List<string> unlockedTier1PerkIDs = new List<string>();
     public List<string> unlockedTier2PerkIDs = new List<string>();
     public List<string> unlockedTier3PerkIDs = new List<string>();
+    public List<string> unlockedActives = new List<string>();
 
     [Header("Unlocked Content - Passives")]
     public List<string> unlockedPassiveIDs = new List<string>();
+    public List<string> unlockedPassives = new List<string>();
 
     [Header("Unlocked Content - Move Types")]
     public List<string> unlockedMoveTypeIDs = new List<string>();
 
     [Header("Unlocked Content - Missiles")]
     public List<string> unlockedMissileIDs = new List<string>();
+    public List<string> unlockedMissiles = new List<string>();
 
     [Header("Unlocked Content - Cosmetics")]
     public List<string> unlockedSkinIDs = new List<string>();
     public List<string> unlockedColorSchemeIDs = new List<string>();
     public List<string> unlockedDecalIDs = new List<string>();
+    public List<string> unlockedSkins = new List<string>();
+
+    [Header("Achievements")]
+    public List<string> unlockedAchievements = new List<string>();
 
     [Header("Ship Progression - Custom Loadouts")]
     public List<CustomShipLoadout> customShipLoadouts = new List<CustomShipLoadout>();
+    public List<CustomShipLoadout> customLoadouts = new List<CustomShipLoadout>();
 
     [Header("Ship Progression - Ship XP Tracking")]
     // Key = Unique loadout identifier (NOT including missile!)
@@ -91,6 +119,7 @@ public class PlayerAccountData
     public int totalMissilesHit = 0;
     public int totalDamageReceived = 0;
     public int totalPlanetsHit = 0;
+    public string favoriteShipModel = string.Empty;
 
     [Header("Settings & Preferences")]
     public PlayerPreferences preferences = new PlayerPreferences();
@@ -98,12 +127,25 @@ public class PlayerAccountData
     /// <summary>
     /// Constructor for new accounts
     /// </summary>
+    public PlayerAccountData() : this(string.Empty, "Player")
+    {
+    }
+
+    /// <summary>
+    /// Constructor for new accounts with identifiers
+    /// </summary>
     public PlayerAccountData(string id, string name)
     {
         playerID = id;
+        playerId = id;
         username = name;
         accountCreatedDate = DateTime.Now;
         lastLoginDate = DateTime.Now;
+        accountCreatedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        lastLoginTimestamp = accountCreatedTimestamp;
+
+        // Keep custom loadout references aligned for legacy and new systems
+        customShipLoadouts = customLoadouts;
 
         // Start with default unlocks (everything available for testing)
         // In production, you'd unlock only starter items
@@ -133,7 +175,7 @@ public class PlayerAccountData
 
         // Check by type
         if (item is ShipBodySO)
-            return unlockedShipBodyIDs.Contains(itemName);
+            return unlockedShipBodyIDs.Contains(itemName) || unlockedShipBodies.Contains(itemName);
         else if (item is ActivePerkSO perk)
         {
             return perk.tier switch
@@ -145,11 +187,11 @@ public class PlayerAccountData
             };
         }
         else if (item is PassiveAbilitySO)
-            return unlockedPassiveIDs.Contains(itemName);
+            return unlockedPassiveIDs.Contains(itemName) || unlockedPassives.Contains(itemName);
         else if (item is MoveTypeSO)
             return unlockedMoveTypeIDs.Contains(itemName);
         else if (item is MissilePresetSO)
-            return unlockedMissileIDs.Contains(itemName);
+            return unlockedMissileIDs.Contains(itemName) || unlockedMissiles.Contains(itemName);
 
         return false;
     }
@@ -165,7 +207,10 @@ public class PlayerAccountData
 
         // Add to appropriate list
         if (item is ShipBodySO)
+        {
             unlockedShipBodyIDs.Add(itemName);
+            unlockedShipBodies.Add(itemName);
+        }
         else if (item is ActivePerkSO perk)
         {
             switch (perk.tier)
@@ -174,13 +219,20 @@ public class PlayerAccountData
                 case 2: unlockedTier2PerkIDs.Add(itemName); break;
                 case 3: unlockedTier3PerkIDs.Add(itemName); break;
             }
+            unlockedActives.Add(itemName);
         }
         else if (item is PassiveAbilitySO)
+        {
             unlockedPassiveIDs.Add(itemName);
+            unlockedPassives.Add(itemName);
+        }
         else if (item is MoveTypeSO)
             unlockedMoveTypeIDs.Add(itemName);
         else if (item is MissilePresetSO)
+        {
             unlockedMissileIDs.Add(itemName);
+            unlockedMissiles.Add(itemName);
+        }
 
         Debug.Log($"[PlayerAccountData] Unlocked: {itemName}");
     }
@@ -212,7 +264,60 @@ public class PlayerAccountData
     public void AddAccountXP(int amount)
     {
         accountXP += amount;
+        currentXP += amount;
         Debug.Log($"[PlayerAccountData] +{amount} Account XP (Total: {accountXP})");
+    }
+
+    /// <summary>
+    /// Calculates ranked win rate percentage
+    /// </summary>
+    public float GetRankedWinRate()
+    {
+        if (rankedMatchesPlayed == 0) return 0f;
+        return (float)rankedMatchesWon / rankedMatchesPlayed * 100f;
+    }
+
+    /// <summary>
+    /// Calculates casual win rate percentage
+    /// </summary>
+    public float GetCasualWinRate()
+    {
+        if (casualMatchesPlayed == 0) return 0f;
+        return (float)casualMatchesWon / casualMatchesPlayed * 100f;
+    }
+
+    /// <summary>
+    /// Calculates overall win rate percentage
+    /// </summary>
+    public float GetOverallWinRate()
+    {
+        int totalMatches = rankedMatchesPlayed + casualMatchesPlayed;
+        if (totalMatches == 0) return 0f;
+        int totalWins = rankedMatchesWon + casualMatchesWon;
+        return (float)totalWins / totalMatches * 100f;
+    }
+
+    /// <summary>
+    /// Calculates missile accuracy percentage
+    /// </summary>
+    public float GetMissileAccuracy()
+    {
+        if (totalMissilesFired == 0) return 0f;
+        return (float)totalMissilesHit / totalMissilesFired * 100f;
+    }
+
+    /// <summary>
+    /// Updates competitive rank based on ELO rating
+    /// </summary>
+    public void UpdateRankFromELO()
+    {
+        if (eloRating < 1000) currentRank = CompetitiveRank.Bronze;
+        else if (eloRating < 1200) currentRank = CompetitiveRank.Silver;
+        else if (eloRating < 1400) currentRank = CompetitiveRank.Gold;
+        else if (eloRating < 1600) currentRank = CompetitiveRank.Platinum;
+        else if (eloRating < 1800) currentRank = CompetitiveRank.Diamond;
+        else if (eloRating < 2000) currentRank = CompetitiveRank.Master;
+        else currentRank = CompetitiveRank.Grandmaster;
     }
 
     /// <summary>
@@ -243,6 +348,7 @@ public class PlayerAccountData
     public void UpdateLastLogin()
     {
         lastLoginDate = DateTime.Now;
+        lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 }
 
@@ -309,6 +415,8 @@ public class ShipProgressionEntry
 
     public DateTime firstUsedDate;
     public DateTime lastUsedDate;
+    public long firstUsedTimestamp;
+    public long lastUsedTimestamp;
 
     // Stats for this ship
     public int matchesPlayed = 0;
@@ -323,6 +431,8 @@ public class ShipProgressionEntry
         displayName = name;
         firstUsedDate = DateTime.Now;
         lastUsedDate = DateTime.Now;
+        firstUsedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        lastUsedTimestamp = firstUsedTimestamp;
     }
 
     /// <summary>
@@ -332,6 +442,7 @@ public class ShipProgressionEntry
     {
         shipXP += amount;
         lastUsedDate = DateTime.Now;
+        lastUsedTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         // Check for level-up (quadratic formula: XP = 200 + 75 × Level²)
         while (shipLevel < 20 && shipXP >= GetXPRequiredForLevel(shipLevel + 1))
@@ -387,17 +498,26 @@ public enum CompetitiveRank
 public class MatchResultData
 {
     public string matchID;
+    public string matchId; // Alias used by online systems
     public DateTime matchDate;
+    public long timestamp;
     public bool isRanked;
     public bool won;
+    public bool didWin;
     public string opponentUsername;
     public int opponentELO;
+    public int opponentEloRating;
     public int eloChange;
     public int roundsWon;
     public int roundsLost;
     public int damageDealt;
     public int damageReceived;
+    public int missileFired;
+    public int missileHits;
+    public int xpGained;
+    public int creditsGained;
     public string shipUsed;
+    public string shipModelUsed;
 }
 
 /// <summary>
@@ -407,12 +527,15 @@ public class MatchResultData
 public class QuestProgressData
 {
     public string questID;
+    public string questId; // Alias used by online systems
     public int currentProgress;
     public int requiredProgress;
+    public int targetProgress;
     public bool isCompleted;
     public bool isClaimed;
     public DateTime acceptedDate;
     public DateTime expirationDate;
+    public long startedTimestamp;
 }
 
 /// <summary>
@@ -432,11 +555,18 @@ public class PlayerPreferences
     public bool vSync = true;
     public bool fullscreen = true;
     public int targetFrameRate = 60;
+    public int graphicsQuality = 2;
+    public bool vSyncEnabled = true;
 
     [Header("Gameplay")]
     public bool showTutorialHints = true;
     public bool autoEquipBestShip = false;
     public bool confirmBeforeDelete = true;
+    public bool showTrajectoryLine = true;
+    public bool showDamageNumbers = true;
+    public bool screenShakeEnabled = true;
+    public bool showProfilePublicly = true;
+    public bool allowFriendRequests = true;
 
     [Header("Controls")]
     public float mouseSensitivity = 1.0f;

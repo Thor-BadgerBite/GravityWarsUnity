@@ -228,7 +228,7 @@ public class QuestTemplateGenerator : EditorWindow
                 questType = QuestType.Daily,
                 objectiveType = QuestObjectiveType.PlayMatchesWithArchetype,
                 targetValue = 3,
-                requiredArchetype = ShipArchetype.Sniper,
+                requiredArchetype = ShipArchetype.DamageDealer,
                 difficulty = QuestDifficulty.Easy,
                 softCurrencyReward = 120,
                 accountXPReward = 60
@@ -329,7 +329,7 @@ public class QuestTemplateGenerator : EditorWindow
                 questType = QuestType.Weekly,
                 objectiveType = QuestObjectiveType.WinWithArchetype,
                 targetValue = 10,
-                requiredArchetype = ShipArchetype.Sniper,
+                requiredArchetype = ShipArchetype.DamageDealer,
                 difficulty = QuestDifficulty.Medium,
                 softCurrencyReward = 400,
                 hardCurrencyReward = 10,
@@ -493,14 +493,14 @@ public class QuestTemplateGenerator : EditorWindow
 
             // Set all properties
             quest.questID = template.fileName.ToLower();
-            quest.username = template.username;
+            quest.displayName = template.displayName;
             quest.description = template.description;
             quest.questType = template.questType;
             quest.objectiveType = template.objectiveType;
             quest.targetValue = template.targetValue;
             quest.difficulty = template.difficulty;
-            quest.creditsReward = template.creditsReward;
-            quest.gemsReward = template.gemsReward;
+            quest.softCurrencyReward = template.softCurrencyReward;
+            quest.hardCurrencyReward = template.hardCurrencyReward;
             quest.accountXPReward = template.accountXPReward;
             quest.requiredArchetype = template.requiredArchetype;
             quest.requiredMissileType = template.requiredMissileType;

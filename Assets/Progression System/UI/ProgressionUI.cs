@@ -58,7 +58,7 @@ public class ProgressionUI : MonoBehaviour
         if (progressionManager == null || progressionManager.currentPlayerData == null)
             return;
 
-        PlayerProfileData data = progressionManager.currentPlayerData;
+        PlayerAccountData data = progressionManager.currentPlayerData;
 
         UpdateAccountInfo(data);
         UpdateCurrency(data);
@@ -70,7 +70,7 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates account info section
     /// </summary>
-    private void UpdateAccountInfo(PlayerProfileData data)
+    private void UpdateAccountInfo(PlayerAccountData data)
     {
         // Player name
         if (playerNameText != null)
@@ -97,7 +97,7 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates currency display
     /// </summary>
-    private void UpdateCurrency(PlayerProfileData data)
+    private void UpdateCurrency(PlayerAccountData data)
     {
         if (softCurrencyText != null)
             softCurrencyText.text = data.credits.ToString();
@@ -109,7 +109,7 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates stats display
     /// </summary>
-    private void UpdateStats(PlayerProfileData data)
+    private void UpdateStats(PlayerAccountData data)
     {
         if (totalMatchesText != null)
             totalMatchesText.text = $"Matches: {data.totalMatchesPlayed}";
@@ -141,7 +141,7 @@ public class ProgressionUI : MonoBehaviour
         if (shipProgressionPanel != null)
             shipProgressionPanel.SetActive(true);
 
-        PlayerProfileData data = progressionManager.currentPlayerData;
+        PlayerAccountData data = progressionManager.currentPlayerData;
         ShipProgressionEntry progression = data.GetShipProgression(currentlyViewedShip);
 
         if (progression == null) return;
@@ -186,7 +186,7 @@ public class ProgressionUI : MonoBehaviour
     /// <summary>
     /// Updates next unlock preview
     /// </summary>
-    private void UpdateNextUnlock(PlayerProfileData data)
+    private void UpdateNextUnlock(PlayerAccountData data)
     {
         if (nextUnlockPanel == null) return;
 
