@@ -4,15 +4,20 @@ using UnityEngine;
 /// ELO Rating System implementation (based on chess ELO formula).
 /// Used for competitive matchmaking and ranking in Gravity Wars.
 ///
-/// Standard ELO ranges:
-/// - Starting: 1200
-/// - Bronze: <1000
-/// - Silver: 1000-1199
-/// - Gold: 1200-1399
-/// - Platinum: 1400-1599
-/// - Diamond: 1600-1799
-/// - Master: 1800-1999
-/// - Grandmaster: 2000+
+/// Military/Naval Rank ELO Ranges:
+/// - Starting ELO: 1200 (Commander Rank)
+/// - Cadet: 0-599 (Training/Beginner)
+/// - Ensign: 600-799 (Junior Officer)
+/// - Lieutenant: 800-999 (Officer)
+/// - Lieutenant Commander: 1000-1199 (Senior Officer)
+/// - Commander: 1200-1399 (Command Officer)
+/// - Captain: 1400-1599 (Ship Captain)
+/// - Commodore: 1600-1799 (Fleet Officer)
+/// - Rear Admiral: 1800-1999 (Lower Admiral)
+/// - Vice Admiral: 2000-2199 (High Admiral)
+/// - Admiral: 2200-2499 (Admiral)
+/// - Fleet Admiral: 2500-2799 (Supreme Commander)
+/// - Grand Admiral: 2800+ (Legendary)
 /// </summary>
 public static class ELORatingSystem
 {
@@ -176,13 +181,18 @@ public static class ELORatingSystem
     /// </summary>
     public static CompetitiveRank GetRankFromELO(int elo)
     {
-        if (elo < 1000) return CompetitiveRank.Bronze;
-        if (elo < 1200) return CompetitiveRank.Silver;
-        if (elo < 1400) return CompetitiveRank.Gold;
-        if (elo < 1600) return CompetitiveRank.Platinum;
-        if (elo < 1800) return CompetitiveRank.Diamond;
-        if (elo < 2000) return CompetitiveRank.Master;
-        return CompetitiveRank.Grandmaster;
+        if (elo < 600) return CompetitiveRank.Cadet;
+        if (elo < 800) return CompetitiveRank.Ensign;
+        if (elo < 1000) return CompetitiveRank.Lieutenant;
+        if (elo < 1200) return CompetitiveRank.LieutenantCommander;
+        if (elo < 1400) return CompetitiveRank.Commander;
+        if (elo < 1600) return CompetitiveRank.Captain;
+        if (elo < 1800) return CompetitiveRank.Commodore;
+        if (elo < 2000) return CompetitiveRank.RearAdmiral;
+        if (elo < 2200) return CompetitiveRank.ViceAdmiral;
+        if (elo < 2500) return CompetitiveRank.Admiral;
+        if (elo < 2800) return CompetitiveRank.FleetAdmiral;
+        return CompetitiveRank.GrandAdmiral;
     }
 
     /// <summary>
@@ -193,54 +203,104 @@ public static class ELORatingSystem
     {
         switch (rank)
         {
-            case CompetitiveRank.Bronze:
-                return (MINIMUM_ELO, 999);
-            case CompetitiveRank.Silver:
+            case CompetitiveRank.Cadet:
+                return (MINIMUM_ELO, 599);
+            case CompetitiveRank.Ensign:
+                return (600, 799);
+            case CompetitiveRank.Lieutenant:
+                return (800, 999);
+            case CompetitiveRank.LieutenantCommander:
                 return (1000, 1199);
-            case CompetitiveRank.Gold:
+            case CompetitiveRank.Commander:
                 return (1200, 1399);
-            case CompetitiveRank.Platinum:
+            case CompetitiveRank.Captain:
                 return (1400, 1599);
-            case CompetitiveRank.Diamond:
+            case CompetitiveRank.Commodore:
                 return (1600, 1799);
-            case CompetitiveRank.Master:
+            case CompetitiveRank.RearAdmiral:
                 return (1800, 1999);
-            case CompetitiveRank.Grandmaster:
-                return (2000, MAXIMUM_ELO);
+            case CompetitiveRank.ViceAdmiral:
+                return (2000, 2199);
+            case CompetitiveRank.Admiral:
+                return (2200, 2499);
+            case CompetitiveRank.FleetAdmiral:
+                return (2500, 2799);
+            case CompetitiveRank.GrandAdmiral:
+                return (2800, MAXIMUM_ELO);
             default:
                 return (STARTING_ELO, STARTING_ELO);
         }
     }
 
     /// <summary>
-    /// Get rank display name with color.
+    /// Get rank display name formatted for UI display.
+    /// Converts enum names to properly spaced titles.
     /// </summary>
     public static string GetRankDisplayName(CompetitiveRank rank)
     {
-        return rank.ToString();
+        switch (rank)
+        {
+            case CompetitiveRank.Cadet:
+                return "Cadet";
+            case CompetitiveRank.Ensign:
+                return "Ensign";
+            case CompetitiveRank.Lieutenant:
+                return "Lieutenant";
+            case CompetitiveRank.LieutenantCommander:
+                return "Lieutenant Commander";
+            case CompetitiveRank.Commander:
+                return "Commander";
+            case CompetitiveRank.Captain:
+                return "Captain";
+            case CompetitiveRank.Commodore:
+                return "Commodore";
+            case CompetitiveRank.RearAdmiral:
+                return "Rear Admiral";
+            case CompetitiveRank.ViceAdmiral:
+                return "Vice Admiral";
+            case CompetitiveRank.Admiral:
+                return "Admiral";
+            case CompetitiveRank.FleetAdmiral:
+                return "Fleet Admiral";
+            case CompetitiveRank.GrandAdmiral:
+                return "Grand Admiral";
+            default:
+                return rank.ToString();
+        }
     }
 
     /// <summary>
     /// Get rank color for UI display.
+    /// Colors progress from bronze (low ranks) through silver, gold, blue, purple, to red (high ranks).
     /// </summary>
     public static Color GetRankColor(CompetitiveRank rank)
     {
         switch (rank)
         {
-            case CompetitiveRank.Bronze:
-                return new Color(0.8f, 0.5f, 0.2f); // Bronze color
-            case CompetitiveRank.Silver:
-                return new Color(0.75f, 0.75f, 0.75f); // Silver color
-            case CompetitiveRank.Gold:
-                return new Color(1f, 0.84f, 0f); // Gold color
-            case CompetitiveRank.Platinum:
-                return new Color(0.9f, 1f, 1f); // Platinum color
-            case CompetitiveRank.Diamond:
-                return new Color(0.7f, 0.9f, 1f); // Diamond blue
-            case CompetitiveRank.Master:
+            case CompetitiveRank.Cadet:
+                return new Color(0.6f, 0.4f, 0.2f); // Dark Bronze
+            case CompetitiveRank.Ensign:
+                return new Color(0.8f, 0.5f, 0.2f); // Bronze
+            case CompetitiveRank.Lieutenant:
+                return new Color(0.75f, 0.75f, 0.75f); // Silver
+            case CompetitiveRank.LieutenantCommander:
+                return new Color(0.9f, 0.9f, 0.95f); // Bright Silver
+            case CompetitiveRank.Commander:
+                return new Color(1f, 0.84f, 0f); // Gold
+            case CompetitiveRank.Captain:
+                return new Color(1f, 0.92f, 0.3f); // Bright Gold
+            case CompetitiveRank.Commodore:
+                return new Color(0.7f, 0.9f, 1f); // Light Blue
+            case CompetitiveRank.RearAdmiral:
+                return new Color(0.4f, 0.7f, 1f); // Blue
+            case CompetitiveRank.ViceAdmiral:
                 return new Color(0.6f, 0.2f, 0.8f); // Purple
-            case CompetitiveRank.Grandmaster:
-                return new Color(1f, 0.3f, 0.3f); // Red/Crimson
+            case CompetitiveRank.Admiral:
+                return new Color(0.8f, 0.3f, 0.9f); // Bright Purple
+            case CompetitiveRank.FleetAdmiral:
+                return new Color(1f, 0.3f, 0.3f); // Red
+            case CompetitiveRank.GrandAdmiral:
+                return new Color(1f, 0.2f, 0.2f); // Crimson Red
             default:
                 return Color.white;
         }

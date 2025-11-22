@@ -446,18 +446,24 @@ public class ShipProgressionEntry
 }
 
 /// <summary>
-/// Competitive ranking tiers for matchmaking
+/// Competitive ranking tiers for matchmaking.
+/// Military/Naval-themed ranks progressing from Cadet to Grand Admiral.
 /// </summary>
 [System.Serializable]
 public enum CompetitiveRank
 {
-    Bronze,
-    Silver,
-    Gold,
-    Platinum,
-    Diamond,
-    Master,
-    Grandmaster
+    Cadet,                  // 0-599 ELO - Training/Beginner
+    Ensign,                 // 600-799 ELO - Junior Officer
+    Lieutenant,             // 800-999 ELO - Officer
+    LieutenantCommander,    // 1000-1199 ELO - Senior Officer
+    Commander,              // 1200-1399 ELO - Command Officer (Starting ELO range)
+    Captain,                // 1400-1599 ELO - Ship Captain
+    Commodore,              // 1600-1799 ELO - Fleet Officer
+    RearAdmiral,            // 1800-1999 ELO - Lower Admiral
+    ViceAdmiral,            // 2000-2199 ELO - High Admiral
+    Admiral,                // 2200-2499 ELO - Admiral
+    FleetAdmiral,           // 2500-2799 ELO - Supreme Commander
+    GrandAdmiral            // 2800+ ELO - Legendary Rank
 }
 
 /// <summary>
