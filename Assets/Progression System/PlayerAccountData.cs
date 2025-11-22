@@ -452,18 +452,24 @@ public class ShipProgressionEntry
 [System.Serializable]
 public enum CompetitiveRank
 {
-    Cadet,                  // 0-599 ELO - Training/Beginner
-    Ensign,                 // 600-799 ELO - Junior Officer
-    Lieutenant,             // 800-999 ELO - Officer
-    LieutenantCommander,    // 1000-1199 ELO - Senior Officer
-    Commander,              // 1200-1399 ELO - Command Officer (Starting ELO range)
-    Captain,                // 1400-1599 ELO - Ship Captain
-    Commodore,              // 1600-1799 ELO - Fleet Officer
-    RearAdmiral,            // 1800-1999 ELO - Lower Admiral
-    ViceAdmiral,            // 2000-2199 ELO - High Admiral
-    Admiral,                // 2200-2499 ELO - Admiral
-    FleetAdmiral,           // 2500-2799 ELO - Supreme Commander
-    GrandAdmiral            // 2800+ ELO - Legendary Rank
+    Cadet,                  // 0-499 ELO - Training/Beginner
+    Midshipman,             // 500-699 ELO - Junior Trainee
+    Ensign,                 // 700-899 ELO - Junior Officer
+    SubLieutenant,          // 900-1099 ELO - Junior Commissioned Officer
+    Lieutenant,             // 1100-1299 ELO - Officer (Starting ELO range)
+    LieutenantCommander,    // 1300-1499 ELO - Senior Officer
+    Commander,              // 1500-1699 ELO - Command Officer
+    Captain,                // 1700-1899 ELO - Ship Captain
+    SeniorCaptain,          // 1900-2099 ELO - Distinguished Captain
+    Commodore,              // 2100-2299 ELO - Fleet Officer
+    RearAdmiral,            // 2300-2499 ELO - Lower Admiral
+    RearAdmiralUpperHalf,   // 2500-2699 ELO - Senior Rear Admiral
+    ViceAdmiral,            // 2700-2899 ELO - High Admiral
+    Admiral,                // 2900-3099 ELO - Admiral
+    HighAdmiral,            // 3100-3299 ELO - Distinguished Admiral
+    FleetAdmiral,           // 3300-3499 ELO - Supreme Commander
+    SupremeAdmiral,         // 3500-3699 ELO - Elite Commander
+    GrandAdmiral            // 3700+ ELO - Legendary Rank
 }
 
 /// <summary>

@@ -36,10 +36,23 @@ public static class RankConfiguration
                     rank = rank,
                     displayName = "Cadet",
                     description = "Training Officer - Begin your journey to become a fleet commander",
-                    color = new Color(0.6f, 0.4f, 0.2f),
+                    color = new Color(0.5f, 0.35f, 0.15f),
                     minELO = minELO,
                     maxELO = maxELO,
                     abbreviation = "CDT",
+                    starCount = 0
+                };
+
+            case CompetitiveRank.Midshipman:
+                return new RankData
+                {
+                    rank = rank,
+                    displayName = "Midshipman",
+                    description = "Junior Trainee - Advancing through basic fleet operations",
+                    color = new Color(0.6f, 0.4f, 0.2f),
+                    minELO = minELO,
+                    maxELO = maxELO,
+                    abbreviation = "MIDN",
                     starCount = 0
                 };
 
@@ -53,6 +66,19 @@ public static class RankConfiguration
                     minELO = minELO,
                     maxELO = maxELO,
                     abbreviation = "ENS",
+                    starCount = 1
+                };
+
+            case CompetitiveRank.SubLieutenant:
+                return new RankData
+                {
+                    rank = rank,
+                    displayName = "Sub-Lieutenant",
+                    description = "Junior Commissioned Officer - Developing tactical competence",
+                    color = new Color(0.7f, 0.7f, 0.7f),
+                    minELO = minELO,
+                    maxELO = maxELO,
+                    abbreviation = "SBLT",
                     starCount = 1
                 };
 
@@ -108,6 +134,19 @@ public static class RankConfiguration
                     starCount = 3
                 };
 
+            case CompetitiveRank.SeniorCaptain:
+                return new RankData
+                {
+                    rank = rank,
+                    displayName = "Senior Captain",
+                    description = "Distinguished Captain - Veteran of countless engagements",
+                    color = new Color(0.5f, 0.8f, 1f),
+                    minELO = minELO,
+                    maxELO = maxELO,
+                    abbreviation = "SCPT",
+                    starCount = 3
+                };
+
             case CompetitiveRank.Commodore:
                 return new RankData
                 {
@@ -131,6 +170,19 @@ public static class RankConfiguration
                     minELO = minELO,
                     maxELO = maxELO,
                     abbreviation = "RADM",
+                    starCount = 4
+                };
+
+            case CompetitiveRank.RearAdmiralUpperHalf:
+                return new RankData
+                {
+                    rank = rank,
+                    displayName = "Rear Admiral (Upper Half)",
+                    description = "Senior Rear Admiral - Elite command authority",
+                    color = new Color(0.3f, 0.5f, 0.9f),
+                    minELO = minELO,
+                    maxELO = maxELO,
+                    abbreviation = "RADM(UH)",
                     starCount = 4
                 };
 
@@ -160,16 +212,42 @@ public static class RankConfiguration
                     starCount = 5
                 };
 
+            case CompetitiveRank.HighAdmiral:
+                return new RankData
+                {
+                    rank = rank,
+                    displayName = "High Admiral",
+                    description = "Distinguished Admiral - Renowned across all sectors",
+                    color = new Color(0.9f, 0.4f, 1f),
+                    minELO = minELO,
+                    maxELO = maxELO,
+                    abbreviation = "HADM",
+                    starCount = 5
+                };
+
             case CompetitiveRank.FleetAdmiral:
                 return new RankData
                 {
                     rank = rank,
                     displayName = "Fleet Admiral",
-                    description = "Supreme Commander - Legendary status achieved",
+                    description = "Supreme Commander - Legendary tactical mastery",
                     color = new Color(1f, 0.3f, 0.3f),
                     minELO = minELO,
                     maxELO = maxELO,
                     abbreviation = "FADM",
+                    starCount = 5
+                };
+
+            case CompetitiveRank.SupremeAdmiral:
+                return new RankData
+                {
+                    rank = rank,
+                    displayName = "Supreme Admiral",
+                    description = "Elite Commander - Among the galaxy's greatest legends",
+                    color = new Color(1f, 0.25f, 0.25f),
+                    minELO = minELO,
+                    maxELO = maxELO,
+                    abbreviation = "SADM",
                     starCount = 5
                 };
 
@@ -300,16 +378,22 @@ public static class RankConfiguration
         return new CompetitiveRank[]
         {
             CompetitiveRank.Cadet,
+            CompetitiveRank.Midshipman,
             CompetitiveRank.Ensign,
+            CompetitiveRank.SubLieutenant,
             CompetitiveRank.Lieutenant,
             CompetitiveRank.LieutenantCommander,
             CompetitiveRank.Commander,
             CompetitiveRank.Captain,
+            CompetitiveRank.SeniorCaptain,
             CompetitiveRank.Commodore,
             CompetitiveRank.RearAdmiral,
+            CompetitiveRank.RearAdmiralUpperHalf,
             CompetitiveRank.ViceAdmiral,
             CompetitiveRank.Admiral,
+            CompetitiveRank.HighAdmiral,
             CompetitiveRank.FleetAdmiral,
+            CompetitiveRank.SupremeAdmiral,
             CompetitiveRank.GrandAdmiral
         };
     }
