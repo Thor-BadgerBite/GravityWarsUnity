@@ -108,43 +108,36 @@ Each icon needs **4 variations** for button states:
 - **Size**: 256x256 pixels
 - **Design**: Gem/diamond crystal
 
-#### **3. Rank Icons** 🏆
+#### **3. Rank Icons** 🏆 **UPDATED: Military/Naval Rank System**
 
 **Single version each** (no button states):
 - **Size**: 512x512 pixels
 - **Background**: Transparent
-- **Design**: Badge/shield shape with roman numerals I, II, III for sub-ranks
+- **Design**: Military-style badges/insignia with stripes, stars, or naval symbols
 
-##### **Bronze**
-- **Color**: Copper/brown (#CD7F32)
-- **Tiers**: Bronze I, Bronze II, Bronze III
+**NEW RANK SYSTEM** - 18 Tiers Based on ELO:
 
-##### **Silver**
-- **Color**: Silver/gray (#C0C0C0)
-- **Tiers**: Silver I, Silver II, Silver III
+1. **Cadet** (0-499) - Color: Gray (#808080) - Design: Single stripe
+2. **Midshipman** (500-699) - Color: Light gray (#A0A0A0) - Design: Two stripes
+3. **Ensign** (700-899) - Color: Bronze (#CD7F32) - Design: Single bar
+4. **Sub-Lieutenant** (900-1099) - Color: Copper (#B87333) - Design: Single bar with stripe
+5. **Lieutenant** (1100-1299) - Color: Silver (#C0C0C0) - Design: Two bars ⭐ **Starting Rank**
+6. **Lieutenant Commander** (1300-1499) - Color: Silver-blue (#B0C4DE) - Design: Two bars with stripe
+7. **Commander** (1500-1699) - Color: Gold (#FFD700) - Design: Three bars
+8. **Captain** (1700-1899) - Color: Gold-white (#FFF8DC) - Design: Four bars
+9. **Senior Captain** (1900-2099) - Color: Platinum (#E5E4E2) - Design: Four bars with stripe
+10. **Commodore** (2100-2299) - Color: Blue-white (#E0F0FF) - Design: Single star
+11. **Rear Admiral** (2300-2499) - Color: Light blue (#ADD8E6) - Design: Two stars
+12. **Rear Admiral (Upper Half)** (2500-2699) - Color: Sky blue (#87CEEB) - Design: Two stars (upper)
+13. **Vice Admiral** (2700-2899) - Color: Royal blue (#4169E1) - Design: Three stars
+14. **Admiral** (2900-3099) - Color: Navy blue (#000080) - Design: Four stars
+15. **High Admiral** (3100-3299) - Color: Purple-blue (#7B68EE) - Design: Five stars
+16. **Fleet Admiral** (3300-3499) - Color: Purple (#9B59B6) - Design: Five stars with wreath
+17. **Supreme Admiral** (3500-3699) - Color: Purple-red gradient - Design: Crown with stars
+18. **Grand Admiral** (3700+) - Color: Rainbow/prismatic - Design: Supreme insignia with crown
 
-##### **Gold**
-- **Color**: Gold (#FFD700)
-- **Tiers**: Gold I, Gold II, Gold III
-
-##### **Platinum**
-- **Color**: Platinum/white-blue (#E5E4E2)
-- **Tiers**: Platinum I, Platinum II, Platinum III
-
-##### **Diamond**
-- **Color**: Light blue/diamond (#B9F2FF)
-- **Tiers**: Diamond I, Diamond II, Diamond III
-
-##### **Master**
-- **Color**: Purple/red gradient (#9B59B6 to #E74C3C)
-- **Tiers**: Master I, Master II, Master III
-
-##### **Grandmaster**
-- **Color**: Rainbow/prismatic effect
-- **No tiers**, just "Grandmaster"
-
-**Total Rank Icons Needed**: 19
-- Bronze (3) + Silver (3) + Gold (3) + Platinum (3) + Diamond (3) + Master (3) + Grandmaster (1) = 19
+**Total Rank Icons Needed**: 18
+- One icon per rank (no sub-tiers)
 
 #### **4. Notification Icon** 🔔
 
@@ -178,8 +171,8 @@ Each icon needs **4 variations** for button states:
 | Gems | 1 | 256x256 | 1 |
 | Notification | 2 (N, A) | 256x256 | 2 |
 | Quick Play | 1 | 256x256 | 1 |
-| Rank Badges | 19 | 512x512 | 19 |
-| **TOTAL** | - | - | **56 files** |
+| Rank Badges | 18 | 512x512 | 18 |
+| **TOTAL** | - | - | **55 files** |
 
 ### **File Naming Convention**
 
@@ -194,10 +187,11 @@ Examples:
 - icon_ships_disabled.png
 - icon_credits.png
 - icon_gems.png
-- icon_rank_bronze_1.png
-- icon_rank_bronze_2.png
-- icon_rank_gold_3.png
-- icon_rank_grandmaster.png
+- icon_rank_cadet.png
+- icon_rank_midshipman.png
+- icon_rank_lieutenant.png
+- icon_rank_admiral.png
+- icon_rank_grand_admiral.png
 - icon_notification_normal.png
 - icon_notification_active.png
 ```
@@ -485,16 +479,57 @@ NavigationButton (Button component)
 
 4. Repeat for Roboto fonts
 
+#### **Step 3: Setup LeanTween Animation System** ⚠️ **ESSENTIAL**
+
+**LeanTween** is a lightweight animation library that provides smooth UI transitions and animations. It's **required** for the main menu to function properly.
+
+**What LeanTween Does:**
+- Smooth fade-in/fade-out transitions for panels
+- Button press scale animations (visual feedback)
+- Menu transition effects
+- Optimized performance (better than Unity's built-in Animation system for UI)
+
+**Installation Check:**
+
+1. **Verify LeanTween is in your project**:
+   - Check if folder exists: `Assets/LeanTween/`
+   - If missing, download from: [LeanTween on Unity Asset Store](https://assetstore.unity.com/packages/tools/animation/leantween-3595) (FREE)
+   - Or download from: [GitHub - LeanTween](https://github.com/dentedpixel/LeanTween)
+
+2. **Import LeanTween** (if not present):
+   - **From Asset Store**:
+     - Window → Package Manager → My Assets
+     - Search "LeanTween"
+     - Download and Import
+
+   - **From GitHub**:
+     - Download `LeanTween.cs` from repository
+     - Place in: `Assets/LeanTween/` or `Assets/Plugins/`
+
+3. **Verify Installation**:
+   - Open Unity console
+   - Create new C# script temporarily
+   - Add line: `LeanTween.init();`
+   - If no errors → LeanTween is ready ✓
+   - Delete test script
+
+**Used Animations in Main Menu:**
+- **Fade In**: Menu appears smoothly when loaded (0.5s ease-out)
+- **Fade Out**: Menu disappears smoothly when transitioning (0.5s ease-in)
+- **Button Press**: Buttons scale to 95% then back to 100% when clicked (0.2s total)
+
+**No Configuration Needed** - LeanTween works out-of-the-box once imported. The MainMenuUI script already has all animation code ready.
+
 ---
 
 ### **Phase 2: Scene Setup**
 
-#### **Step 3: Create Main Menu Scene**
+#### **Step 4: Create Main Menu Scene**
 
 1. Create new scene: **MainMenuScene.unity**
 2. Save to: `Assets/Scenes/MainMenuScene.unity`
 
-#### **Step 4: Setup Ship Viewer System**
+#### **Step 5: Setup Ship Viewer System**
 
 1. Create empty GameObject: **"ShipViewerSystem"**
    - Position: (0, 0, 0)
@@ -535,7 +570,7 @@ NavigationButton (Button component)
 
 ### **Phase 3: Build UI Canvas**
 
-#### **Step 5: Create Main Canvas**
+#### **Step 6: Create Main Canvas**
 
 1. GameObject → UI → Canvas
 2. Name: **"MainMenuCanvas"**
@@ -548,7 +583,7 @@ NavigationButton (Button component)
 
 4. Add **Canvas Group** component (for fade animations)
 
-#### **Step 6: Create Background**
+#### **Step 7: Create Background**
 
 1. Right-click **MainMenuCanvas** → UI → Panel
 2. Name: **"BackgroundPanel"**
@@ -557,13 +592,13 @@ NavigationButton (Button component)
    - Color: #0D0D14
    - Or use gradient texture
 
-#### **Step 7: Create Panels Container**
+#### **Step 8: Create Panels Container**
 
 1. Right-click **MainMenuCanvas** → Create Empty
 2. Name: **"PanelsContainer"**
 3. Stretch to full screen
 
-#### **Step 8: Create Home Panel**
+#### **Step 9: Create Home Panel**
 
 1. Right-click **PanelsContainer** → Create Empty
 2. Name: **"HomePanel"**
@@ -573,7 +608,7 @@ NavigationButton (Button component)
 
 ### **Phase 4: Build Player Info Panel**
 
-#### **Step 9: Create Player Info Panel**
+#### **Step 10: Create Player Info Panel**
 
 1. Right-click **HomePanel** → UI → Panel
 2. Name: **"PlayerInfoPanel"**
@@ -588,7 +623,7 @@ NavigationButton (Button component)
    - Spacing: 10
    - Child Alignment: Upper Left
 
-#### **Step 10: Add Username Text**
+#### **Step 11: Add Username Text**
 
 1. Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
 2. Name: **"UsernameText"**
@@ -600,7 +635,7 @@ NavigationButton (Button component)
    - Alignment: Left, Top
    - Position: (10, -10)
 
-#### **Step 11: Add Level Text**
+#### **Step 12: Add Level Text**
 
 1. Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
 2. Name: **"LevelText"**
@@ -611,7 +646,7 @@ NavigationButton (Button component)
    - Color: #FFD700 (gold)
    - Position: (10, -50)
 
-#### **Step 12: Add XP Bar**
+#### **Step 13: Add XP Bar**
 
 1. **Background**:
    - Right-click **PlayerInfoPanel** → UI → Image
@@ -638,7 +673,7 @@ NavigationButton (Button component)
    - Color: #FFFFFF
    - Alignment: Center
 
-#### **Step 13: Add ELO and Rank**
+#### **Step 14: Add ELO and Rank**
 
 1. **ELO Text**:
    - Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
@@ -668,7 +703,7 @@ NavigationButton (Button component)
 
 ### **Phase 5: Build Currency Panel**
 
-#### **Step 14: Create Currency Panel**
+#### **Step 15: Create Currency Panel**
 
 1. Right-click **HomePanel** → UI → Panel
 2. Name: **"CurrencyPanel"**
@@ -678,7 +713,7 @@ NavigationButton (Button component)
    - Size: (250, 120)
    - Color: #1A1A26, alpha 180
 
-#### **Step 15: Add Credits Display**
+#### **Step 16: Add Credits Display**
 
 1. **Credits Group** (for organization):
    - Right-click **CurrencyPanel** → Create Empty
@@ -702,7 +737,7 @@ NavigationButton (Button component)
    - Alignment: Right
    - Position: (50, -20)
 
-#### **Step 16: Add Gems Display**
+#### **Step 17: Add Gems Display**
 
 Repeat same process as Credits:
 - **GemsGroup**
@@ -714,7 +749,7 @@ Repeat same process as Credits:
 
 ### **Phase 6: Build Navigation Buttons**
 
-#### **Step 17: Create Navigation Button Prefab**
+#### **Step 18: Create Navigation Button Prefab**
 
 1. Right-click **HomePanel** → UI → Button
 2. Name: **"NavigationButton"**
@@ -745,7 +780,7 @@ Repeat same process as Credits:
    - Drag **NavigationButton** to `Assets/UI/MainMenu/Prefabs/`
    - Delete from scene (we'll create instances next)
 
-#### **Step 18: Create Left Navigation**
+#### **Step 19: Create Left Navigation**
 
 1. Right-click **HomePanel** → Create Empty
 2. Name: **"LeftNavigation"**
@@ -769,14 +804,14 @@ Repeat same process as Credits:
    - Icon: icon_quests_normal (+ hover, pressed, disabled)
    - Text: "QUESTS"
 
-#### **Step 19: Create Right Navigation**
+#### **Step 20: Create Right Navigation**
 
 Same process:
 1. Create **"RightNavigation"** at (700, 0)
 2. **MissilesButton** at (0, 150)
 3. **BattlePassButton** at (0, -50)
 
-#### **Step 20: Create Top Navigation**
+#### **Step 21: Create Top Navigation**
 
 1. Create **"TopNavigation"** at (0, 480)
 2. **ProfileButton** at (-850, 0) - size (150, 70)
@@ -787,7 +822,7 @@ Same process:
 
 ### **Phase 7: Build Ship Viewer Display**
 
-#### **Step 21: Add Ship Viewer to Canvas**
+#### **Step 22: Add Ship Viewer to Canvas**
 
 1. Right-click **HomePanel** → UI → Raw Image
 2. Name: **"ShipViewerDisplay"**
@@ -800,7 +835,7 @@ Same process:
 
 ### **Phase 8: Build Quick Play Button**
 
-#### **Step 22: Create Quick Play Button**
+#### **Step 23: Create Quick Play Button**
 
 1. Right-click **HomePanel** → UI → Button
 2. Name: **"QuickPlayButton"**
@@ -832,7 +867,7 @@ Same process:
 
 ### **Phase 9: Wire Up Scripts**
 
-#### **Step 23: Add MainMenuUI Component**
+#### **Step 24: Add MainMenuUI Component**
 
 1. Select **MainMenuCanvas**
 2. Add Component → **MainMenuUI**
@@ -848,10 +883,11 @@ Same process:
    - **Currency Panel**:
      - Credits Text: CreditsText
      - Gems Text: GemsText
-   - **Rank Icons** array (19 elements):
-     - [0] icon_rank_bronze_1
-     - [1] icon_rank_bronze_2
-     - ... (all 19 rank icons)
+   - **Rank Icons** array (18 elements - Military/Naval Ranks):
+     - [0] icon_rank_cadet
+     - [1] icon_rank_midshipman
+     - [2] icon_rank_ensign
+     - ... (all 18 rank icons through Grand Admiral)
    - **Navigation Buttons**:
      - Ships Button: ShipsButton
      - Quests Button: QuestsButton
@@ -862,7 +898,7 @@ Same process:
      - Settings Button: SettingsButton
    - **Quick Play Button**: QuickPlayButton
 
-#### **Step 24: Add PanelManager Component**
+#### **Step 25: Add PanelManager Component**
 
 1. Select **MainMenuCanvas**
 2. Add Component → **PanelManager**
@@ -870,7 +906,7 @@ Same process:
    - Home Panel: HomePanel
    - (Others will be empty for now)
 
-#### **Step 25: Add MainMenuController**
+#### **Step 26: Add MainMenuController**
 
 1. Create empty GameObject in scene: **"MainMenuController"**
 2. Add Component → **MainMenuController**
@@ -878,7 +914,7 @@ Same process:
    - Ship Viewer: ShipViewerSystem
    - Menu UI: MainMenuCanvas
 
-#### **Step 26: Wire Button OnClick Events**
+#### **Step 27: Wire Button OnClick Events**
 
 For each navigation button:
 1. **ShipsButton**:
@@ -909,7 +945,7 @@ For each navigation button:
 
 ### **Phase 10: Create Empty Panels**
 
-#### **Step 27: Create Placeholder Panels**
+#### **Step 28: Create Placeholder Panels**
 
 For each screen, create a basic placeholder:
 
@@ -937,7 +973,7 @@ Repeat for:
 
 ### **Phase 11: Create Prefabs**
 
-#### **Step 28: Save Reusable Prefabs**
+#### **Step 29: Save Reusable Prefabs**
 
 1. **PlayerInfoPanel**:
    - Drag to `Assets/UI/MainMenu/Prefabs/PlayerInfoPanel.prefab`
@@ -1026,6 +1062,13 @@ TextMeshPro - Text
 - [ ] Quick Play button triggers correct function
 - [ ] Ship viewer camera renders to texture
 
+### **Animation Checks** (LeanTween)
+- [ ] Main menu fades in smoothly when scene loads (0.5s)
+- [ ] Main menu fades out smoothly when transitioning (0.5s)
+- [ ] Buttons scale down to 95% then back when clicked
+- [ ] No LeanTween errors in console
+- [ ] Animations feel smooth and responsive
+
 ### **Integration Checks**
 - [ ] ProgressionManager loads player data
 - [ ] Username displays from PlayerAccountData
@@ -1105,10 +1148,10 @@ Once the main hub is complete:
    - Allow equipping missiles
    - Show missile stats
 
-3. **Add Animations**
-   - Panel slide transitions
-   - Button scale animations
-   - Ship rotation smoothing
+3. **Add More Animations** (Basic animations already included via LeanTween)
+   - Panel slide transitions (in/out from sides)
+   - Additional button hover effects
+   - Ship rotation smoothing/easing
 
 4. **Polish**
    - Add sound effects
@@ -1148,14 +1191,15 @@ Green (Play): #27AE60
 ## 🎯 Summary
 
 **Total Assets to Create:**
-- **56 icon files** (PNG)
+- **55 icon files** (PNG) - Updated to 18 military/naval rank icons
 - **2 fonts** (imported from Google Fonts, converted to TMP)
 - **7 prefabs** (NavigationButton, PlayerInfoPanel, CurrencyPanel, etc.)
 - **1 scene** (MainMenuScene.unity)
 - **1 render texture** (ShipViewerRT)
+- **LeanTween** ✓ Already included (animation system)
 
 **Estimated Time:**
-- Icon creation: **8-12 hours** (for all 56 icons with variations)
+- Icon creation: **8-12 hours** (for all 55 icons with variations)
 - Unity setup: **4-6 hours**
 - Testing & polish: **2-3 hours**
 - **Total: 14-21 hours**

@@ -362,9 +362,7 @@ public class MainMenuUI : MonoBehaviour
         if (mainCanvasGroup == null) return;
 
         mainCanvasGroup.alpha = 0f;
-        // TODO: Install LeanTween package and uncomment animation
-        // LeanTween.alphaCanvas(mainCanvasGroup, 1f, fadeInDuration).setEase(LeanTweenType.easeOutCubic);
-        mainCanvasGroup.alpha = 1f; // Skip animation - set directly
+        LeanTween.alphaCanvas(mainCanvasGroup, 1f, fadeInDuration).setEase(LeanTweenType.easeOutCubic);
     }
 
     /// <summary>
@@ -378,12 +376,9 @@ public class MainMenuUI : MonoBehaviour
             return;
         }
 
-        // TODO: Install LeanTween package and uncomment animation
-        // LeanTween.alphaCanvas(mainCanvasGroup, 0f, fadeInDuration)
-        //     .setEase(LeanTweenType.easeInCubic)
-        //     .setOnComplete(onComplete);
-        mainCanvasGroup.alpha = 0f; // Skip animation - set directly
-        onComplete?.Invoke();
+        LeanTween.alphaCanvas(mainCanvasGroup, 0f, fadeInDuration)
+            .setEase(LeanTweenType.easeInCubic)
+            .setOnComplete(onComplete);
     }
 
     /// <summary>
@@ -396,15 +391,13 @@ public class MainMenuUI : MonoBehaviour
         RectTransform rect = button.GetComponent<RectTransform>();
         if (rect == null) return;
 
-        // TODO: Install LeanTween package and uncomment animation
-        // Vector3 originalScale = rect.localScale;
-        // LeanTween.scale(rect, originalScale * 0.95f, 0.1f)
-        //     .setEase(LeanTweenType.easeOutCubic)
-        //     .setOnComplete(() =>
-        //     {
-        //         LeanTween.scale(rect, originalScale, 0.1f).setEase(LeanTweenType.easeOutCubic);
-        //     });
-        // Skip animation for now
+        Vector3 originalScale = rect.localScale;
+        LeanTween.scale(rect, originalScale * 0.95f, 0.1f)
+            .setEase(LeanTweenType.easeOutCubic)
+            .setOnComplete(() =>
+            {
+                LeanTween.scale(rect, originalScale, 0.1f).setEase(LeanTweenType.easeOutCubic);
+            });
     }
 
     #endregion
