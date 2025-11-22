@@ -223,7 +223,7 @@ public class AccountSystem : MonoBehaviour
             // Competitive stats
             eloRating = ELORatingSystem.STARTING_ELO,
             peakEloRating = ELORatingSystem.STARTING_ELO,
-            currentRank = CompetitiveRank.Gold,
+            currentRank = CompetitiveRank.Lieutenant,
 
             // Progression
             level = 1,

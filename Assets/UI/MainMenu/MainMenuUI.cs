@@ -53,13 +53,24 @@ public class MainMenuUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI notificationCountText;
 
     [Header("Rank Icons")]
-    [SerializeField] private Sprite bronzeRankIcon;
-    [SerializeField] private Sprite silverRankIcon;
-    [SerializeField] private Sprite goldRankIcon;
-    [SerializeField] private Sprite platinumRankIcon;
-    [SerializeField] private Sprite diamondRankIcon;
-    [SerializeField] private Sprite masterRankIcon;
-    [SerializeField] private Sprite grandmasterRankIcon;
+    [SerializeField] private Sprite cadetRankIcon;
+    [SerializeField] private Sprite midshipmanRankIcon;
+    [SerializeField] private Sprite ensignRankIcon;
+    [SerializeField] private Sprite subLieutenantRankIcon;
+    [SerializeField] private Sprite lieutenantRankIcon;
+    [SerializeField] private Sprite lieutenantCommanderRankIcon;
+    [SerializeField] private Sprite commanderRankIcon;
+    [SerializeField] private Sprite captainRankIcon;
+    [SerializeField] private Sprite seniorCaptainRankIcon;
+    [SerializeField] private Sprite commodoreRankIcon;
+    [SerializeField] private Sprite rearAdmiralRankIcon;
+    [SerializeField] private Sprite rearAdmiralUpperHalfRankIcon;
+    [SerializeField] private Sprite viceAdmiralRankIcon;
+    [SerializeField] private Sprite admiralRankIcon;
+    [SerializeField] private Sprite highAdmiralRankIcon;
+    [SerializeField] private Sprite fleetAdmiralRankIcon;
+    [SerializeField] private Sprite supremeAdmiralRankIcon;
+    [SerializeField] private Sprite grandAdmiralRankIcon;
 
     [Header("Animation")]
     [SerializeField] private CanvasGroup mainCanvasGroup;
@@ -202,14 +213,25 @@ public class MainMenuUI : MonoBehaviour
     {
         switch (rank)
         {
-            case CompetitiveRank.Bronze: return bronzeRankIcon;
-            case CompetitiveRank.Silver: return silverRankIcon;
-            case CompetitiveRank.Gold: return goldRankIcon;
-            case CompetitiveRank.Platinum: return platinumRankIcon;
-            case CompetitiveRank.Diamond: return diamondRankIcon;
-            case CompetitiveRank.Master: return masterRankIcon;
-            case CompetitiveRank.Grandmaster: return grandmasterRankIcon;
-            default: return goldRankIcon;
+            case CompetitiveRank.Cadet: return cadetRankIcon;
+            case CompetitiveRank.Midshipman: return midshipmanRankIcon;
+            case CompetitiveRank.Ensign: return ensignRankIcon;
+            case CompetitiveRank.SubLieutenant: return subLieutenantRankIcon;
+            case CompetitiveRank.Lieutenant: return lieutenantRankIcon;
+            case CompetitiveRank.LieutenantCommander: return lieutenantCommanderRankIcon;
+            case CompetitiveRank.Commander: return commanderRankIcon;
+            case CompetitiveRank.Captain: return captainRankIcon;
+            case CompetitiveRank.SeniorCaptain: return seniorCaptainRankIcon;
+            case CompetitiveRank.Commodore: return commodoreRankIcon;
+            case CompetitiveRank.RearAdmiral: return rearAdmiralRankIcon;
+            case CompetitiveRank.RearAdmiralUpperHalf: return rearAdmiralUpperHalfRankIcon;
+            case CompetitiveRank.ViceAdmiral: return viceAdmiralRankIcon;
+            case CompetitiveRank.Admiral: return admiralRankIcon;
+            case CompetitiveRank.HighAdmiral: return highAdmiralRankIcon;
+            case CompetitiveRank.FleetAdmiral: return fleetAdmiralRankIcon;
+            case CompetitiveRank.SupremeAdmiral: return supremeAdmiralRankIcon;
+            case CompetitiveRank.GrandAdmiral: return grandAdmiralRankIcon;
+            default: return lieutenantRankIcon;
         }
     }
 

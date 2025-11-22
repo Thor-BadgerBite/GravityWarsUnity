@@ -32,7 +32,7 @@ public class PlayerAccountData
     [Header("Competitive Stats - Online Play")]
     public int eloRating = 1200;
     public int peakEloRating = 1200;
-    public CompetitiveRank currentRank = CompetitiveRank.Bronze;
+    public CompetitiveRank currentRank = CompetitiveRank.Lieutenant;
     public int rankedMatchesPlayed = 0;
     public int rankedMatchesWon = 0;
     public int casualMatchesPlayed = 0;
@@ -316,13 +316,24 @@ public class PlayerAccountData
     /// </summary>
     public void UpdateRankFromELO()
     {
-        if (eloRating < 1000) currentRank = CompetitiveRank.Bronze;
-        else if (eloRating < 1200) currentRank = CompetitiveRank.Silver;
-        else if (eloRating < 1400) currentRank = CompetitiveRank.Gold;
-        else if (eloRating < 1600) currentRank = CompetitiveRank.Platinum;
-        else if (eloRating < 1800) currentRank = CompetitiveRank.Diamond;
-        else if (eloRating < 2000) currentRank = CompetitiveRank.Master;
-        else currentRank = CompetitiveRank.Grandmaster;
+        if (eloRating < 500) currentRank = CompetitiveRank.Cadet;
+        else if (eloRating < 700) currentRank = CompetitiveRank.Midshipman;
+        else if (eloRating < 900) currentRank = CompetitiveRank.Ensign;
+        else if (eloRating < 1100) currentRank = CompetitiveRank.SubLieutenant;
+        else if (eloRating < 1300) currentRank = CompetitiveRank.Lieutenant;
+        else if (eloRating < 1500) currentRank = CompetitiveRank.LieutenantCommander;
+        else if (eloRating < 1700) currentRank = CompetitiveRank.Commander;
+        else if (eloRating < 1900) currentRank = CompetitiveRank.Captain;
+        else if (eloRating < 2100) currentRank = CompetitiveRank.SeniorCaptain;
+        else if (eloRating < 2300) currentRank = CompetitiveRank.Commodore;
+        else if (eloRating < 2500) currentRank = CompetitiveRank.RearAdmiral;
+        else if (eloRating < 2700) currentRank = CompetitiveRank.RearAdmiralUpperHalf;
+        else if (eloRating < 2900) currentRank = CompetitiveRank.ViceAdmiral;
+        else if (eloRating < 3100) currentRank = CompetitiveRank.Admiral;
+        else if (eloRating < 3300) currentRank = CompetitiveRank.HighAdmiral;
+        else if (eloRating < 3500) currentRank = CompetitiveRank.FleetAdmiral;
+        else if (eloRating < 3700) currentRank = CompetitiveRank.SupremeAdmiral;
+        else currentRank = CompetitiveRank.GrandAdmiral;
     }
 }
 
