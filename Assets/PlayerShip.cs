@@ -158,10 +158,24 @@ public class PlayerShip : MonoBehaviour
     private Quaternion initialRotation;
 
     [HideInInspector] public PlayerUI playerUI; // assigned externally
-    [SerializeField] private float warpZoomDuration    = 0.3f; 
-    [SerializeField] private float minScaleFactor     = 0.2f; 
+    [SerializeField] private float warpZoomDuration    = 0.3f;
+    [SerializeField] private float minScaleFactor     = 0.2f;
     [SerializeField] private float postWarpShakeTime  = 1.0f;  // how long to shake after zoom-in
     [SerializeField] private float postWarpShakeAngle = 15f;   // max degrees of rotation +/- on X
+
+    // -----------------------
+    // Public Getters for UI
+    // -----------------------
+
+    /// <summary>
+    /// Gets the effective minimum launch velocity (uses equipped missile if available)
+    /// </summary>
+    public float EffectiveMinLaunchVelocity => equippedMissile != null ? equippedMissile.minLaunchVelocity : minLaunchVelocity;
+
+    /// <summary>
+    /// Gets the effective maximum launch velocity (uses equipped missile if available)
+    /// </summary>
+    public float EffectiveMaxLaunchVelocity => equippedMissile != null ? equippedMissile.maxLaunchVelocity : maxLaunchVelocity;
 
     // -----------------------
     // Unity Setup
@@ -544,11 +558,12 @@ void Update()
     float rotationAmount = rotationInput * usedRotationSpeed * Time.deltaTime;
 
     // NETWORK ROUTING: Send rotation to network if in networked mode
-    if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
-    {
-        networkAdapter.RoutePlayerRotation(this, rotationAmount);
-    }
-    else if (!isNetworkedMode)
+    // TEMPORARILY DISABLED - networkAdapter needs proper implementation
+    // if (isNetworkedMode && Mathf.Abs(rotationAmount) > 0.001f)
+    // {
+    //     networkAdapter.RoutePlayerRotation(this, rotationAmount);
+    // }
+    // else if (!isNetworkedMode)
     {
         // LOCAL MODE: Apply rotation directly
         currentZRotation = Mathf.Repeat(currentZRotation + rotationAmount, 360f);
@@ -598,12 +613,13 @@ void Update()
     {
         if (currentMode == PlayerActionMode.Fire)
         {
-            if (isNetworkedMode)
-            {
-                // NETWORK MODE: Send fire action to network
-                SendNetworkFireAction(networkAdapter);
-            }
-            else
+            // TEMPORARILY DISABLED - networkAdapter needs proper implementation
+            // if (isNetworkedMode)
+            // {
+            //     // NETWORK MODE: Send fire action to network
+            //     SendNetworkFireAction(networkAdapter);
+            // }
+            // else
             {
                 // LOCAL MODE: Fire directly
                 FireMissile();
@@ -611,12 +627,13 @@ void Update()
         }
         else
         {
-            if (isNetworkedMode)
-            {
-                // NETWORK MODE: Send move action to network
-                SendNetworkMoveAction(networkAdapter);
-            }
-            else
+            // TEMPORARILY DISABLED - networkAdapter needs proper implementation
+            // if (isNetworkedMode)
+            // {
+            //     // NETWORK MODE: Send move action to network
+            //     SendNetworkMoveAction(networkAdapter);
+            // }
+            // else
             {
                 // LOCAL MODE: Move directly
                 PerformSlingshotMove();
@@ -779,12 +796,15 @@ void Update()
 
         // Use equipped missile preset stats for prediction, or fallback to prefab
         float missileMass, missileDragCoef, maxVel, velApproachRate;
+        string sourceInfo = "";
+
         if (equippedMissile != null)
         {
             missileMass = equippedMissile.Mass;  // Use calculated physics mass
             missileDragCoef = equippedMissile.drag;
             maxVel = equippedMissile.maxVelocity;
             velApproachRate = equippedMissile.velocityApproachRate;
+            sourceInfo = $"EquippedMissile({equippedMissile.missileName})";
         }
         else if (missilePrefab != null)
         {
@@ -793,6 +813,7 @@ void Update()
             missileDragCoef = m3d.drag;
             maxVel = m3d.maxVelocity;
             velApproachRate = m3d.velocityApproachRate;
+            sourceInfo = "MissilePrefab";
         }
         else
         {
@@ -801,6 +822,13 @@ void Update()
             missileDragCoef = 0.01f;
             maxVel = 10f;
             velApproachRate = 0.1f;
+            sourceInfo = "Fallback Defaults";
+        }
+
+        // Debug log to verify correct stats are being used (only log occasionally to avoid spam)
+        if (Time.frameCount % 60 == 0)
+        {
+            Debug.Log($"[{playerName}] Trajectory Prediction Stats from {sourceInfo}: Mass={missileMass:F2}, Drag={missileDragCoef:F3}, MaxVel={maxVel:F1}, LaunchVel={launchVelocity:F2}");
         }
 
         for (int i = 1; i <= usedSteps; i++)
@@ -811,7 +839,9 @@ void Update()
                 totalForce += planet.CalculateGravitationalPull(currentPos, missileMass);
             }
             // CRITICAL: Divide by mass to match rb.AddForce(force, ForceMode.Force) behavior
-            // This makes mass cancel out, ensuring prediction matches actual flight
+            // Since Planet.CalculateGravitationalPull no longer multiplies by mass,
+            // we get: acceleration = (G * M / r²) / mass
+            // Result: Heavier missiles accelerate LESS → fly straighter through gravity wells
             currentVel += (totalForce / missileMass) * stepTime;
             currentVel *= (1 - missileDragCoef * stepTime);
 
@@ -978,10 +1008,11 @@ void Update()
         if (equippedMissile != null)
         {
             equippedMissile.ApplyToMissile(missile);
+            Debug.Log($"[{playerName}] Fired {equippedMissile.missileName}: Mass={missile.missileMass:F2}, Drag={missile.drag:F3}, MaxVel={missile.maxVelocity:F1}, LaunchVel={launchVelocity:F2}");
         }
         else
         {
-            Debug.LogWarning($"{playerName}: No missile preset equipped! Using default missile stats.");
+            Debug.LogWarning($"{playerName}: No missile preset equipped! Using default missile stats from prefab - Mass={missile.missileMass:F2}, MaxVel={missile.maxVelocity:F1}");
         }
     }
 

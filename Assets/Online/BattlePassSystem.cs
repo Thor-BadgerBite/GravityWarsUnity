@@ -176,13 +176,13 @@ public class BattlePassSystem : MonoBehaviour
         if (hasFreeReward)
         {
             var reward = FREE_TRACK_REWARDS[newLevel];
-            Debug.Log($"[BattlePass] Free reward: {reward.username}");
+            Debug.Log($"[BattlePass] Free reward: {reward.displayName}");
         }
 
         if (hasPremiumReward)
         {
             var reward = PREMIUM_TRACK_REWARDS[newLevel];
-            Debug.Log($"[BattlePass] Premium reward: {reward.username}");
+            Debug.Log($"[BattlePass] Premium reward: {reward.displayName}");
         }
     }
 
@@ -203,7 +203,7 @@ public class BattlePassSystem : MonoBehaviour
         ApplyReward(reward);
         _claimedFreeRewards.Add(level);
 
-        Debug.Log($"[BattlePass] Claimed free reward: {reward.username}");
+        Debug.Log($"[BattlePass] Claimed free reward: {reward.displayName}");
         return true;
     }
 
@@ -221,7 +221,7 @@ public class BattlePassSystem : MonoBehaviour
         ApplyReward(reward);
         _claimedPremiumRewards.Add(level);
 
-        Debug.Log($"[BattlePass] Claimed premium reward: {reward.username}");
+        Debug.Log($"[BattlePass] Claimed premium reward: {reward.displayName}");
         return true;
     }
 
@@ -249,7 +249,7 @@ public class BattlePassSystem : MonoBehaviour
                 if (!profile.unlockedShipModels.Contains(reward.rewardId))
                 {
                     profile.unlockedShipModels.Add(reward.rewardId);
-                    Debug.Log($"[BattlePass] Unlocked ship: {reward.username}");
+                    Debug.Log($"[BattlePass] Unlocked ship: {reward.displayName}");
                 }
                 break;
 
@@ -259,7 +259,7 @@ public class BattlePassSystem : MonoBehaviour
             case RewardType.Active:
             case RewardType.Missile:
                 // TODO: Add to appropriate unlock lists
-                Debug.Log($"[BattlePass] Unlocked {reward.type}: {reward.username}");
+                Debug.Log($"[BattlePass] Unlocked {reward.type}: {reward.displayName}");
                 break;
         }
 
@@ -326,7 +326,7 @@ public class BattlePassReward
     {
         this.type = type;
         this.amount = amount;
-        this.username = displayName;
+        this.displayName = displayName;
         this.rewardId = rewardId;
         this.shipClass = shipClass;
     }

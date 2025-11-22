@@ -19,7 +19,7 @@ namespace GravityWars.CloudSave
         public int saveCount = 0;
 
         // Player Profile
-        public PlayerProfileData playerProfile = new PlayerProfileData();
+        public PlayerAccountData playerProfile = new PlayerAccountData("", "");
 
         // Currency & Economy
         public CurrencyData currency = new CurrencyData();
@@ -107,6 +107,10 @@ namespace GravityWars.CloudSave
         public int softCurrency = 0; // Credits
         public int hardCurrency = 0; // Gems
         public int premiumCurrency = 0; // Special currency
+
+        // Aliases for compatibility
+        public int credits { get => softCurrency; set => softCurrency = value; }
+        public int gems { get => hardCurrency; set => hardCurrency = value; }
 
         // Transaction history (last 100 transactions)
         public List<CurrencyTransaction> recentTransactions = new List<CurrencyTransaction>();

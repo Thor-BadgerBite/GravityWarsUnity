@@ -279,14 +279,13 @@ namespace GravityWars.CloudSave
 
             // Update timestamps
             data.lastSaveTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            data.profile.lastLoginTimestamp = data.lastSaveTimestamp;
+            data.playerProfile.lastLoginDate = DateTime.UtcNow;
 
             // Collect from ProgressionManager
-            if (ProgressionManager.Instance != null)
+            if (ProgressionManager.Instance != null && ProgressionManager.Instance.currentPlayerData != null)
             {
-                data.progression.level = ProgressionManager.Instance.AccountLevel;
-                data.progression.experience = ProgressionManager.Instance.AccountXP;
-                // Note: More fields could be collected from ProgressionManager if they exist
+                data.progression.level = ProgressionManager.Instance.currentPlayerData.level;
+                data.progression.experience = ProgressionManager.Instance.currentPlayerData.currentXP;
             }
 
             // Collect from EconomyService
@@ -378,11 +377,10 @@ namespace GravityWars.CloudSave
             Log("Distributing save data to all systems...");
 
             // Distribute to ProgressionManager
-            if (ProgressionManager.Instance != null)
+            if (ProgressionManager.Instance != null && ProgressionManager.Instance.currentPlayerData != null)
             {
-                ProgressionManager.Instance.SetAccountLevel(data.progression.level);
-                ProgressionManager.Instance.SetAccountXP(data.progression.experience);
-                // Note: ProgressionManager would need setter methods
+                ProgressionManager.Instance.currentPlayerData.level = data.progression.level;
+                ProgressionManager.Instance.currentPlayerData.currentXP = data.progression.experience;
             }
 
             // Distribute to EconomyService
@@ -502,11 +500,10 @@ namespace GravityWars.CloudSave
             };
 
             // Initialize profile
-            data.playerProfile = new PlayerProfileData
+            data.playerProfile = new PlayerAccountData(data.playerID, "Player")
             {
-                username = "Player",
-                accountCreatedTimestamp = data.lastSaveTimestamp,
-                lastLoginTimestamp = data.lastSaveTimestamp
+                accountCreatedDate = DateTime.UtcNow,
+                lastLoginDate = DateTime.UtcNow
             };
 
             // Initialize currency (starting amounts)

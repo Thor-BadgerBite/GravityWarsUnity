@@ -436,7 +436,7 @@ namespace GravityWars.Networking
 
         private float GetTotalPlayTime()
         {
-            // This would be tracked in PlayerProfileData in a real implementation
+            // This would be tracked in PlayerAccountData in a real implementation
             return Time.realtimeSinceStartup;
         }
 

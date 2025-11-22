@@ -83,11 +83,13 @@ namespace GravityWars.Networking.UI
                 errorPanel.SetActive(false);
 
             // Subscribe to lobby events
+#if UNITY_NETCODE_GAMEOBJECTS
             if (LobbyManager.Instance != null)
             {
                 LobbyManager.Instance.OnLobbyCreated += OnLobbyCreated;
                 LobbyManager.Instance.OnLobbyJoined += OnLobbyJoined;
             }
+#endif
         }
 
         private void OnDestroy()
@@ -109,11 +111,13 @@ namespace GravityWars.Networking.UI
                 errorOkButton.onClick.RemoveListener(OnErrorOkClicked);
 
             // Unsubscribe from lobby events
+#if UNITY_NETCODE_GAMEOBJECTS
             if (LobbyManager.Instance != null)
             {
                 LobbyManager.Instance.OnLobbyCreated -= OnLobbyCreated;
                 LobbyManager.Instance.OnLobbyJoined -= OnLobbyJoined;
             }
+#endif
         }
 
         #endregion
@@ -133,13 +137,19 @@ namespace GravityWars.Networking.UI
             SetSearching(true);
             SetStatus("Searching for match...");
 
+#if UNITY_NETCODE_GAMEOBJECTS
             bool success = await LobbyManager.Instance.QuickMatch();
 
             if (!success)
             {
                 SetSearching(false);
-                ShowError("Failed to find or create match. Please try again.");
+                ShowError("Failed to find match. Please try again.");
             }
+#else
+            await Task.CompletedTask;
+            SetSearching(false);
+            ShowError("Online matchmaking requires Unity Netcode for GameObjects package.");
+#endif
 
             // If successful, OnLobbyJoined will be called automatically
         }
@@ -161,6 +171,7 @@ namespace GravityWars.Networking.UI
             SetSearching(true);
             SetStatus("Creating lobby...");
 
+#if UNITY_NETCODE_GAMEOBJECTS
             bool success = await LobbyManager.Instance.CreateLobby(lobbyName, isPrivate: false);
 
             if (!success)
@@ -168,6 +179,11 @@ namespace GravityWars.Networking.UI
                 SetSearching(false);
                 ShowError("Failed to create lobby. Please try again.");
             }
+#else
+            await Task.CompletedTask;
+            SetSearching(false);
+            ShowError("Online matchmaking requires Unity Netcode for GameObjects package.");
+#endif
 
             // If successful, OnLobbyCreated will be called automatically
         }
@@ -193,6 +209,7 @@ namespace GravityWars.Networking.UI
             SetSearching(true);
             SetStatus($"Joining lobby {lobbyCode}...");
 
+#if UNITY_NETCODE_GAMEOBJECTS
             bool success = await LobbyManager.Instance.JoinLobbyByCode(lobbyCode);
 
             if (!success)
@@ -200,6 +217,11 @@ namespace GravityWars.Networking.UI
                 SetSearching(false);
                 ShowError($"Failed to join lobby '{lobbyCode}'. Please check the code and try again.");
             }
+#else
+            await Task.CompletedTask;
+            SetSearching(false);
+            ShowError("Online matchmaking requires Unity Netcode for GameObjects package.");
+#endif
 
             // If successful, OnLobbyJoined will be called automatically
         }
@@ -327,6 +349,7 @@ namespace GravityWars.Networking.UI
                 matchmakingPanel.SetActive(false);
 
             // Show lobby UI (activate LobbyUI component)
+#if UNITY_NETCODE_GAMEOBJECTS
             var lobbyUI = FindObjectOfType<LobbyUI>();
             if (lobbyUI != null)
             {
@@ -334,8 +357,11 @@ namespace GravityWars.Networking.UI
             }
             else
             {
-                Debug.LogWarning("[OnlineMatchmakingUI] LobbyUI not found!");
+                Debug.LogWarning("[OnlineMatchmakingUI] LobbyUI component not found in scene!");
             }
+#else
+            Debug.LogWarning("[OnlineMatchmakingUI] LobbyUI requires Unity Netcode for GameObjects package.");
+#endif
         }
 
         #endregion

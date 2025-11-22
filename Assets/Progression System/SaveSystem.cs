@@ -28,7 +28,7 @@ public static class SaveSystem
     /// Saves player data to local JSON file.
     /// If cloud sync is enabled, also queues for cloud save.
     /// </summary>
-    public static void SavePlayerData(PlayerProfileData data)
+    public static void SavePlayerData(PlayerAccountData data)
     {
         // Save locally (instant, synchronous)
         SavePlayerDataLocal(data);
@@ -43,7 +43,7 @@ public static class SaveSystem
     /// <summary>
     /// Saves player data to local JSON file only (no cloud sync).
     /// </summary>
-    public static void SavePlayerDataLocal(PlayerProfileData data)
+    public static void SavePlayerDataLocal(PlayerAccountData data)
     {
         try
         {
@@ -80,14 +80,14 @@ public static class SaveSystem
     /// Saves player data to cloud asynchronously (non-blocking).
     /// If offline, data is queued and will sync when connection is restored.
     /// </summary>
-    public static async void SavePlayerDataToCloudAsync(PlayerProfileData data)
+    public static async void SavePlayerDataToCloudAsync(PlayerAccountData data)
     {
         try
         {
             var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
             if (cloudSave != null)
             {
-                bool success = await cloudSave.SaveToCloud(data);
+                bool success = await cloudSave.SavePlayerProfile(data);
                 if (!success)
                 {
                     Debug.LogWarning("[SaveSystem] Cloud save queued for later (offline or failed)");
@@ -95,7 +95,7 @@ public static class SaveSystem
             }
             else
             {
-                Debug.LogWarning("[SaveSystem] CloudSaveService not available - skipping cloud sync");
+                Debug.LogWarning("[SaveSystem] CloudSaveService not available");
             }
         }
         catch (Exception e)
@@ -112,7 +112,7 @@ public static class SaveSystem
     /// Loads player data from local JSON file.
     /// LEGACY METHOD: For offline-only use. Consider using LoadPlayerDataWithCloudMerge() instead.
     /// </summary>
-    public static PlayerProfileData LoadPlayerData()
+    public static PlayerAccountData LoadPlayerData()
     {
         return LoadPlayerDataLocal();
     }
@@ -120,7 +120,7 @@ public static class SaveSystem
     /// <summary>
     /// Loads player data from local file only (no cloud sync).
     /// </summary>
-    public static PlayerProfileData LoadPlayerDataLocal()
+    public static PlayerAccountData LoadPlayerDataLocal()
     {
         try
         {
@@ -136,7 +136,7 @@ public static class SaveSystem
             string json = File.ReadAllText(savePath);
 
             // Deserialize
-            PlayerProfileData data = JsonUtility.FromJson<PlayerProfileData>(json);
+            PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
 
             Debug.Log($"[SaveSystem] Loaded local player data: {data.username}");
             return data;
@@ -162,72 +162,46 @@ public static class SaveSystem
     ///
     /// Returns: Merged player data, or null if both cloud and local are empty (new player)
     /// </summary>
-    public static async Task<PlayerProfileData> LoadPlayerDataWithCloudMergeAsync()
+    public static async Task<PlayerAccountData> LoadPlayerDataWithCloudMergeAsync()
     {
         try
         {
-            PlayerProfileData cloudData = null;
-            PlayerProfileData localData = null;
-
-            // Load from cloud if online
-            if (enableCloudSync && Application.internetReachability != NetworkReachability.NotReachable)
-            {
-                var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-                if (cloudSave != null)
-                {
-                    cloudData = await cloudSave.LoadFromCloud();
-                    Debug.Log($"[SaveSystem] Cloud data: {(cloudData != null ? cloudData.username : "none")}");
-                }
-            }
-
             // Load from local
-            localData = LoadPlayerDataLocal();
-            Debug.Log($"[SaveSystem] Local data: {(localData != null ? localData.username : "none")}");
+            PlayerAccountData localData = LoadPlayerDataLocal();
+            Debug.Log($"[SaveSystem] Local data loaded: {(localData != null ? localData.username : "none")}");
 
-            // Merge data
-            PlayerProfileData mergedData = null;
-
-            if (cloudData != null && localData != null)
+            // Try to load from cloud
+            var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
+            if (cloudSave != null)
             {
-                // Both exist - merge them
-                Debug.Log("[SaveSystem] Merging cloud and local data...");
-                var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-                mergedData = cloudSave.MergeData(cloudData, localData);
+                PlayerAccountData cloudData = await cloudSave.LoadPlayerProfile();
 
-                // Save merged result
-                SavePlayerDataLocal(mergedData);
-                if (enableCloudSync)
-                    await cloudSave.SaveToCloud(mergedData);
-            }
-            else if (cloudData != null)
-            {
-                // Cloud only - use cloud data
-                Debug.Log("[SaveSystem] Using cloud data (no local save)");
-                mergedData = cloudData;
-                SavePlayerDataLocal(cloudData); // Cache locally
-            }
-            else if (localData != null)
-            {
-                // Local only - use local data
-                Debug.Log("[SaveSystem] Using local data (no cloud save)");
-                mergedData = localData;
-
-                // Upload to cloud for future sync
-                if (enableCloudSync)
+                if (cloudData != null && localData != null)
                 {
-                    var cloudSave = GravityWars.Networking.ServiceLocator.Instance?.CloudSave;
-                    await cloudSave.SaveToCloud(localData);
+                    // Both exist - merge them (take newest)
+                    Debug.Log("[SaveSystem] Merging cloud and local data...");
+                    PlayerAccountData merged = (cloudData.lastLoginTimestamp > localData.lastLoginTimestamp)
+                        ? cloudData : localData;
+
+                    // Take max currency
+                    merged.credits = Mathf.Max(cloudData.credits, localData.credits);
+                    merged.gems = Mathf.Max(cloudData.gems, localData.gems);
+
+                    return merged;
+                }
+                else if (cloudData != null)
+                {
+                    Debug.Log("[SaveSystem] Using cloud data only");
+                    return cloudData;
                 }
             }
             else
             {
-                // Neither exists - new player
-                Debug.Log("[SaveSystem] No save data found (new player)");
-                return null;
+                Debug.LogWarning("[SaveSystem] CloudSaveService not available - using local data only");
             }
 
-            Debug.Log($"[SaveSystem] Load complete: {mergedData.username}");
-            return mergedData;
+            // Fallback to local
+            return localData;
         }
         catch (Exception e)
         {
@@ -243,7 +217,7 @@ public static class SaveSystem
     /// <summary>
     /// Loads backup save file
     /// </summary>
-    private static PlayerProfileData LoadBackup()
+    private static PlayerAccountData LoadBackup()
     {
         try
         {
@@ -256,7 +230,7 @@ public static class SaveSystem
             }
 
             string json = File.ReadAllText(backupPath);
-            PlayerProfileData data = JsonUtility.FromJson<PlayerProfileData>(json);
+            PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
 
             Debug.Log($"[SaveSystem] Loaded backup data: {data.username}");
             return data;
@@ -316,7 +290,7 @@ public static class SaveSystem
     {
         try
         {
-            PlayerProfileData data = LoadPlayerData();
+            PlayerAccountData data = LoadPlayerData();
             if (data == null)
             {
                 Debug.LogError("[SaveSystem] No data to export");
@@ -337,7 +311,7 @@ public static class SaveSystem
     /// <summary>
     /// Imports save data from an external JSON file
     /// </summary>
-    public static PlayerProfileData ImportSaveData(string importPath)
+    public static PlayerAccountData ImportSaveData(string importPath)
     {
         try
         {
@@ -348,7 +322,7 @@ public static class SaveSystem
             }
 
             string json = File.ReadAllText(importPath);
-            PlayerProfileData data = JsonUtility.FromJson<PlayerProfileData>(json);
+            PlayerAccountData data = JsonUtility.FromJson<PlayerAccountData>(json);
 
             // Save as current player data
             SavePlayerData(data);

@@ -306,7 +306,7 @@ namespace GravityWars.Networking
         /// </summary>
         private void OnAchievementUnlocked(AchievementInstance achievement)
         {
-            Log($"🏆 Achievement Unlocked: {achievement.username}");
+            Log($"🏆 Achievement Unlocked: {achievement.displayName}");
 
             // Award rewards
             AwardAchievementRewards(achievement);
@@ -344,24 +344,24 @@ namespace GravityWars.Networking
             }
 
             // Award soft currency
-            if (achievement.creditsReward > 0)
+            if (achievement.softCurrencyReward > 0)
             {
-                // progressionManager.AddCurrency(CurrencyType.Soft, achievement.creditsReward);
-                Log($"Awarded {achievement.creditsReward} coins");
+                // progressionManager.AddCurrency(CurrencyType.Soft, achievement.softCurrencyReward);
+                Log($"Awarded {achievement.softCurrencyReward} coins");
             }
 
             // Award hard currency
-            if (achievement.gemsReward > 0)
+            if (achievement.hardCurrencyReward > 0)
             {
-                // progressionManager.AddCurrency(CurrencyType.Hard, achievement.gemsReward);
-                Log($"Awarded {achievement.gemsReward} gems");
+                // progressionManager.AddCurrency(CurrencyType.Hard, achievement.hardCurrencyReward);
+                Log($"Awarded {achievement.hardCurrencyReward} gems");
             }
 
             // Award XP
-            if (achievement.currentXPReward > 0)
+            if (achievement.accountXPReward > 0)
             {
-                // progressionManager.AddAccountXP(achievement.currentXPReward, "achievement");
-                Log($"Awarded {achievement.currentXPReward} XP");
+                // progressionManager.AddAccountXP(achievement.accountXPReward, "achievement");
+                Log($"Awarded {achievement.accountXPReward} XP");
             }
 
             // Award exclusive item
@@ -378,7 +378,7 @@ namespace GravityWars.Networking
                 Log($"Awarded title: {achievement.titleReward}");
             }
 
-            Log($"Achievement rewards awarded: {achievement.username}");
+            Log($"Achievement rewards awarded: {achievement.displayName}");
         }
 
         #endregion
@@ -458,9 +458,20 @@ namespace GravityWars.Networking
             var analyticsService = ServiceLocator.Instance?.Analytics;
             if (analyticsService != null)
             {
+                // Map achievement tier to rarity string
+                string rarity = achievement.tier switch
+                {
+                    AchievementTier.Bronze => "common",
+                    AchievementTier.Silver => "rare",
+                    AchievementTier.Gold => "epic",
+                    AchievementTier.Platinum => "legendary",
+                    _ => "common"
+                };
+
                 analyticsService.TrackAchievementUnlocked(
                     achievementID: achievement.achievementID,
-                    achievementName: achievement.username
+                    rarity: rarity,
+                    completionPercentage: 1.0f // Achievement is unlocked = 100% complete
                 );
             }
         }
@@ -476,7 +487,7 @@ namespace GravityWars.Networking
         {
             // In production, this would trigger a UI popup/toast
             // For now, just log
-            Debug.Log($"[AchievementService] 🏆 Achievement Unlocked: {achievement.username}!");
+            Debug.Log($"[AchievementService] 🏆 Achievement Unlocked: {achievement.displayName}!");
 
             // TODO: Integrate with AchievementUI notification system
             // AchievementUI.Instance?.ShowUnlockNotification(achievement);

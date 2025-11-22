@@ -1,822 +1,537 @@
-# Unity Setup Guide - Phase 4+ Systems
-## Complete Manual Setup Instructions
-
-**Last Updated:** Phase 4.6 Complete
-**Estimated Setup Time:** 2-3 hours
-
-This document provides step-by-step instructions for setting up all Phase 4+ systems in Unity Editor.
+# Unity Project Setup Guide - Gravity Wars
+**Complete Setup from Scratch**
 
 ---
 
-## Table of Contents
+## 📋 Prerequisites
 
-1. [Prerequisites](#prerequisites)
-2. [Phase 4.1 - Foundation Services](#phase-41---foundation-services)
-3. [Phase 4.2 - Multiplayer Foundation](#phase-42---multiplayer-foundation)
-4. [Phase 4.3 - Analytics & Economy](#phase-43---analytics--economy)
-5. [Phase 4.4 - Quest System](#phase-44---quest-system)
-6. [Phase 4.5 - Achievement System](#phase-45---achievement-system)
-7. [Phase 4.6 - Leaderboard System](#phase-46---leaderboard-system)
-8. [Final Integration](#final-integration)
-9. [Testing Checklist](#testing-checklist)
+- **Unity Version:** 2022.3.34f1 (LTS) - ✅ Already installed
+- **Operating System:** Windows, Mac, or Linux
+- **Unity Account:** Required for Unity Gaming Services (free)
+- **Internet Connection:** Required for Unity Gaming Services
+
+**Estimated Time:** 1-2 hours
 
 ---
 
-## Prerequisites
+## 🎯 What You'll Set Up
 
-### Required Packages
-1. **TextMeshPro** - Import TMP Essentials when prompted
-2. **Unity UI** - Should be included by default
-
-### Project Structure
-Ensure you have these existing components (from earlier phases):
-- `GameManager` - Your main game controller
-- `ProgressionManager` - Your progression system
-- `PlayerAccountData` - Your player data structure
-- Main game scene
+1. Unity Gaming Services (Cloud Save, Authentication)
+2. Package Installation
+3. Project Configuration
+4. Manager Setup
+5. Testing
 
 ---
 
-## Phase 4.1 - Foundation Services
+## 📦 Part 1: Install Packages
 
-### Step 1: Create Service Locator
+### **Step 1: Open Package Manager**
+1. In Unity Editor: `Window > Package Manager`
+2. Top-left dropdown → Select **"Unity Registry"**
 
-1. **In Hierarchy:** Create empty GameObject
-   - Name: `[ServiceLocator]`
-   - Add Component: `ServiceLocator`
-   - ✅ Check: "Don't Destroy On Load" is enabled
+### **Step 2: Install Required Packages**
 
-2. **Create Child Services:**
-   - Right-click `[ServiceLocator]` → Create Empty
-   - Name: `[CloudSaveService]`
-   - Add Component: `CloudSaveService`
-   - Configuration in Inspector:
-     - Enable Debug Logging: ✅ (for testing)
-     - Auto Save Interval: `300` (5 minutes)
-     - Max Retry Attempts: `3`
+Install these in order (click Install, wait for completion):
 
-3. **Add Authentication Service:**
-   - Right-click `[ServiceLocator]` → Create Empty
-   - Name: `[AuthenticationService]`
-   - Add Component: `AuthenticationService`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Enable Anonymous Login: ✅
-     - Auto Login On Start: ✅
+#### **A. TextMeshPro** (if prompted)
+- Should auto-install when you create first TMP object
+- Click "Import TMP Essentials" when prompted
 
-4. **Add Network Connection Manager:**
-   - Right-click `[ServiceLocator]` → Create Empty
-   - Name: `[NetworkConnectionManager]`
-   - Add Component: `NetworkConnectionManager`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Connection Timeout: `10`
-     - Max Reconnect Attempts: `3`
-     - Reconnect Delay: `2`
+#### **B. Unity Gaming Services Core**
+- Search: `com.unity.services.core`
+- Click **Install**
+- Wait for completion
 
-**Result:** You should have:
+#### **C. Unity Authentication**
+- Search: `com.unity.services.authentication`
+- Click **Install**
+
+#### **D. Unity Cloud Save**
+- Search: `com.unity.services.cloudsave`
+- Click **Install**
+
+### **Step 3: Optional Packages (for Online Multiplayer)**
+
+These are optional - only install if you want online PVP:
+
+#### **E. Unity Lobby**
+- Search: `com.unity.services.lobby`
+- Click **Install**
+
+#### **F. Unity Netcode for GameObjects**
+- Search: `com.unity.netcode.gameobjects`
+- Click **Install**
+
+### **Verify Installation**
+- Switch Package Manager dropdown to **"In Project"**
+- Confirm all installed packages appear
+- Close Package Manager
+
+---
+
+## 🔐 Part 2: Setup Unity Gaming Services
+
+### **Step 1: Create Unity Project ID**
+
+1. Go to `Edit > Project Settings > Services`
+2. Click **"Create Unity Project ID"**
+3. Fill in:
+   - **Organization:** Select or create your organization
+   - **Project Name:** "Gravity Wars" (or your preferred name)
+4. Click **Create**
+5. Wait for confirmation (check top of Services window)
+
+### **Step 2: Enable Cloud Save**
+
+1. In Project Settings > Services, find **"Cloud Save"**
+2. Click **"Go to Dashboard"** (opens web browser)
+3. In Unity Dashboard:
+   - Select your project
+   - Click **"Cloud Save"** in left sidebar
+   - Click **"Set up Cloud Save"**
+   - Follow prompts to enable
+4. Return to Unity Editor
+5. Verify: Cloud Save shows **"Enabled"** with green checkmark
+
+### **Step 3: Enable Authentication**
+
+1. In Services window, find **"Authentication"**
+2. Click **"Enable"**
+3. Configuration auto-completes
+4. Verify: Shows **"Enabled"** with green checkmark
+
+### **Step 4: Enable Lobby** (Optional - for Online)
+
+1. In Services window, find **"Lobby"**
+2. Click **"Enable"**
+3. In Dashboard, configure:
+   - Max players per lobby: **2** (for 1v1)
+   - Save settings
+4. Verify: Shows **"Enabled"**
+
+---
+
+## ⚙️ Part 3: Configure Project Settings
+
+### **Step 1: Player Settings**
+
+Go to `Edit > Project Settings > Player`
+
+#### **Company Name**
+- Set to your studio name (e.g., "YourStudio")
+
+#### **Product Name**
+- Set to "Gravity Wars"
+
+#### **API Compatibility Level**
+- Location: `Other Settings > Configuration > Api Compatibility Level`
+- Set to **".NET Standard 2.1"**
+
+#### **Scripting Define Symbols** (Optional - for online)
+- If you installed Unity Netcode, add: `UNITY_NETCODE_GAMEOBJECTS`
+- Location: `Other Settings > Script Compilation > Scripting Define Symbols`
+
+### **Step 2: Quality Settings**
+
+Go to `Edit > Project Settings > Quality`
+
+**For 2D Game:**
+- Texture Quality: **Full Res**
+- Anti Aliasing: **2x Multi Sampling** (or 4x for better quality)
+- V Sync Count: **Every V Blank**
+
+### **Step 3: Physics2D Settings**
+
+Go to `Edit > Project Settings > Physics 2D`
+
+**Add Layers:**
+- Layer 6: "PlayerShip"
+- Layer 7: "Missile"
+- Layer 8: "Planet"
+- Layer 9: "Boundary"
+
+**Configure Layer Collision Matrix:**
+- PlayerShip collides with: Missile, Planet, Boundary
+- Missile collides with: PlayerShip, Planet, Boundary
+- Planet collides with: PlayerShip, Missile
+- Boundary collides with: PlayerShip, Missile
+
+### **Step 4: Tags**
+
+Go to `Edit > Project Settings > Tags and Layers`
+
+**Add Tags:**
+- "Player1"
+- "Player2"
+- "Missile"
+- "Planet"
+- "Boundary"
+
+---
+
+## 🧪 Part 4: Test Unity Gaming Services
+
+### **Step 1: Create Test Scene**
+
+1. Create new scene: `File > New Scene`
+2. Save as: `Assets/Scenes/ServicesTest.unity`
+
+### **Step 2: Create Test Script**
+
+1. Create C# script: `Assets/Scripts/ServicesTestRunner.cs`
+2. Copy this code:
+
+```csharp
+using UnityEngine;
+using Unity.Services.Core;
+using Unity.Services.Authentication;
+using Unity.Services.CloudSave;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+public class ServicesTestRunner : MonoBehaviour
+{
+    async void Start()
+    {
+        Debug.Log("=== Starting Unity Gaming Services Test ===");
+        await RunTests();
+    }
+
+    async Task RunTests()
+    {
+        try
+        {
+            // Test 1: Initialize UGS
+            Debug.Log("[Test 1/4] Initializing Unity Gaming Services...");
+            await UnityServices.InitializeAsync();
+            Debug.Log("[Test 1/4] ✅ PASSED - Services initialized");
+
+            // Test 2: Sign in anonymously
+            Debug.Log("[Test 2/4] Testing anonymous authentication...");
+            if (!AuthenticationService.Instance.IsSignedIn)
+            {
+                await AuthenticationService.Instance.SignInAnonymouslyAsync();
+            }
+            string playerId = AuthenticationService.Instance.PlayerId;
+            Debug.Log($"[Test 2/4] ✅ PASSED - Signed in as: {playerId}");
+
+            // Test 3: Write to Cloud Save
+            Debug.Log("[Test 3/4] Testing Cloud Save write...");
+            var testData = new Dictionary<string, object>
+            {
+                { "test_string", "Hello from Gravity Wars!" },
+                { "test_number", 42 },
+                { "timestamp", System.DateTime.UtcNow.ToString() }
+            };
+            await CloudSaveService.Instance.Data.ForceSaveAsync(testData);
+            Debug.Log("[Test 3/4] ✅ PASSED - Cloud save write successful");
+
+            // Test 4: Read from Cloud Save
+            Debug.Log("[Test 4/4] Testing Cloud Save read...");
+            var keys = new HashSet<string> { "test_string", "test_number", "timestamp" };
+            var loadedData = await CloudSaveService.Instance.Data.LoadAsync(keys);
+
+            if (loadedData.TryGetValue("test_string", out var testString))
+            {
+                Debug.Log($"[Test 4/4] Read data: {testString}");
+            }
+            Debug.Log("[Test 4/4] ✅ PASSED - Cloud save read successful");
+
+            // All tests passed
+            Debug.Log("=================================");
+            Debug.Log("✅ ALL TESTS PASSED!");
+            Debug.Log("Unity Gaming Services are ready!");
+            Debug.Log("=================================");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError("=================================");
+            Debug.LogError($"❌ TEST FAILED");
+            Debug.LogError($"Error: {e.Message}");
+            Debug.LogError($"Stack Trace: {e.StackTrace}");
+            Debug.LogError("=================================");
+            Debug.LogError("\nTroubleshooting:");
+            Debug.LogError("1. Check internet connection");
+            Debug.LogError("2. Verify services are enabled in Unity Dashboard");
+            Debug.LogError("3. Check Project Settings > Services shows linked project");
+        }
+    }
+}
 ```
-[ServiceLocator]
-├── [CloudSaveService]
-├── [AuthenticationService]
-└── [NetworkConnectionManager]
+
+### **Step 3: Run Test**
+
+1. In Hierarchy, create Empty GameObject: "ServicesTest"
+2. Attach `ServicesTestRunner.cs` script to it
+3. Press **Play**
+4. Watch Console
+
+**Expected Output:**
+```
+=== Starting Unity Gaming Services Test ===
+[Test 1/4] Initializing Unity Gaming Services...
+[Test 1/4] ✅ PASSED - Services initialized
+[Test 2/4] Testing anonymous authentication...
+[Test 2/4] ✅ PASSED - Signed in as: <player_id>
+[Test 3/4] Testing Cloud Save write...
+[Test 3/4] ✅ PASSED - Cloud save write successful
+[Test 4/4] Testing Cloud Save read...
+[Test 4/4] Read data: Hello from Gravity Wars!
+[Test 4/4] ✅ PASSED - Cloud save read successful
+=================================
+✅ ALL TESTS PASSED!
+Unity Gaming Services are ready!
+=================================
 ```
 
----
-
-## Phase 4.2 - Multiplayer Foundation
-
-### Step 2: Create Multiplayer Services
-
-1. **Add Matchmaking Service:**
-   - Create empty GameObject in scene root
-   - Name: `[MatchmakingService]`
-   - Add Component: `MatchmakingService`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Default Queue: `"default-queue"`
-     - Matchmaking Timeout: `60`
-
-2. **Add Relay Service:**
-   - Create empty GameObject in scene root
-   - Name: `[RelayService]`
-   - Add Component: `RelayService`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Max Players: `2`
-     - Region: `"auto"` (or your preferred region)
-
-3. **Add Lobby Service:**
-   - Create empty GameObject in scene root
-   - Name: `[LobbyService]`
-   - Add Component: `LobbyService`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Max Lobbies To Fetch: `20`
-     - Lobby Heartbeat Interval: `15`
-
-### Step 3: Integrate with GameManager
-
-1. **Select your GameManager GameObject**
-2. **Add Component:** `GameManagerMultiplayerIntegration`
-3. **Configuration:**
-   - Enable Multiplayer Tracking: ✅
-   - Track All Match Events: ✅
-
-**Note:** This component will track match events for multiplayer stats (once implemented).
+**If tests fail:**
+- Check internet connection
+- Verify services enabled in Unity Dashboard
+- Check Console for specific error messages
+- Ensure Project ID is linked in `Edit > Project Settings > Services`
 
 ---
 
-## Phase 4.3 - Analytics & Economy
+## 🏗️ Part 5: Setup Game Managers
 
-### Step 4: Create Analytics Service
+### **Step 1: Create Main Menu Scene**
 
-1. **Create Analytics Service:**
-   - Create empty GameObject in scene root
-   - Name: `[AnalyticsService]`
-   - Add Component: `AnalyticsService`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Enable Unity Analytics: ❌ (until you setup Unity Analytics)
-     - Batch Size: `10`
-     - Flush Interval: `30`
+1. Create new scene: `File > New Scene`
+2. Save as: `Assets/Scenes/MainMenu.unity`
+3. Delete default Main Camera and Directional Light
 
-### Step 5: Add Analytics Integrations
+### **Step 2: Create ProgressionManager**
 
-1. **On GameManager GameObject:**
-   - Add Component: `GameManagerAnalytics`
-   - Configuration:
-     - Enable Analytics Tracking: ✅
+1. In Hierarchy, create Empty GameObject: `ProgressionManager`
+2. Attach script: `Assets/Progression System/ProgressionManager.cs`
+3. In Inspector, you'll see empty lists:
+   - All Ship Bodies
+   - All Perks
+   - All Passives
+   - All Move Types
+   - All Missiles
 
-2. **On ProgressionManager GameObject:**
-   - Add Component: `ProgressionManagerAnalytics`
-   - Configuration:
-     - Enable Analytics Tracking: ✅
+**We'll fill these with ScriptableObjects later (see CONTENT_CREATION_GUIDE.md)**
 
-### Step 6: Create Economy Services
+4. Verify `Awake()` method calls `DontDestroyOnLoad(gameObject)` in code
 
-1. **Create Economy Validator:**
-   - Create empty GameObject in scene root
-   - Name: `[EconomyValidator]`
-   - Add Component: `EconomyValidator`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Max XP Per Match: `500`
-     - Max XP Per Hour: `2000`
-     - Max Currency Per Match: `1000`
-     - Enable Strict Validation: ✅
+### **Step 3: Create ServiceLocator** (Optional - for Cloud/Online)
 
-2. **Create Rate Limiter:**
-   - Create empty GameObject in scene root
-   - Name: `[RateLimiter]`
-   - Add Component: `RateLimiter`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Default Max Requests: `10`
-     - Default Window Seconds: `60`
+1. Create Empty GameObject: `ServiceLocator`
+2. Attach script: `Assets/Networking/ServiceLocator.cs`
+3. Leave as-is for now (auto-configures on start)
 
-3. **Create Suspicious Activity Detector:**
-   - Create empty GameObject in scene root
-   - Name: `[SuspiciousActivityDetector]`
-   - Add Component: `SuspiciousActivityDetector`
-   - Configuration:
-     - Enable Debug Logging: ✅
-     - Auto Flag Threshold: `75`
-     - Minimum Matches For Analysis: `10`
+### **Step 4: Create Canvas for UI**
 
----
-
-## Phase 4.4 - Quest System
-
-### Step 7: Generate Quest Templates
-
-1. **In Unity Menu:** `Tools → Gravity Wars → Generate Quest Templates`
-2. **Click:** "Generate All Quest Templates"
-3. **Result:** 25 quest ScriptableObjects created in `Assets/Quests/Templates/`
-
-### Step 8: Create Quest Service
-
-1. **Create Quest Service:**
-   - Create empty GameObject in scene root
-   - Name: `[QuestService]`
-   - Add Component: `QuestService`
-
-2. **Assign Quest Templates:**
-   - In Inspector, expand `Quest Templates` list
-   - Set Size: `25`
-   - **Drag ALL quest templates** from `Assets/Quests/Templates/` folder into the list
-     - Daily quests (11 files)
-     - Weekly quests (7 files)
-     - Season quests (7 files)
-
-3. **Configuration:**
-   - Daily Quest Slots: `3`
-   - Weekly Quest Slots: `3`
-   - Season Quest Slots: `5`
-   - Debug Logging: ✅
-
-### Step 9: Add Quest Integrations
-
-1. **On GameManager GameObject:**
-   - Add Component: `GameManagerQuestIntegration`
-   - Configuration:
-     - Enable Quest Tracking: ✅
-
-2. **On ProgressionManager GameObject:**
-   - Add Component: `ProgressionManagerQuestIntegration`
-   - Configuration:
-     - Enable Quest Tracking: ✅
-
-### Step 10: Create Quest UI (Canvas Setup)
-
-**If you don't have a Canvas:**
-1. Right-click Hierarchy → UI → Canvas
+1. Right-click Hierarchy → `UI > Canvas`
 2. Name: `MainCanvas`
-3. Canvas Scaler:
-   - UI Scale Mode: `Scale With Screen Size`
-   - Reference Resolution: `1920 x 1080`
+3. Canvas Scaler settings:
+   - UI Scale Mode: **Scale With Screen Size**
+   - Reference Resolution: **1920 x 1080**
+   - Match: **0.5** (width and height balanced)
 
-**Create Quest Panel:**
+4. Create simple UI for testing:
+   - Right-click MainCanvas → `UI > Text - TextMeshPro`
+   - Name: "TitleText"
+   - Set text: "Gravity Wars"
+   - Font Size: 72
+   - Alignment: Center
+   - Position: Top center
 
-1. **Create Quest Panel:**
-   - Right-click `MainCanvas` → UI → Panel
-   - Name: `QuestPanel`
-   - Set Active: ❌ (will be shown/hidden by script)
-   - RectTransform:
-     - Anchors: Right side (preset: right-center)
-     - Pos X: `400` (off-screen)
-     - Width: `400`
-     - Height: `800`
+### **Step 5: Setup Build Settings**
 
-2. **Add Quest UI Component:**
-   - Select `QuestPanel`
-   - Add Component: `QuestUI`
-
-3. **Create UI Elements:**
-
-   **a) Background Overlay:**
-   - Right-click `MainCanvas` → UI → Image
-   - Name: `QuestBackgroundOverlay`
-   - RectTransform: Stretch to fill (preset: stretch-stretch)
-   - Color: Black with Alpha `100`
-   - Set Active: ❌
-
-   **b) Category Tabs:**
-   - Right-click `QuestPanel` → UI → Button
-   - Name: `DailyTabButton`
-   - Position: Top-left
-   - Repeat for: `WeeklyTabButton`, `SeasonTabButton`
-
-   **c) Quest Container:**
-   - Right-click `QuestPanel` → UI → Scroll View
-   - Name: `QuestScrollView`
-   - Delete Scrollbar Horizontal
-   - In Content:
-     - Add Component: `Vertical Layout Group`
-     - Spacing: `10`
-     - Child Alignment: Upper Center
-     - Child Force Expand: Width ✅, Height ❌
-
-   **d) Next Refresh Text:**
-   - Right-click `QuestPanel` → UI → Text - TextMeshPro
-   - Name: `NextRefreshText`
-   - Position: Top-center
-   - Text: "Next refresh in: --"
-
-   **e) Notification Badge:**
-   - Right-click `QuestPanel` → UI → Image
-   - Name: `NotificationBadge`
-   - Position: Top-right corner
-   - Add child: Text - TextMeshPro (`BadgeCountText`)
-
-   **f) Toggle Button:**
-   - Right-click `MainCanvas` → UI → Button
-   - Name: `QuestToggleButton`
-   - Position: Right edge of screen
-   - Text: "Quests"
-
-4. **Create Quest Card Prefab:**
-
-   **Create temporary quest card:**
-   - Right-click Hierarchy → UI → Image
-   - Name: `QuestCard`
-   - Width: `380`, Height: `120`
-
-   **Add child elements:**
-   ```
-   QuestCard
-   ├── QuestNameText (TextMeshPro)
-   ├── QuestDescriptionText (TextMeshPro)
-   ├── ProgressBar (Slider)
-   │   └── Fill (Image)
-   ├── ProgressText (TextMeshPro)
-   ├── RewardText (TextMeshPro)
-   ├── TimerText (TextMeshPro)
-   └── ClaimButton (Button)
-       └── ButtonText (TextMeshPro)
-   ```
-
-   **Add QuestCardUI component:**
-   - Select `QuestCard`
-   - Add Component: `QuestCardUI`
-   - **Assign all UI references in Inspector**
-
-   **Create Prefab:**
-   - Drag `QuestCard` from Hierarchy to `Assets/Quests/UI/Prefabs/`
-   - Delete `QuestCard` from Hierarchy
-
-5. **Assign QuestUI References:**
-   - Select `QuestPanel`
-   - In `QuestUI` component, assign:
-     - Quest Panel: `QuestPanel` RectTransform
-     - Background Overlay: `QuestBackgroundOverlay` Image
-     - Daily Tab Button: `DailyTabButton`
-     - Weekly Tab Button: `WeeklyTabButton`
-     - Season Tab Button: `SeasonTabButton`
-     - Quest Container: `QuestScrollView/Viewport/Content`
-     - Quest Card Prefab: `QuestCard` prefab from Assets
-     - Next Refresh Text: `NextRefreshText`
-     - Notification Badge: `NotificationBadge`
-     - Badge Count Text: `BadgeCountText`
-     - Toggle Panel Button: `QuestToggleButton`
-   - Panel Slide Duration: `0.3`
-   - Hidden Position: `(400, 0)`
-   - Shown Position: `(0, 0)`
+1. Go to `File > Build Settings`
+2. Click **"Add Open Scenes"** to add MainMenu
+3. Add your existing game scene(s)
+4. **Important:** MainMenu should be index 0 (top of list)
 
 ---
 
-## Phase 4.5 - Achievement System
+## 📁 Part 6: Create Folder Structure
 
-### Step 11: Generate Achievement Templates
+Create these folders for organization:
 
-1. **In Unity Menu:** `Tools → Gravity Wars → Generate Achievement Templates`
-2. **Click:** "Generate All Achievement Templates"
-3. **Result:** 50+ achievement ScriptableObjects created in `Assets/Achievements/Templates/`
+```
+Assets/
+├── Scenes/
+│   ├── MainMenu.unity ✅
+│   ├── GameArena.unity
+│   └── ServicesTest.unity ✅
+├── Scripts/
+│   ├── Core/
+│   ├── UI/
+│   ├── Gameplay/
+│   └── Managers/
+├── Data/
+│   ├── Ships/
+│   ├── Perks/
+│   ├── Passives/
+│   ├── Quests/
+│   ├── Achievements/
+│   └── BattlePass/
+├── Prefabs/
+│   ├── UI/
+│   ├── Ships/
+│   ├── Missiles/
+│   └── VFX/
+├── Art/
+│   ├── Sprites/
+│   ├── Materials/
+│   └── Textures/
+└── Audio/
+    ├── Music/
+    └── SFX/
+```
 
-### Step 12: Create Achievement Service
-
-1. **Create Achievement Service:**
-   - Create empty GameObject in scene root
-   - Name: `[AchievementService]`
-   - Add Component: `AchievementService`
-
-2. **Assign Achievement Templates:**
-   - In Inspector, expand `Achievement Templates` list
-   - Set Size: `50+` (count the files in Templates folder)
-   - **Drag ALL achievement templates** from `Assets/Achievements/Templates/` into the list
-     - Combat achievements (~15)
-     - Progression achievements (~7)
-     - Collection achievements (~5)
-     - Skill achievements (~8)
-     - Social achievements (~5)
-     - Secret achievements (~6)
-
-3. **Configuration:**
-   - Debug Logging: ✅
-   - Enable Steam Sync: ❌ (until you setup Steamworks)
-   - Enable PS Sync: ❌
-   - Enable Xbox Sync: ❌
-   - Show Unlock Notifications: ✅
-   - Notification Duration: `5`
-
-### Step 13: Add Achievement Integrations
-
-1. **On GameManager GameObject:**
-   - Add Component: `GameManagerAchievementIntegration`
-   - Configuration:
-     - Enable Achievement Tracking: ✅
-     - Perfect Accuracy Threshold: `95`
-     - Quick Victory Time Limit: `60`
-
-2. **On ProgressionManager GameObject:**
-   - Add Component: `ProgressionManagerAchievementIntegration`
-   - Configuration:
-     - Enable Achievement Tracking: ✅
-
-### Step 14: Create Achievement UI
-
-**Create Achievement Panel:**
-
-1. **Create Panel:**
-   - Right-click `MainCanvas` → UI → Panel
-   - Name: `AchievementPanel`
-   - Set Active: ❌
-   - RectTransform:
-     - Anchors: Center
-     - Width: `1200`
-     - Height: `800`
-
-2. **Add Achievement UI Component:**
-   - Select `AchievementPanel`
-   - Add Component: `AchievementUI`
-
-3. **Create UI Elements:**
-
-   **a) Category Filter Buttons:**
-   - Create buttons for each category:
-     - `AllCategoryButton`
-     - `CombatCategoryButton`
-     - `ProgressionCategoryButton`
-     - `CollectionCategoryButton`
-     - `SkillCategoryButton`
-     - `SocialCategoryButton`
-     - `SecretCategoryButton`
-   - Position in a horizontal row at top
-
-   **b) Filter Toggles:**
-   - Right-click `AchievementPanel` → UI → Toggle
-   - Name: `ShowUnlockedToggle`
-   - Label: "Show Unlocked"
-   - Is On: ✅
-   - Repeat for: `ShowLockedToggle`
-
-   **c) Achievement Container:**
-   - Right-click `AchievementPanel` → UI → Scroll View
-   - Name: `AchievementScrollView`
-   - In Content:
-     - Add Component: `Grid Layout Group`
-     - Cell Size: `(350, 120)`
-     - Spacing: `(10, 10)`
-     - Constraint: Fixed Column Count = `3`
-
-   **d) Search Field:**
-   - Right-click `AchievementPanel` → UI → Input Field - TextMeshPro
-   - Name: `SearchField`
-   - Placeholder: "Search achievements..."
-
-   **e) Statistics:**
-   - Create TextMeshPro elements:
-     - `TotalAchievementsText`: "Total: 50"
-     - `UnlockedCountText`: "Unlocked: 0"
-     - `CompletionPercentageText`: "Completion: 0%"
-     - `AchievementPointsText`: "Points: 0"
-
-   **f) Unlock Notification Popup:**
-   - Right-click `MainCanvas` → UI → Image
-   - Name: `UnlockNotificationPopup`
-   - Position: Top-center
-   - Set Active: ❌
-   - Add children:
-     - `NotificationAchievementName` (TextMeshPro)
-     - `NotificationDescription` (TextMeshPro)
-     - `NotificationIcon` (Image)
-     - `NotificationPointsText` (TextMeshPro)
-
-   **g) Toggle Button:**
-   - Right-click `MainCanvas` → UI → Button
-   - Name: `AchievementToggleButton`
-   - Position: Left edge of screen
-   - Text: "Achievements"
-
-4. **Create Achievement Card Prefab:**
-
-   **Create card:**
-   - Right-click Hierarchy → UI → Image
-   - Name: `AchievementCard`
-   - Width: `340`, Height: `110`
-
-   **Add elements:**
-   ```
-   AchievementCard
-   ├── AchievementIcon (Image)
-   ├── LockIcon (Image - shown when locked)
-   ├── TierBadge (Image)
-   │   └── TierText (TextMeshPro)
-   ├── AchievementNameText (TextMeshPro)
-   ├── AchievementDescriptionText (TextMeshPro)
-   ├── ProgressBarContainer (GameObject)
-   │   ├── ProgressBar (Slider)
-   │   └── ProgressText (TextMeshPro)
-   └── PointsText (TextMeshPro)
-   ```
-
-   **Add AchievementCardUI component:**
-   - Select `AchievementCard`
-   - Add Component: `AchievementCardUI`
-   - **Assign all UI references**
-   - Colors:
-     - Unlocked Color: `(1, 1, 1)`
-     - Locked Color: `(0.5, 0.5, 0.5)`
-
-   **Create Prefab:**
-   - Drag to `Assets/Achievements/UI/Prefabs/`
-   - Delete from Hierarchy
-
-5. **Assign AchievementUI References:**
-   - Select `AchievementPanel`
-   - In `AchievementUI` component, assign all created UI elements
+You can create folders in Unity by right-clicking Project window → `Create > Folder`
 
 ---
 
-## Phase 4.6 - Leaderboard System
+## ✅ Part 7: Verify Setup
 
-### Step 15: Create Leaderboard Service
+### **Checklist:**
 
-1. **Create Leaderboard Service:**
-   - Create empty GameObject in scene root
-   - Name: `[LeaderboardService]`
-   - Add Component: `LeaderboardService`
+**Services:**
+- [ ] Unity Gaming Services test passes (all 4 tests green)
+- [ ] Cloud Save enabled in Dashboard
+- [ ] Authentication enabled in Dashboard
 
-2. **Configure Leaderboard Definitions:**
-   - **Option A - Manual (Recommended for now):**
-     - In Inspector, expand `Leaderboard Definitions`
-     - Set Size: `10`
-     - For each entry, configure:
-       - Leaderboard ID: e.g., `"global_total_wins_alltime"`
-       - Display Name: e.g., `"Total Wins"`
-       - Description: e.g., `"All-time match wins leaderboard"`
-       - Scope: `Global`
-       - Stat Type: `TotalWins`
-       - Time Frame: `AllTime`
-       - Ship Filter: `All`
-       - Score Format: `"{0} wins"`
-       - Descending: ✅
-       - Max Entries: `1000`
-       - Entries Per Page: `20`
-       - Auto Reset: ❌
+**Project Settings:**
+- [ ] Company Name set
+- [ ] Product Name set to "Gravity Wars"
+- [ ] API Compatibility Level is .NET Standard 2.1
+- [ ] Physics2D layers configured
+- [ ] Tags created
 
-   - **Repeat for all 10 default leaderboards:**
-     1. Total Wins (All-Time)
-     2. Longest Win Streak (All-Time)
-     3. Total Damage Dealt (All-Time)
-     4. Highest Damage - Single Match (All-Time)
-     5. Best Accuracy (All-Time)
-     6. Fastest Win (All-Time)
-     7. Win Rate (All-Time)
-     8. Weekly Wins (Weekly, Auto Reset ✅)
-     9. Monthly Wins (Monthly, Auto Reset ✅)
-     10. Ranked MMR (Season, Auto Reset ✅)
+**Scenes:**
+- [ ] MainMenu scene created
+- [ ] MainMenu is index 0 in Build Settings
+- [ ] Canvas created with proper scaler settings
 
-3. **Configuration:**
-   - Debug Logging: ✅
-   - Cache Expiration: `300` (5 minutes)
-   - Auto Refresh Cache: ✅
-   - Auto Refresh Interval: `60`
-   - Max Submissions Per Minute: `10`
+**Managers:**
+- [ ] ProgressionManager exists in MainMenu scene
+- [ ] ServiceLocator exists (if using cloud features)
+- [ ] Both use DontDestroyOnLoad
 
-### Step 16: Add Leaderboard Integration
-
-1. **On GameManager GameObject:**
-   - Add Component: `GameManagerLeaderboardIntegration`
-   - Configuration:
-     - Enable Leaderboard Tracking: ✅
-     - Submit After Match: ✅
-     - Batch Submit Interval: `300`
-
-### Step 17: Create Leaderboard UI
-
-**Create Leaderboard Panel:**
-
-1. **Create Panel:**
-   - Right-click `MainCanvas` → UI → Panel
-   - Name: `LeaderboardPanel`
-   - Set Active: ❌
-   - RectTransform:
-     - Anchors: Center
-     - Width: `1000`
-     - Height: `800`
-
-2. **Add Leaderboard UI Component:**
-   - Select `LeaderboardPanel`
-   - Add Component: `LeaderboardUI`
-
-3. **Create UI Elements:**
-
-   **a) Leaderboard Dropdown:**
-   - Right-click `LeaderboardPanel` → UI → Dropdown - TextMeshPro
-   - Name: `LeaderboardDropdown`
-   - Position: Top-center
-   - Options will be populated by script
-
-   **b) Scope Tab Buttons:**
-   - Create buttons:
-     - `GlobalTabButton` - "Global"
-     - `FriendsTabButton` - "Friends"
-     - `SeasonalTabButton` - "Seasonal"
-
-   **c) Entry Container:**
-   - Right-click `LeaderboardPanel` → UI → Scroll View
-   - Name: `LeaderboardScrollView`
-   - In Content:
-     - Add Component: `Vertical Layout Group`
-     - Spacing: `5`
-
-   **d) Pagination:**
-   - Create buttons:
-     - `PreviousPageButton` - "< Previous"
-     - `NextPageButton` - "Next >"
-   - Create text:
-     - `PageNumberText` - "Page 1 / 10"
-   - Create button:
-     - `JumpToPlayerButton` - "Jump to My Rank"
-
-   **e) Header:**
-   - Create texts:
-     - `LeaderboardTitleText` - Large, bold
-     - `LastUpdatedText` - Small, gray
-   - Create button:
-     - `RefreshButton` - Refresh icon
-
-   **f) Loading Indicator:**
-   - Right-click `LeaderboardPanel` → UI → Image
-   - Name: `LoadingIndicator`
-   - Set Active: ❌
-   - Add rotating spinner image
-
-   **g) Player Info:**
-   - Create texts:
-     - `PlayerRankText` - "Your Rank: 50th"
-     - `PlayerScoreText` - "Score: 100 wins"
-
-   **h) Toggle Button:**
-   - Right-click `MainCanvas` → UI → Button
-   - Name: `LeaderboardToggleButton`
-   - Position: Top edge of screen
-   - Text: "Leaderboards"
-
-4. **Create Leaderboard Entry Prefab:**
-
-   **Create entry:**
-   - Right-click Hierarchy → UI → Image
-   - Name: `LeaderboardEntry`
-   - Width: `950`, Height: `60`
-
-   **Add elements:**
-   ```
-   LeaderboardEntry
-   ├── RankText (TextMeshPro) - "1"
-   ├── RankMedal (Image) - Gold/Silver/Bronze
-   ├── PlayerAvatar (Image)
-   ├── PlayerNameText (TextMeshPro)
-   ├── ScoreText (TextMeshPro)
-   └── RankChangeText (TextMeshPro) - "+5", "-2"
-   ```
-
-   **Add LeaderboardEntryUI component:**
-   - Select `LeaderboardEntry`
-   - Add Component: `LeaderboardEntryUI`
-   - **Assign all references**
-   - **Assign medal sprites:**
-     - Gold Medal Sprite: (create/import)
-     - Silver Medal Sprite: (create/import)
-     - Bronze Medal Sprite: (create/import)
-   - Colors:
-     - Self Color: `(1, 0.9, 0.5)` - Yellow
-     - Friend Color: `(0.5, 0.9, 1)` - Blue
-     - Normal Color: `(1, 1, 1)` - White
-
-   **Create Prefab:**
-   - Drag to `Assets/Leaderboards/UI/Prefabs/`
-   - Delete from Hierarchy
-
-5. **Assign LeaderboardUI References:**
-   - Select `LeaderboardPanel`
-   - In `LeaderboardUI` component, assign all elements
-   - Configuration:
-     - Entries Per Page: `20`
-     - Auto Refresh Interval: `60`
-     - Enable Auto Refresh: ✅
+**Folder Structure:**
+- [ ] Data, Scripts, Prefabs, Art folders created
+- [ ] Organized by type
 
 ---
 
-## Final Integration
+## 🐛 Troubleshooting
 
-### Step 18: Connect Services to Service Locator
+### **Problem: "Services initialization failed"**
+**Solutions:**
+1. Check internet connection
+2. Go to `Edit > Project Settings > Services`
+3. Verify Project ID is linked
+4. Try clicking "Refresh" in Services window
+5. Restart Unity Editor
 
-1. **Select `[ServiceLocator]` GameObject**
-2. **In ServiceLocator component:**
-   - **Cloud Save Reference:** Drag `[CloudSaveService]` GameObject
-   - **Authentication Reference:** Drag `[AuthenticationService]` GameObject
-   - **Analytics Reference:** Drag `[AnalyticsService]` GameObject
+### **Problem: "Authentication failed"**
+**Solutions:**
+1. Verify Authentication is enabled in Dashboard
+2. Check Console for specific error code
+3. Try signing out: `AuthenticationService.Instance.SignOut()`
+4. Clear PlayerPrefs: `Edit > Clear All PlayerPrefs`
 
-### Step 19: Scene Setup Checklist
+### **Problem: "Cloud Save permission denied"**
+**Solutions:**
+1. Ensure Cloud Save is enabled in Dashboard
+2. Verify player is signed in before saving
+3. Check Unity account has proper permissions
+4. Try re-enabling Cloud Save in Dashboard
 
-**Verify your scene has:**
+### **Problem: "ProgressionManager not persisting between scenes"**
+**Solutions:**
+1. Verify `DontDestroyOnLoad(gameObject)` is called in Awake()
+2. Check there's only ONE ProgressionManager (use Singleton pattern)
+3. Ensure ProgressionManager is in first loaded scene (MainMenu)
 
-Services (in scene root):
-- ✅ `[ServiceLocator]`
-  - ✅ `[CloudSaveService]`
-  - ✅ `[AuthenticationService]`
-  - ✅ `[NetworkConnectionManager]`
-- ✅ `[MatchmakingService]`
-- ✅ `[RelayService]`
-- ✅ `[LobbyService]`
-- ✅ `[AnalyticsService]`
-- ✅ `[EconomyValidator]`
-- ✅ `[RateLimiter]`
-- ✅ `[SuspiciousActivityDetector]`
-- ✅ `[QuestService]`
-- ✅ `[AchievementService]`
-- ✅ `[LeaderboardService]`
-
-Game Objects (existing):
-- ✅ `GameManager` (with 3 new integration components)
-- ✅ `ProgressionManager` (with 3 new integration components)
-
-UI (under Canvas):
-- ✅ `QuestPanel` (with QuestUI component)
-- ✅ `AchievementPanel` (with AchievementUI component)
-- ✅ `LeaderboardPanel` (with LeaderboardUI component)
-- ✅ Toggle buttons for each panel
-
-Prefabs:
-- ✅ `QuestCard.prefab`
-- ✅ `AchievementCard.prefab`
-- ✅ `LeaderboardEntry.prefab`
-
-Assets:
-- ✅ 25 Quest templates in `Assets/Quests/Templates/`
-- ✅ 50+ Achievement templates in `Assets/Achievements/Templates/`
+### **Problem: "NullReferenceException in SaveSystem"**
+**Solutions:**
+1. Check save file path is valid
+2. On mobile, use `Application.persistentDataPath`
+3. On PC, ensure game has write permissions
+4. Verify folder exists before saving
 
 ---
 
-## Testing Checklist
+## 🎮 Part 8: Test Your Setup
 
-### Test Phase 4.1 - Services
-1. ✅ Play Mode - Check Console for service initialization logs
-2. ✅ ServiceLocator finds all services
-3. ✅ CloudSaveService initializes
-4. ✅ AuthenticationService attempts anonymous login
+### **Quick Test Procedure:**
 
-### Test Phase 4.3 - Analytics
-1. ✅ Play a match - Check analytics events in Console
-2. ✅ GameManagerAnalytics tracks match events
-3. ✅ ProgressionManagerAnalytics tracks XP gains
+1. **Test Services:**
+   - Open `ServicesTest.unity`
+   - Press Play
+   - Verify all 4 tests pass
+   - Stop Play
 
-### Test Phase 4.4 - Quests
-1. ✅ Click Quest Toggle Button
-2. ✅ Quest panel slides in
-3. ✅ 3 daily quests appear
-4. ✅ Quest progress bars show 0/X
-5. ✅ Play match - Quest progress updates
-6. ✅ Complete quest - Claim button appears
+2. **Test Managers:**
+   - Open `MainMenu.unity`
+   - Press Play
+   - Check Console: No errors
+   - Check Hierarchy: ProgressionManager should say "(DontDestroyOnLoad)"
+   - Stop Play
 
-### Test Phase 4.5 - Achievements
-1. ✅ Click Achievement Toggle Button
-2. ✅ Achievement panel opens
-3. ✅ 50+ achievements displayed
-4. ✅ Filter by category works
-5. ✅ Search works
-6. ✅ Play match - "First Blood" achievement unlocks
-7. ✅ Notification popup shows
-
-### Test Phase 4.6 - Leaderboards
-1. ✅ Click Leaderboard Toggle Button
-2. ✅ Leaderboard panel opens
-3. ✅ Select "Total Wins" from dropdown
-4. ✅ Mock leaderboard data displays (1000 entries)
-5. ✅ Pagination works (Next/Previous)
-6. ✅ Jump to Player button works
-7. ✅ Player rank shows (mock: rank 50)
+3. **Test Scene Loading:**
+   - In MainMenu, add a button that loads game scene
+   - Press Play → Click button → Load game scene
+   - Check Hierarchy: ProgressionManager still exists
+   - Verify no duplicates created
 
 ---
 
-## Common Issues & Solutions
-
-### Issue: "ServiceLocator not found"
-**Solution:** Ensure `[ServiceLocator]` GameObject exists and has ServiceLocator component
-
-### Issue: "Quest templates empty"
-**Solution:** Run `Tools → Gravity Wars → Generate Quest Templates` and assign them in QuestService
-
-### Issue: "UI not displaying"
-**Solution:** Check Canvas render mode is Screen Space - Overlay, verify all UI references assigned
-
-### Issue: "NullReferenceException in QuestUI"
-**Solution:** Ensure Quest Card Prefab has QuestCardUI component with all references assigned
-
-### Issue: "Achievements not unlocking"
-**Solution:**
-- Verify AchievementService has all templates assigned
-- Check GameManagerAchievementIntegration is calling OnMatchEnd()
-- Enable Debug Logging to see what's happening
-
-### Issue: "Leaderboard shows no data"
-**Solution:** This is expected - showing mock data. Will connect to real backend later.
-
----
-
-## Next Steps
+## 📚 Next Steps
 
 After completing this setup:
 
-1. **Test all systems** using the Testing Checklist
-2. **Read the Game State Documentation** to understand what's been built
-3. **Read the Multiplayer Implementation Guide** to implement real online play
-4. **Start connecting to Unity Gaming Services** (Authentication, Cloud Save, Analytics)
-5. **Implement actual multiplayer networking** (Netcode for GameObjects)
+### **Immediate Next Steps:**
+1. ✅ **Read CONTENT_CREATION_GUIDE.md** - Create ships, perks, quests
+2. ✅ **Read UI_CREATION_GUIDE.md** - Build main menu and game UI
+3. ✅ **Test hotseat mode** - Make sure local PVP still works
+
+### **Later Steps:**
+4. **Read ART_PIPELINE_GUIDE.md** - Add 3D models and VFX
+5. **Read ONLINE_MULTIPLAYER_GUIDE.md** - Implement netcode (if wanted)
+6. **Read TESTING_GUIDE.md** - QA and balancing
 
 ---
 
-## Support
+## 🆘 Getting Help
 
-If you encounter issues:
-1. Check Unity Console for error messages
-2. Verify all GameObjects exist and have components
-3. Ensure all UI references are assigned (Inspector shows no "None" references)
-4. Enable Debug Logging on all services to see what's happening
-5. Check that prefabs are properly configured
+**Official Documentation:**
+- [Unity Gaming Services](https://docs.unity.com/ugs)
+- [Cloud Save Docs](https://docs.unity.com/cloud-save)
+- [Authentication Docs](https://docs.unity.com/authentication)
 
-**Estimated Total Setup Time:** 2-3 hours (depending on UI creation speed)
+**Common Resources:**
+- Unity Forums: https://forum.unity.com/
+- Unity Discord: https://discord.gg/unity
+- Stack Overflow: Tag `unity3d`
 
-**Good luck! 🚀**
+**Check Your Setup:**
+- Console should have NO red errors
+- Services window shows all services "Enabled"
+- Test script passes all 4 tests
+- Managers persist between scenes
+
+---
+
+## ✅ Setup Complete!
+
+You now have:
+- ✅ Unity Gaming Services configured
+- ✅ Cloud Save functional
+- ✅ Authentication working
+- ✅ Project properly configured
+- ✅ Folder structure organized
+- ✅ Managers set up correctly
+
+**Total Time:** Should have taken 1-2 hours
+
+**Ready for next step:** Content Creation! 🚀
+
+Next: `CONTENT_CREATION_GUIDE.md`

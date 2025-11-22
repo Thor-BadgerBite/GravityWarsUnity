@@ -236,7 +236,7 @@ public enum QuestDifficulty
 
 /// <summary>
 /// Runtime instance of a quest assigned to a player.
-/// Serializable for saving to PlayerProfileData.
+/// Serializable for saving to PlayerAccountData.
 /// </summary>
 [Serializable]
 public class QuestInstance
@@ -265,17 +265,25 @@ public class QuestInstance
     // Visual
     public QuestDifficulty difficulty;
 
+    // Status tracking
+    public bool isClaimed = false;
+
     // Computed properties
     public bool IsCompleted => currentProgress >= targetValue;
+    public bool isCompleted => IsCompleted; // Alias for compatibility
     public float ProgressPercentage => targetValue > 0 ? (float)currentProgress / targetValue : 0f;
     public TimeSpan TimeRemaining => expiresAt - DateTime.UtcNow;
     public bool IsExpired => DateTime.UtcNow > expiresAt;
+
+    // Timestamp aliases for compatibility with cloud save systems
+    public long acceptedTimestamp => (long)(assignedAt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+    public long expirationTimestamp => (long)(expiresAt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
 
     // Constructor from ScriptableObject
     public QuestInstance(QuestDataSO template)
     {
         questID = template.questID;
-        displayName = template.username;
+        displayName = template.displayName;
         description = template.description;
         questType = template.questType;
         objectiveType = template.objectiveType;
@@ -292,8 +300,8 @@ public class QuestInstance
             _ => DateTime.UtcNow.AddHours(24)
         };
 
-        softCurrencyReward = template.creditsReward;
-        hardCurrencyReward = template.gemsReward;
+        softCurrencyReward = template.softCurrencyReward;
+        hardCurrencyReward = template.hardCurrencyReward;
         accountXPReward = template.accountXPReward;
         itemRewards = new List<string>(template.itemRewards);
 

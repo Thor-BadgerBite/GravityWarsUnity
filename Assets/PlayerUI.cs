@@ -41,8 +41,8 @@ public string GetAttachedShipName()
         // Update angle text
         angleText.text = $"Angle: {displayAngle:F1}°";
 
-        // Update velocity slider and text
-        float velocityPercentage = (playerShip.launchVelocity - playerShip.minLaunchVelocity) / (playerShip.maxLaunchVelocity - playerShip.minLaunchVelocity);
+        // Update velocity slider and text - use equipped missile's actual min/max velocities
+        float velocityPercentage = (playerShip.launchVelocity - playerShip.EffectiveMinLaunchVelocity) / (playerShip.EffectiveMaxLaunchVelocity - playerShip.EffectiveMinLaunchVelocity);
         velocitySlider.value = velocityPercentage;
         velocityText.text = $"Velocity: {velocityPercentage * 100:F0}%";
 

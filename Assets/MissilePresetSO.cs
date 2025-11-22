@@ -1,4 +1,7 @@
 using UnityEngine;
+#if UNITY_EDITOR
+using UnityEngine.Serialization;
+#endif
 
 /// <summary>
 /// Defines a missile type with all its properties.
@@ -26,27 +29,73 @@ public class MissilePresetSO : ScriptableObject
     public int requiredAccountLevel = 0;
 
     [Header("Physics Properties")]
-    [Tooltip("Display mass shown to player (200-1000 lbs). Physics mass is auto-calculated.")]
+    [Tooltip("Physics mass used in calculations (0.6-3.0). Light missiles = 0.6-1.2, Medium = 1.2-2.0, Heavy = 2.0-3.0")]
+    [Range(0.6f, 3.0f)]
+    public float physicsMass = 1.5f;
+
+    [Space(5)]
+    [Tooltip("Display mass shown to player in UI (200-1000 lbs). Synced with physicsMass: move either slider!")]
     [Range(200f, 1000f)]
     public float displayMass = 500f;
 
-    [Tooltip("READONLY: Actual physics mass used in calculations (0.6-3.0). Auto-calculated from displayMass.")]
-    public float Mass => displayMass / 333.33f;  // Converts 200-1000 lbs to 0.6-3.0 range
-
-    [Header("--- Advanced: Override Physics Mass (Optional) ---")]
-    [Tooltip("If true, uses customPhysicsMass instead of auto-calculated value")]
-    public bool overridePhysicsMass = false;
-
-    [Tooltip("Custom physics mass (only used if overridePhysicsMass is true)")]
-    [Range(0.6f, 3.0f)]
-    public float customPhysicsMass = 1.5f;
+    // Track last values to detect which slider moved
+    [System.NonSerialized] private float lastPhysicsMass = -1f;
+    [System.NonSerialized] private float lastDisplayMass = -1f;
 
     /// <summary>
-    /// Gets the physics mass to use in calculations
+    /// Actual mass value used in all calculations
     /// </summary>
-    private float GetPhysicsMass()
+    public float Mass => physicsMass;
+
+    /// <summary>
+    /// Called when values change in inspector - keeps physicsMass and displayMass synced
+    /// </summary>
+    private void OnValidate()
     {
-        return overridePhysicsMass ? customPhysicsMass : Mass;
+        // Initialize on first run - sync values if they're out of sync
+        if (lastPhysicsMass < 0f)
+        {
+            // Check if values are synced (within tolerance)
+            float expectedDisplay = physicsMass * 333.33f;
+            float expectedPhysics = displayMass / 333.33f;
+
+            // If they're not synced, use displayMass as source of truth (for backward compatibility)
+            if (Mathf.Abs(physicsMass - expectedPhysics) > 0.01f)
+            {
+                physicsMass = expectedPhysics;
+                physicsMass = Mathf.Clamp(physicsMass, 0.6f, 3.0f);
+            }
+            else if (Mathf.Abs(displayMass - expectedDisplay) > 1f)
+            {
+                displayMass = expectedDisplay;
+                displayMass = Mathf.Clamp(displayMass, 200f, 1000f);
+            }
+
+            lastPhysicsMass = physicsMass;
+            lastDisplayMass = displayMass;
+            return;
+        }
+
+        // Check which slider was moved
+        bool physicsChanged = !Mathf.Approximately(physicsMass, lastPhysicsMass);
+        bool displayChanged = !Mathf.Approximately(displayMass, lastDisplayMass);
+
+        if (physicsChanged && !displayChanged)
+        {
+            // Physics mass slider moved - update display mass
+            displayMass = physicsMass * 333.33f;
+            displayMass = Mathf.Clamp(displayMass, 200f, 1000f);
+        }
+        else if (displayChanged && !physicsChanged)
+        {
+            // Display mass slider moved - update physics mass
+            physicsMass = displayMass / 333.33f;
+            physicsMass = Mathf.Clamp(physicsMass, 0.6f, 3.0f);
+        }
+
+        // Update last values
+        lastPhysicsMass = physicsMass;
+        lastDisplayMass = displayMass;
     }
 
     [Header("Launch Velocity (Initial Firing Speed)")]
@@ -137,7 +186,15 @@ public class MissilePresetSO : ScriptableObject
     public void ApplyToMissile(Missile3D missile)
     {
         // Physics
-        missile.missileMass = GetPhysicsMass();  // Use calculated or custom physics mass
+        missile.missileMass = Mass;  // Use Mass property which handles override automatically
+
+        // CRITICAL: Update Rigidbody mass to match missileMass for correct physics simulation
+        Rigidbody rb = missile.GetComponent<Rigidbody>();
+        if (rb != null)
+        {
+            rb.mass = Mass;  // This ensures trajectory prediction matches actual flight
+        }
+
         missile.maxVelocity = maxVelocity;
         missile.drag = drag;
         missile.velocityApproachRate = velocityApproachRate;
@@ -221,7 +278,7 @@ public class MissilePresetSO : ScriptableObject
                $"Damage: {payload}\n" +
                $"Push: {pushStrength}\n" +
                $"Fuel: {fuel} lbs ({GetMaxFlightTime():F1}s)\n" +
-               $"Mass: {displayMass:F0} lbs (Physics: {GetPhysicsMass():F2})";
+               $"Mass: {displayMass:F0} lbs";
     }
 }
 

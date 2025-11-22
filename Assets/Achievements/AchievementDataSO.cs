@@ -274,6 +274,12 @@ public class AchievementInstance
     public bool isUnlocked = false;
     public DateTime unlockedAt;
 
+    // Tier tracking (for tiered achievements)
+    public int currentTier = 0; // Current tier achieved for tiered achievements
+
+    // Timestamp alias for compatibility with cloud save systems
+    public long unlockTimestamp => isUnlocked ? (long)(unlockedAt.Subtract(new DateTime(1970, 1, 1))).TotalSeconds : 0;
+
     // Rewards
     public int softCurrencyReward;
     public int hardCurrencyReward;
@@ -297,7 +303,7 @@ public class AchievementInstance
 
         // Cache template data
         achievementID = template.achievementID;
-        displayName = template.username;
+        displayName = template.displayName;
         description = template.description;
         achievementType = template.achievementType;
         category = template.category;
@@ -308,8 +314,8 @@ public class AchievementInstance
         requiredContext = template.requiredContext;
 
         // Cache rewards
-        softCurrencyReward = template.creditsReward;
-        hardCurrencyReward = template.gemsReward;
+        softCurrencyReward = template.softCurrencyReward;
+        hardCurrencyReward = template.hardCurrencyReward;
         accountXPReward = template.accountXPReward;
         exclusiveItemReward = template.exclusiveItemReward;
         titleReward = template.titleReward;

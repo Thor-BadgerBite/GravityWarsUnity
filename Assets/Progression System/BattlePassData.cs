@@ -268,13 +268,17 @@ public class UnlockableReward
 public enum RewardType
 {
     None,
+    Credits,        // Soft currency reward
+    Gems,           // Hard currency reward
     ShipBody,
     Tier1Perk,
     Tier2Perk,
     Tier3Perk,
+    Active,         // Active perk (used by BattlePassSystem)
     Passive,
     MoveType,
     Missile,
+    PrebuildShip,   // Complete ship model (used by BattlePassSystem)
     Skin,
     ColorScheme,
     Decal
