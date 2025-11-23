@@ -1,995 +1,1411 @@
 # Main Menu Hub - Complete Build Guide
-**Everything You Need to Build the First Screen**
+**Step-by-Step Implementation Instructions**
 
 ---
 
 ## 📋 Table of Contents
 
-1. [Icon Requirements & Specifications](#icon-requirements--specifications)
-2. [UI Elements Breakdown](#ui-elements-breakdown)
-3. [Text & Font Specifications](#text--font-specifications)
-4. [Prefab Structure](#prefab-structure)
-5. [Step-by-Step Building Process](#step-by-step-building-process)
-6. [Unity Component Settings](#unity-component-settings)
-7. [Testing Checklist](#testing-checklist)
+1. [Asset Requirements](#asset-requirements)
+2. [Icon Specifications](#icon-specifications)
+3. [Unity Setup](#unity-setup)
+4. [Step-by-Step Building Process](#step-by-step-building-process)
+5. [Component Settings Reference](#component-settings-reference)
+6. [Testing Checklist](#testing-checklist)
 
 ---
 
-## 🎨 Icon Requirements & Specifications
+## 🎨 Asset Requirements
 
-### **Image Format & Settings**
-- **Format**: PNG (with transparency)
-- **Color Mode**: RGBA (32-bit)
-- **Size**: 512x512 pixels (will be scaled down in Unity)
-- **Background**: Transparent
-- **Export**: No compression for source, Unity will optimize
+### **Required Icons - Complete List**
 
-### **Icon Categories & Variations Needed**
+Based on the provided file list screenshot, here are ALL the icons you need:
 
-Each icon needs **4 variations** for button states:
+#### **Frame Assets**
+- `frame_GameMode.png` - Container frame for game mode buttons
+- `frame_LevelFrame.png` - Frame around level display
+- `frame_Logo.png` - Frame for game logo
+- `frame_XPFrame.png` - Frame for XP progress bar
 
-#### **1. Navigation Icons (Main Hub)**
+#### **Left Side Navigation Icons (4 states each)**
 
-##### **Ships Icon** 🚀
-- **Normal**: Gray/white color (#B0B0B0), no glow
-- **Hover**: Bright white (#FFFFFF), subtle outer glow (blue #3498DB)
-- **Pressed**: Slightly darker (#808080), inner shadow effect
-- **Disabled**: Very dark gray (#404040), 50% opacity
+**Ships Garage:**
+- `icon_ShipGarage_Disabled.png`
+- `icon_ShipGarage_Hover.png`
+- `icon_ShipGarage_Normal.png`
+- `icon_ShipGarage_Pressed.png`
 
-**Design**: Spaceship silhouette, side view, simple geometric shape
+**Inventory:**
+- `icon_Inventory_Disabled.png`
+- `icon_Inventory_Hover.png`
+- `icon_Inventory_Normal.png`
+- `icon_Inventory_Pressed.png`
 
-##### **Quests Icon** 📜
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), gold glow (#FFD700)
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+**Leaderboards:**
+- `icon_LeaderBoards_Disabled.png`
+- `icon_LeaderBoards_Hover.png`
+- `icon_LeaderBoards_Normal.png`
+- `icon_LeaderBoards_Pressed.png`
 
-**Design**: Scroll or quest paper with "!" symbol
+**Friends:**
+- `icon_Friends_Disabled.png`
+- `icon_Friends_Hover.png`
+- `icon_Friends_Normal.png`
+- `icon_Friends_Pressed.png`
 
-##### **Missiles Icon** 🚀
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), red glow (#E74C3C)
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+#### **Right Side Navigation Icons (4 states each)**
 
-**Design**: Missile/rocket, diagonal orientation
+**Shop:**
+- `icon_Shop_Disabled.png`
+- `icon_Shop_Hover.png`
+- `icon_Shop_Normal.png`
+- `icon_Shop_Pressed.png`
 
-##### **Battle Pass Icon** 🎖️
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), purple glow (#9B59B6)
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+**Achievements:**
+- `icon_Achievements_Disabled.png`
+- `icon_Achievements_Hover.png`
+- `icon_Achievements_Normal.png`
+- `icon_Achievements_Pressed.png`
 
-**Design**: Trophy or medal with star
+**Account Progress:**
+- `icon_Progress_Disabled.png`
+- `icon_Progress_Hover.png`
+- `icon_Progress_Normal.png`
+- `icon_Progress_Pressed.png`
 
-##### **Profile Icon** 👤
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), cyan glow (#3498DB)
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+**Clan:**
+- `icon_Clan_Disabled.png`
+- `icon_Clan_Hover.png`
+- `icon_Clan_Normal.png`
+- `icon_Clan_Pressed.png`
 
-**Design**: Person silhouette or helmet
+#### **Main Center Buttons (4 states each)**
 
-##### **Settings Icon** ⚙️
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), white glow
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+**Quests:**
+- `icon_Quests_Disabled.png`
+- `icon_Quests_Hover.png`
+- `icon_Quests_Normal.png`
+- `icon_Quests_Pressed.png`
 
-**Design**: Gear/cog wheel
+**Play Now:**
+- `icon_Play_Disabled.png`
+- `icon_Play_Hover.png`
+- `icon_Play_Normal.png`
+- `icon_Play_Pressed.png`
 
-##### **Leaderboard Icon** 📊
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), gold glow (#FFD700)
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+**Battle Pass:**
+- `icon_BattlePass_Disabled.png`
+- `icon_BattlePass_Hover.png`
+- `icon_BattlePass_Normal.png`
+- `icon_BattlePass_Pressed.png`
 
-**Design**: Podium with ranks 1, 2, 3 OR bar chart
+#### **Game Mode Buttons (3 states each - NO DISABLED STATE)**
 
-##### **Inventory Icon** 📦
-- **Normal**: Gray/white (#B0B0B0)
-- **Hover**: Bright white (#FFFFFF), orange glow (#FF9800)
-- **Pressed**: Darker (#808080)
-- **Disabled**: Dark gray (#404040), 50% opacity
+**Local:**
+- `icon_Local_Hover.png`
+- `icon_Local_Normal.png`
+- `icon_Local_Toggled.png`
 
-**Design**: Chest or backpack
+**Online:**
+- `icon_Online_Hover.png`
+- `icon_Online_Normal.png`
+- `icon_Online_Toggled.png`
 
-#### **2. Currency Icons**
+**Ranked:**
+- `icon_Ranked_Hover.png`
+- `icon_Ranked_Normal.png`
+- `icon_Ranked_Toggled.png`
 
-##### **Credits Icon** 💰
-- **Single version** (no states needed)
-- **Color**: Gold (#FFD700)
-- **Size**: 256x256 pixels
-- **Design**: Coin with "C" symbol or credit symbol
+#### **Currency and Special Icons**
 
-##### **Gems Icon** 💎
-- **Single version** (no states needed)
-- **Color**: Cyan/diamond blue (#00FFFF)
-- **Size**: 256x256 pixels
-- **Design**: Gem/diamond crystal
+**Coins:**
+- `icon_Coins_Frame.png`
+- `icon_CoinsPlus_Disabled.png`
+- `icon_CoinsPlus_Hover.png`
+- `icon_CoinsPlus_Normal.png`
+- `icon_CoinsPlus_Pressed.png`
 
-#### **3. Rank Icons** 🏆 **UPDATED: Military/Naval Rank System**
+**Gems:**
+- `icon_Gems_Frame.png`
+- `icon_GemsPlus_Disabled.png`
+- `icon_GemsPlus_Hover.png`
+- `icon_GemsPlus_Normal.png`
+- `icon_GemsPlus_Pressed.png`
 
-**Single version each** (no button states):
-- **Size**: 512x512 pixels
-- **Background**: Transparent
-- **Design**: Military-style badges/insignia with stripes, stars, or naval symbols
+**Notifications:**
+- `icon_Reminder.png`
 
-**NEW RANK SYSTEM** - 18 Tiers Based on ELO:
+**Calendar:**
+- `icon_Calendar.png`
 
-1. **Cadet** (0-499) - Color: Gray (#808080) - Design: Single stripe
-2. **Midshipman** (500-699) - Color: Light gray (#A0A0A0) - Design: Two stripes
-3. **Ensign** (700-899) - Color: Bronze (#CD7F32) - Design: Single bar
-4. **Sub-Lieutenant** (900-1099) - Color: Copper (#B87333) - Design: Single bar with stripe
-5. **Lieutenant** (1100-1299) - Color: Silver (#C0C0C0) - Design: Two bars ⭐ **Starting Rank**
-6. **Lieutenant Commander** (1300-1499) - Color: Silver-blue (#B0C4DE) - Design: Two bars with stripe
-7. **Commander** (1500-1699) - Color: Gold (#FFD700) - Design: Three bars
-8. **Captain** (1700-1899) - Color: Gold-white (#FFF8DC) - Design: Four bars
-9. **Senior Captain** (1900-2099) - Color: Platinum (#E5E4E2) - Design: Four bars with stripe
-10. **Commodore** (2100-2299) - Color: Blue-white (#E0F0FF) - Design: Single star
-11. **Rear Admiral** (2300-2499) - Color: Light blue (#ADD8E6) - Design: Two stars
-12. **Rear Admiral (Upper Half)** (2500-2699) - Color: Sky blue (#87CEEB) - Design: Two stars (upper)
-13. **Vice Admiral** (2700-2899) - Color: Royal blue (#4169E1) - Design: Three stars
-14. **Admiral** (2900-3099) - Color: Navy blue (#000080) - Design: Four stars
-15. **High Admiral** (3100-3299) - Color: Purple-blue (#7B68EE) - Design: Five stars
-16. **Fleet Admiral** (3300-3499) - Color: Purple (#9B59B6) - Design: Five stars with wreath
-17. **Supreme Admiral** (3500-3699) - Color: Purple-red gradient - Design: Crown with stars
-18. **Grand Admiral** (3700+) - Color: Rainbow/prismatic - Design: Supreme insignia with crown
+**Battle Pass Progress:**
+- `icon_BattlePassProgress_Frame.png`
+- `icon_PlayerFrame.png`
 
-**Total Rank Icons Needed**: 18
-- One icon per rank (no sub-tiers)
-
-#### **4. Notification Icon** 🔔
-
-- **Normal**: Gray (#B0B0B0)
-- **Active**: Orange (#FF9800) with small red dot badge
-- **Size**: 256x256 pixels
-
-#### **5. Special Icons**
-
-##### **Quick Play Button Icon** ▶️
-- **Single large icon**
-- **Size**: 256x256 pixels
-- **Color**: Green (#2ECC71)
-- **Design**: Play button triangle or "GO" text
-
----
-
-### **Complete Icon List Summary**
-
-| Icon Name | Variations | Size | Total Files |
-|-----------|-----------|------|-------------|
-| Ships | 4 (N, H, P, D) | 512x512 | 4 |
-| Quests | 4 | 512x512 | 4 |
-| Missiles | 4 | 512x512 | 4 |
-| Battle Pass | 4 | 512x512 | 4 |
-| Profile | 4 | 512x512 | 4 |
-| Settings | 4 | 512x512 | 4 |
-| Leaderboard | 4 | 512x512 | 4 |
-| Inventory | 4 | 512x512 | 4 |
-| Credits | 1 | 256x256 | 1 |
-| Gems | 1 | 256x256 | 1 |
-| Notification | 2 (N, A) | 256x256 | 2 |
-| Quick Play | 1 | 256x256 | 1 |
-| Rank Badges | 18 | 512x512 | 18 |
-| **TOTAL** | - | - | **55 files** |
-
-### **File Naming Convention**
-
-Use this naming format:
-```
-icon_[name]_[state].png
-
-Examples:
-- icon_ships_normal.png
-- icon_ships_hover.png
-- icon_ships_pressed.png
-- icon_ships_disabled.png
-- icon_credits.png
-- icon_gems.png
-- icon_rank_cadet.png
-- icon_rank_midshipman.png
-- icon_rank_lieutenant.png
-- icon_rank_admiral.png
-- icon_rank_grand_admiral.png
-- icon_notification_normal.png
-- icon_notification_active.png
-```
+#### **Rank Icons (18 total - Single version each, NO states)**
+- `rank1.png` (Highest rank - Grand Admiral 3700+)
+- `rank2.png` (Supreme Admiral 3500-3699)
+- `rank3.png` (Fleet Admiral 3300-3499)
+- `rank4.png` (High Admiral 3100-3299)
+- `rank5.png` (Admiral 2900-3099)
+- `rank6.png` (Vice Admiral 2700-2899)
+- `rank7.png` (Rear Admiral Upper Half 2500-2699)
+- `rank8.png` (Rear Admiral 2300-2499)
+- `rank9.png` (Commodore 2100-2299)
+- `rank10.png` (Senior Captain 1900-2099)
+- `rank11.png` (Captain 1700-1899)
+- `rank12.png` (Commander 1500-1699)
+- `rank13.png` (Lieutenant Commander 1300-1499)
+- `rank14.png` ⭐ (Lieutenant 1100-1299) **STARTING RANK**
+- `rank15.png` (Sub-Lieutenant 900-1099)
+- `rank16.png` (Ensign 700-899)
+- `rank17.png` (Midshipman 500-699)
+- `rank18.png` (Cadet 0-499 - Lowest rank)
 
 ---
 
-## 🖼️ UI Elements Breakdown
+## 📐 Icon Specifications
 
-### **Main Components**
+### **Format and Size**
+- **Format:** PNG with transparency (RGBA 32-bit)
+- **Navigation Icons:** 512x512 pixels
+- **Currency Icons:** 256x256 pixels
+- **Rank Icons:** 512x512 pixels
+- **Frames:** Variable size depending on use
 
-#### **1. Background**
-- **Type**: Panel (UI Image)
-- **Color**: Dark gradient (#0D0D14 to #1A1A26)
-- **Size**: Full screen (1920x1080)
-- **Alpha**: 100%
+### **Button State Visual Guidelines**
 
-#### **2. Ship Viewer Display**
-- **Type**: Raw Image
-- **Render Texture**: 1024x1024
-- **Position**: Center (0, 50, 0)
-- **Size**: 600x600 pixels
-- **Aspect Ratio**: 1:1
+#### **4-State Buttons (Normal, Hover, Pressed, Disabled)**
 
-#### **3. Player Info Panel** (Top-Left)
-- **Type**: Panel
-- **Size**: 400x220 pixels
-- **Position**: (20, -20) from top-left anchor
-- **Color**: Semi-transparent dark (#1A1A26, alpha 180)
-- **Rounded Corners**: 10px radius (optional, requires custom shader)
+**Normal State:**
+- Base color: Medium gray/white (#B0B0B0)
+- No glow or effects
+- Clean, simple design
 
-**Contains**:
-- Username Text (TMP)
-- Level Text (TMP)
-- XP Bar (Image + Fill)
-- ELO Text (TMP)
-- Rank Icon (Image)
-- Rank Text (TMP)
+**Hover State:**
+- Brighter: Pure white (#FFFFFF)
+- Outer glow effect (blue, gold, or thematic color)
+- Glow opacity: 70-80%
+- Glow blur: 10-15px
 
-#### **4. Currency Panel** (Top-Right)
-- **Type**: Panel
-- **Size**: 250x120 pixels
-- **Position**: (-20, -20) from top-right anchor
-- **Color**: Semi-transparent dark (#1A1A26, alpha 180)
+**Pressed State:**
+- Darker: Dark gray (#808080)
+- Inner shadow or bevel effect
+- Slightly "pushed in" appearance
 
-**Contains**:
-- Credits Icon (32x32)
-- Credits Text (TMP)
-- Gems Icon (32x32)
-- Gems Text (TMP)
+**Disabled State:**
+- Very dark gray (#404040)
+- Opacity: 50%
+- No glow or effects
 
-#### **5. Navigation Buttons**
+#### **3-State Toggle Buttons (Normal, Hover, Toggled)**
 
-**Left Side Buttons**:
-- Ships Button: Position (-700, 150)
-- Quests Button: Position (-700, -50)
+**Normal State:**
+- Same as above
 
-**Right Side Buttons**:
-- Missiles Button: Position (700, 150)
-- Battle Pass Button: Position (700, -50)
+**Hover State:**
+- Same as above
 
-**Top Buttons**:
-- Profile Button: Position (-850, 480)
-- Leaderboard Button: Position (-650, 480)
-- Settings Button: Position (850, 480)
-
-**Button Specs**:
-- **Size**: 180x80 pixels
-- **Icon Size**: 48x48 pixels
-- **Text Size**: 20pt
-- **Spacing**: Icon left, text right
-- **Background**: Semi-transparent (#2C3E50, alpha 200)
-
-#### **6. Quick Play Button** (Bottom-Center)
-- **Type**: Button
-- **Size**: 400x120 pixels
-- **Position**: (0, -380) from center
-- **Colors**:
-  - Normal: Green (#27AE60)
-  - Hover: Bright green (#2ECC71)
-  - Pressed: Dark green (#229954)
-  - Disabled: Gray (#95A5A6)
-- **Icon**: 64x64 play icon
-- **Text**: "QUICK PLAY" 36pt bold
-
-#### **7. Bottom Navigation Bar**
-- **Type**: Panel
-- **Size**: 1920x80 pixels (full width)
-- **Position**: Bottom (0, 0)
-- **Color**: Very dark (#0D0D14, alpha 220)
-
-**Contains** (evenly spaced):
-- Inventory Button (small, 80x60)
-- (Future buttons as needed)
+**Toggled State:**
+- Bright accent color (based on mode)
+  - Local: Green glow
+  - Online: Blue glow
+  - Ranked: Gold/Orange glow
+- Indicates active selection
+- Strongest visual presence of the 3 states
 
 ---
 
-## 📝 Text & Font Specifications
+## 🔧 Unity Setup
 
-### **Recommended Fonts**
+### **Phase 1: Import Assets**
 
-**Primary Font** (Headers, Buttons):
-- **Name**: Orbitron Bold OR Rajdhani Bold
-- **Source**: Google Fonts (free)
-- **Fallback**: Arial Bold
+#### **Step 1: Create Folder Structure**
 
-**Secondary Font** (Body Text):
-- **Name**: Roboto Regular OR Open Sans
-- **Source**: Google Fonts (free)
-- **Fallback**: Arial
-
-**Monospace Font** (Numbers, Stats):
-- **Name**: Roboto Mono OR Courier New
-- **For**: Credits, Gems, XP, ELO
-
-### **Text Elements Specifications**
-
-| Element | Font | Size | Color | Weight | Alignment |
-|---------|------|------|-------|--------|-----------|
-| Username | Orbitron | 36pt | White (#FFFFFF) | Bold | Left |
-| Level | Orbitron | 24pt | Gold (#FFD700) | Bold | Left |
-| XP Text | Roboto | 16pt | White (#FFFFFF) | Regular | Center |
-| ELO | Orbitron | 28pt | Gold (#FFD700) | Bold | Left |
-| Rank Name | Orbitron | 20pt | Gold (#FFD700) | Bold | Left |
-| Credits | Roboto Mono | 24pt | Gold (#FFD700) | Bold | Right |
-| Gems | Roboto Mono | 24pt | Cyan (#00FFFF) | Bold | Right |
-| Button Text | Rajdhani | 20pt | White (#FFFFFF) | Bold | Center |
-| Quick Play | Orbitron | 36pt | White (#FFFFFF) | Bold | Center |
-
-### **TextMeshPro Settings**
-
-**For all text elements**:
-- **Material Preset**: LiberationSans SDF - Outline
-- **Outline Thickness**: 0.2
-- **Outline Color**: Black (#000000, alpha 200)
-- **Enable Word Wrapping**: Where needed
-- **Auto Size**: Disabled (use fixed sizes)
-
----
-
-## 🏗️ Prefab Structure
-
-### **Folder Organization**
+Create this exact folder structure in your Unity project:
 
 ```
 Assets/
 ├── UI/
-│   ├── MainMenu/
-│   │   ├── Icons/
-│   │   │   ├── Navigation/
-│   │   │   │   ├── icon_ships_normal.png
-│   │   │   │   ├── icon_ships_hover.png
-│   │   │   │   ├── icon_ships_pressed.png
-│   │   │   │   ├── icon_ships_disabled.png
-│   │   │   │   └── [... all other navigation icons]
-│   │   │   ├── Currency/
-│   │   │   │   ├── icon_credits.png
-│   │   │   │   └── icon_gems.png
-│   │   │   ├── Ranks/
-│   │   │   │   ├── icon_rank_bronze_1.png
-│   │   │   │   ├── icon_rank_bronze_2.png
-│   │   │   │   └── [... all rank icons]
-│   │   │   └── Misc/
-│   │   │       ├── icon_notification_normal.png
-│   │   │       ├── icon_notification_active.png
-│   │   │       └── icon_quickplay.png
-│   │   ├── Prefabs/
-│   │   │   ├── MainMenuCanvas.prefab
-│   │   │   ├── NavigationButton.prefab
-│   │   │   ├── PlayerInfoPanel.prefab
-│   │   │   ├── CurrencyPanel.prefab
-│   │   │   └── ShipViewerCamera.prefab
-│   │   ├── Scripts/
-│   │   │   ├── MainMenuController.cs
-│   │   │   ├── MainMenuUI.cs
-│   │   │   ├── ShipViewer3D.cs
-│   │   │   ├── NavigationSystem.cs
-│   │   │   ├── CurrencyDisplay.cs
-│   │   │   └── PanelManager.cs
-│   │   └── Fonts/
-│   │       ├── Orbitron-Bold SDF.asset
-│   │       └── Roboto-Regular SDF.asset
+│   └── MainMenuHub/
+│       ├── Icons/
+│       │   ├── Navigation/
+│       │   ├── GameModes/
+│       │   ├── Currency/
+│       │   ├── Ranks/
+│       │   └── Frames/
+│       ├── Prefabs/
+│       ├── Scripts/
+│       ├── Fonts/
+│       └── Animations/
 ```
 
-### **Prefab Hierarchy**
+#### **Step 2: Import All Icons**
 
-#### **MainMenuCanvas.prefab**
-```
-MainMenuCanvas
-├── BackgroundPanel
-├── PanelsContainer
-│   ├── HomePanel
-│   │   ├── ShipViewerDisplay (Raw Image)
-│   │   ├── PlayerInfoPanel
-│   │   │   ├── UsernameText (TMP)
-│   │   │   ├── LevelText (TMP)
-│   │   │   ├── XPBarBackground (Image)
-│   │   │   │   └── XPFillBar (Image - Filled)
-│   │   │   ├── XPText (TMP)
-│   │   │   ├── ELOText (TMP)
-│   │   │   ├── RankIcon (Image)
-│   │   │   └── RankText (TMP)
-│   │   ├── CurrencyPanel
-│   │   │   ├── CreditsGroup
-│   │   │   │   ├── CreditsIcon (Image)
-│   │   │   │   └── CreditsText (TMP)
-│   │   │   └── GemsGroup
-│   │   │       ├── GemsIcon (Image)
-│   │   │       └── GemsText (TMP)
-│   │   ├── NotificationButton
-│   │   │   ├── NotificationIcon (Image)
-│   │   │   └── BadgeDot (Image - conditional)
-│   │   ├── LeftNavigation
-│   │   │   ├── ShipsButton (NavigationButton prefab)
-│   │   │   └── QuestsButton (NavigationButton prefab)
-│   │   ├── RightNavigation
-│   │   │   ├── MissilesButton (NavigationButton prefab)
-│   │   │   └── BattlePassButton (NavigationButton prefab)
-│   │   ├── TopNavigation
-│   │   │   ├── ProfileButton (NavigationButton prefab)
-│   │   │   ├── LeaderboardButton (NavigationButton prefab)
-│   │   │   └── SettingsButton (NavigationButton prefab)
-│   │   └── QuickPlayButton
-│   │       ├── QuickPlayIcon (Image)
-│   │       └── QuickPlayText (TMP)
-│   ├── ShipSelectionPanel (empty for now)
-│   ├── MissileLoadoutPanel (empty for now)
-│   ├── BattlePassPanel (empty for now)
-│   ├── QuestsPanel (empty for now)
-│   ├── ProfilePanel (empty for now)
-│   └── SettingsPanel (empty for now)
-└── EventSystem
-```
+1. **Import all PNG files** from your creation software to Unity
+2. **Organize by folder:**
+   - **Navigation:** All navigation button icons (Ships, Inventory, Leaderboards, Friends, Shop, Achievements, Progress, Clan, Quests, Play, BattlePass)
+   - **GameModes:** Local, Online, Ranked icons
+   - **Currency:** Coins, Gems, Plus button icons
+   - **Ranks:** rank1.png through rank18.png
+   - **Frames:** frame_*.png files
 
-#### **NavigationButton.prefab** (Reusable)
-```
-NavigationButton (Button component)
-├── Background (Image)
-├── IconImage (Image) ← Swap sprite for different buttons
-└── ButtonText (TMP)
-```
+3. **Configure Import Settings** for ALL icons:
+   - Select all icons in Unity Project window
+   - In **Inspector:**
+     - Texture Type: **Sprite (2D and UI)**
+     - Sprite Mode: **Single**
+     - Pixels Per Unit: **100**
+     - Max Size: **2048** (for 512px icons) or **1024** (for 256px icons)
+     - Format: **RGBA Compressed**
+     - Compression: **High Quality**
+     - Filter Mode: **Bilinear**
+     - Click **Apply**
 
----
+#### **Step 3: Import and Setup Fonts**
 
-## 🔧 Step-by-Step Building Process
+**Recommended Fonts:**
+- **Primary (Headers/Buttons):** Orbitron Bold or Rajdhani Bold
+- **Secondary (Body Text):** Roboto Regular
+- **Monospace (Numbers):** Roboto Mono
 
-### **Phase 1: Import Assets**
+**Download from Google Fonts** (free):
+1. Go to https://fonts.google.com
+2. Download Orbitron, Roboto, Roboto Mono
+3. Extract TTF files
 
-#### **Step 1: Import Icons to Unity**
-
-1. Create folder structure in Unity:
-   - `Assets/UI/MainMenu/Icons/Navigation/`
-   - `Assets/UI/MainMenu/Icons/Currency/`
-   - `Assets/UI/MainMenu/Icons/Ranks/`
-   - `Assets/UI/MainMenu/Icons/Misc/`
-
-2. Import all 56 icon PNG files to respective folders
-
-3. Configure import settings for each icon:
-   - Select all icons in Unity
-   - **Inspector** → Texture Type: **Sprite (2D and UI)**
-   - Max Size: **2048** (for 512px icons) or **1024** (for 256px)
-   - Format: **RGBA Compressed**
-   - Compression: **High Quality**
-   - **Apply**
-
-#### **Step 2: Import Fonts**
-
-1. Download fonts from Google Fonts:
-   - Orbitron Bold (or Rajdhani Bold)
-   - Roboto Regular
-   - Roboto Mono
-
-2. Import to `Assets/UI/MainMenu/Fonts/`
-
-3. **Create TextMeshPro Font Assets**:
+**Import to Unity:**
+1. Place TTF files in `Assets/UI/MainMenuHub/Fonts/`
+2. **Create TextMeshPro Font Assets:**
    - Window → TextMeshPro → Font Asset Creator
-   - Source Font File: Select Orbitron-Bold.ttf
+   - Source Font File: Select **Orbitron-Bold.ttf**
    - Sampling Point Size: **Auto Sizing**
-   - Atlas Resolution: **2048x2048**
-   - Character Set: **ASCII**
+   - Atlas Resolution: **2048 x 2048**
+   - Character Set: **ASCII** (or custom if you need special characters)
    - Render Mode: **SDFAA**
    - Padding: **5**
-   - **Generate Font Atlas**
+   - Click **Generate Font Atlas**
    - Save as: `Orbitron-Bold SDF.asset`
+3. Repeat for **Roboto-Regular** and **Roboto-Mono**
 
-4. Repeat for Roboto fonts
+#### **Step 4: Verify LeanTween Installation** ⚠️ **CRITICAL**
 
-#### **Step 3: Setup LeanTween Animation System** ⚠️ **ESSENTIAL**
+LeanTween is **REQUIRED** for menu animations.
 
-**LeanTween** is a lightweight animation library that provides smooth UI transitions and animations. It's **required** for the main menu to function properly.
+**Check if installed:**
+1. Look for folder: `Assets/LeanTween/` or search for "LeanTween.cs"
+2. If **NOT found**, install it:
 
-**What LeanTween Does:**
-- Smooth fade-in/fade-out transitions for panels
-- Button press scale animations (visual feedback)
-- Menu transition effects
-- Optimized performance (better than Unity's built-in Animation system for UI)
+**Installation:**
+- **Option A:** Unity Asset Store
+  - Window → Package Manager → My Assets
+  - Search "LeanTween" (FREE)
+  - Import
 
-**Installation Check:**
+- **Option B:** GitHub
+  - Download from: https://github.com/dentedpixel/LeanTween
+  - Place `LeanTween.cs` in `Assets/Plugins/` or `Assets/LeanTween/`
 
-1. **Verify LeanTween is in your project**:
-   - Check if folder exists: `Assets/LeanTween/`
-   - If missing, download from: [LeanTween on Unity Asset Store](https://assetstore.unity.com/packages/tools/animation/leantween-3595) (FREE)
-   - Or download from: [GitHub - LeanTween](https://github.com/dentedpixel/LeanTween)
-
-2. **Import LeanTween** (if not present):
-   - **From Asset Store**:
-     - Window → Package Manager → My Assets
-     - Search "LeanTween"
-     - Download and Import
-
-   - **From GitHub**:
-     - Download `LeanTween.cs` from repository
-     - Place in: `Assets/LeanTween/` or `Assets/Plugins/`
-
-3. **Verify Installation**:
-   - Open Unity console
-   - Create new C# script temporarily
-   - Add line: `LeanTween.init();`
-   - If no errors → LeanTween is ready ✓
-   - Delete test script
-
-**Used Animations in Main Menu:**
-- **Fade In**: Menu appears smoothly when loaded (0.5s ease-out)
-- **Fade Out**: Menu disappears smoothly when transitioning (0.5s ease-in)
-- **Button Press**: Buttons scale to 95% then back to 100% when clicked (0.2s total)
-
-**No Configuration Needed** - LeanTween works out-of-the-box once imported. The MainMenuUI script already has all animation code ready.
+**Verify:**
+- Create temporary C# script
+- Add line: `LeanTween.init();`
+- Check for errors in Console
+- If no errors → ✅ Ready
+- Delete test script
 
 ---
 
-### **Phase 2: Scene Setup**
+## 🏗️ Step-by-Step Building Process
 
-#### **Step 4: Create Main Menu Scene**
+### **Phase 2: Create Main Menu Scene**
 
-1. Create new scene: **MainMenuScene.unity**
-2. Save to: `Assets/Scenes/MainMenuScene.unity`
+#### **Step 5: Create New Scene**
 
-#### **Step 5: Setup Ship Viewer System**
+1. **File → New Scene**
+2. Name: `MainMenuScene`
+3. Save to: `Assets/Scenes/MainMenuScene.unity`
+4. **Delete** default Main Camera (we'll use UI camera)
 
-1. Create empty GameObject: **"ShipViewerSystem"**
-   - Position: (0, 0, 0)
+---
 
-2. Add child: **"ShipContainer"**
-   - Position: (0, 0, 0)
+### **Phase 3: Setup 3D Ship Viewer System**
 
-3. Add child: **"ShipCamera"**
-   - Add **Camera** component
-   - Position: (0, 2, -10)
+The 3D ship viewer is the visual centerpiece. Set this up first.
+
+#### **Step 6: Create Ship Viewer GameObject**
+
+1. **Create empty GameObject in scene:**
+   - Right-click in Hierarchy → Create Empty
+   - Name: `ShipViewerSystem`
+   - Position: `(0, 0, 0)`
+
+2. **Add child GameObject:**
+   - Right-click `ShipViewerSystem` → Create Empty
+   - Name: `ShipContainer`
+   - Position: `(0, 0, 0)`
+   - **This will hold the actual ship model**
+
+#### **Step 7: Create Ship Viewer Camera**
+
+1. **Add Camera:**
+   - Right-click `ShipViewerSystem` → Camera
+   - Name: `ShipViewerCamera`
+   - Position: `(0, 2, -10)` (adjust based on your ship size)
+   - Rotation: `(0, 0, 0)`
+
+2. **Camera Component Settings:**
    - Clear Flags: **Solid Color**
-   - Background: #1A1A26
-   - Culling Mask: **Default**
+   - Background: **Black** `#000000` or dark blue `#0A0A14`
+   - Culling Mask: **Everything** (we'll use layer later if needed)
+   - Projection: **Perspective**
+   - Field of View: **40** (narrower FOV = less distortion)
+   - Clipping Planes: Near **0.3**, Far **100**
+   - Depth: **-2** (renders before UI camera)
+   - Target Display: **Display 1**
 
-4. Create **Render Texture**:
-   - Assets → Create → Render Texture
-   - Name: **"ShipViewerRT"**
-   - Size: 1024x1024
-   - Depth Buffer: 16 bit
-   - Anti-aliasing: 4x
+#### **Step 8: Create Render Texture**
 
-5. Assign Render Texture:
-   - Select **ShipCamera**
-   - Target Texture: **ShipViewerRT**
+1. **Create Render Texture:**
+   - In Project window: `Assets/UI/MainMenuHub/`
+   - Right-click → Create → Render Texture
+   - Name: `ShipViewerRT`
 
-6. Add lighting:
-   - Create **Directional Light** as child of ShipViewerSystem
-   - Name: **"ShipLight"**
-   - Rotation: (50, -30, 0)
-   - Intensity: 1.2
+2. **Render Texture Settings:**
+   - Size: **1024 x 1024** (square for clean rendering)
+   - Depth Buffer: **16 bit** (needed for 3D rendering)
+   - Anti-aliasing: **4x** (smooth edges)
+   - Filter Mode: **Bilinear**
+   - Wrap Mode: **Clamp**
 
-7. Add **ShipViewer3D** component to ShipViewerSystem:
-   - Ship Container: **ShipContainer**
-   - Rotation Speed: **30**
-   - Auto Rotate: **✓**
+3. **Assign to Camera:**
+   - Select `ShipViewerCamera`
+   - **Target Texture:** Drag `ShipViewerRT` here
+
+#### **Step 9: Add Lighting for Ship**
+
+1. **Create Directional Light:**
+   - Right-click `ShipViewerSystem` → Light → Directional Light
+   - Name: `ShipViewerLight`
+   - Rotation: `(50, -30, 0)` (angle from top-left)
+
+2. **Light Settings:**
+   - Type: **Directional**
+   - Color: **White** `#FFFFFF`
+   - Intensity: **1.2**
+   - Shadow Type: **No Shadows** (optional - shadows can be expensive for UI)
+   - Culling Mask: **Everything** (or specific layer if you create one)
+
+3. **Optional - Add Fill Light:**
+   - Right-click `ShipViewerSystem` → Light → Directional Light
+   - Name: `ShipViewerFillLight`
+   - Rotation: `(-30, 150, 0)` (from opposite side)
+   - Intensity: **0.4** (subtle fill)
+   - Color: Slightly blue `#E0E0FF`
 
 ---
 
-### **Phase 3: Build UI Canvas**
+### **Phase 4: Build Main UI Canvas**
 
-#### **Step 6: Create Main Canvas**
+#### **Step 10: Create Main Canvas**
 
-1. GameObject → UI → Canvas
-2. Name: **"MainMenuCanvas"**
-3. Canvas settings:
+1. **Create Canvas:**
+   - Hierarchy → Right-click → UI → Canvas
+   - Name: `MainMenuCanvas`
+   - **EventSystem** should be created automatically
+
+2. **Canvas Component Settings:**
    - Render Mode: **Screen Space - Overlay**
-   - Canvas Scaler:
-     - UI Scale Mode: **Scale With Screen Size**
-     - Reference Resolution: **1920 x 1080**
-     - Match: **0.5**
+   - Pixel Perfect: **✓** (checked)
+   - Sort Order: **0**
 
-4. Add **Canvas Group** component (for fade animations)
+3. **Canvas Scaler Settings:**
+   - UI Scale Mode: **Scale With Screen Size**
+   - Reference Resolution: **1920 x 1080**
+   - Screen Match Mode: **Match Width Or Height**
+   - Match: **0.5** (balanced scaling)
+   - Reference Pixels Per Unit: **100**
 
-#### **Step 7: Create Background**
+4. **Add Canvas Group** (for fade animations):
+   - Select `MainMenuCanvas`
+   - Add Component → **Canvas Group**
+   - Alpha: **1**
+   - Interactable: **✓**
+   - Block Raycasts: **✓**
 
-1. Right-click **MainMenuCanvas** → UI → Panel
-2. Name: **"BackgroundPanel"**
-3. Stretch to full screen (Alt+Shift while clicking stretch anchor)
-4. **Image** component:
-   - Color: #0D0D14
-   - Or use gradient texture
+#### **Step 11: Create Background**
 
-#### **Step 8: Create Panels Container**
+1. **Create Panel:**
+   - Right-click `MainMenuCanvas` → UI → Panel
+   - Name: `BackgroundPanel`
 
-1. Right-click **MainMenuCanvas** → Create Empty
-2. Name: **"PanelsContainer"**
-3. Stretch to full screen
+2. **RectTransform:**
+   - Anchor Preset: **Stretch/Stretch** (hold Alt+Shift, click bottom-right preset)
+   - Left: **0**, Right: **0**, Top: **0**, Bottom: **0**
 
-#### **Step 9: Create Home Panel**
-
-1. Right-click **PanelsContainer** → Create Empty
-2. Name: **"HomePanel"**
-3. This will hold all main menu elements
+3. **Image Component:**
+   - Color: Dark navy blue `#0D0D14`
+   - Material: **None**
+   - Raycast Target: **✓** (blocks clicks from going through)
 
 ---
 
-### **Phase 4: Build Player Info Panel**
+### **Phase 5: Build Top Bar**
 
-#### **Step 10: Create Player Info Panel**
+#### **Step 12: Create Top Bar Container**
 
-1. Right-click **HomePanel** → UI → Panel
-2. Name: **"PlayerInfoPanel"**
-3. Settings:
+1. **Create Empty GameObject:**
+   - Right-click `MainMenuCanvas` → Create Empty
+   - Name: `TopBar`
+
+2. **RectTransform:**
+   - Anchor: **Top Stretch**
+   - Height: **180**
+   - Left: **0**, Right: **0**, Top: **0**
+
+---
+
+#### **Step 13: Build Player Profile Panel (Top-Left)**
+
+1. **Create Panel:**
+   - Right-click `TopBar` → UI → Panel
+   - Name: `PlayerProfilePanel`
+
+2. **RectTransform:**
    - Anchor: **Top-Left**
-   - Position: (220, -120)
-   - Size: (400, 220)
-   - Color: #1A1A26, alpha 180
+   - Pivot: `(0, 1)`
+   - Position: `(20, -20)` (20px from top-left corner)
+   - Width: **280**
+   - Height: **160**
 
-4. Add **Vertical Layout Group** (optional, for auto-spacing):
-   - Padding: (15, 15, 15, 15)
-   - Spacing: 10
-   - Child Alignment: Upper Left
+3. **Image Component:**
+   - Source Image: `frame_PlayerFrame.png` (if you have a frame)
+   - Color: `#1A1A26` (dark blue-gray)
+   - Material: **None**
+   - Image Type: **Sliced** (if using 9-slice frame)
 
-#### **Step 11: Add Username Text**
+4. **Add Profile Icon:**
+   - Right-click `PlayerProfilePanel` → UI → Image
+   - Name: `ProfileIcon`
+   - RectTransform:
+     - Anchor: **Top-Left**
+     - Position: `(15, -15)`
+     - Width: **80**
+     - Height: **80**
+   - Image: Player avatar icon (placeholder for now)
+   - **Button Component:**
+     - Add Component → Button
+     - Target Graphic: ProfileIcon Image
+     - Transition: **Color Tint**
+     - OnClick: Will wire later
 
-1. Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
-2. Name: **"UsernameText"**
-3. Settings:
-   - Text: "PlayerName"
-   - Font Asset: **Orbitron-Bold SDF**
-   - Font Size: **36**
-   - Color: #FFFFFF
-   - Alignment: Left, Top
-   - Position: (10, -10)
+5. **Add Level Display:**
+   - Right-click `PlayerProfilePanel` → UI → Image
+   - Name: `LevelFrame`
+   - RectTransform:
+     - Anchor: **Top-Left**
+     - Position: `(105, -15)`
+     - Width: **160**
+     - Height: **40**
+   - Source Image: `frame_LevelFrame.png`
+   - Color: `#2C3E50`
 
-#### **Step 12: Add Level Text**
+6. **Add Level Text:**
+   - Right-click `LevelFrame` → UI → Text - TextMeshPro
+   - Name: `LevelText`
+   - RectTransform: Stretch to fill parent
+   - TextMeshPro Settings:
+     - Text: "LVL 42"
+     - Font Asset: `Orbitron-Bold SDF`
+     - Font Size: **28**
+     - Color: `#3498DB` (bright blue)
+     - Alignment: **Center, Middle**
+     - Extra Settings → Outline: **✓**
+     - Outline Thickness: **0.2**
+     - Outline Color: Black `#000000`
 
-1. Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
-2. Name: **"LevelText"**
-3. Settings:
-   - Text: "Level 1"
-   - Font Asset: **Orbitron-Bold SDF**
-   - Font Size: **24**
-   - Color: #FFD700 (gold)
-   - Position: (10, -50)
+7. **Add Rank Icon:**
+   - Right-click `PlayerProfilePanel` → UI → Image
+   - Name: `RankIcon`
+   - RectTransform:
+     - Anchor: **Top-Right**
+     - Position: `(-15, -15)`
+     - Width: **50**
+     - Height: **50**
+   - Image: `rank14.png` (Lieutenant - starting rank)
+   - Preserve Aspect: **✓**
 
-#### **Step 13: Add XP Bar**
+8. **Add XP Progress Bar Background:**
+   - Right-click `PlayerProfilePanel` → UI → Image
+   - Name: `XPBarBackground`
+   - RectTransform:
+     - Anchor: **Bottom Stretch**
+     - Position Y: **30**
+     - Height: **25**
+     - Left: **15**, Right: **15**
+   - Source Image: `frame_XPFrame.png` (or solid color)
+   - Color: `#2A2A3A` (dark purple-gray)
+   - Image Type: **Sliced**
 
-1. **Background**:
-   - Right-click **PlayerInfoPanel** → UI → Image
-   - Name: **"XPBarBackground"**
-   - Size: (380, 20)
-   - Position: (0, -90) relative to panel
-   - Color: #2A2A3A
+9. **Add XP Fill Bar:**
+   - Right-click `XPBarBackground` → UI → Image
+   - Name: `XPFillBar`
+   - RectTransform: Stretch to fill parent (all zeros)
+   - Image Component:
+     - Color: `#4CAF50` (green)
+     - Image Type: **Filled**
+     - Fill Method: **Horizontal**
+     - Fill Origin: **Left**
+     - Fill Amount: **0.5** (50% - will be dynamic)
 
-2. **Fill**:
-   - Right-click **XPBarBackground** → UI → Image
-   - Name: **"XPFillBar"**
-   - Stretch to fill parent
-   - Color: #4CAF50 (green)
+10. **Add XP Text:**
+    - Right-click `XPBarBackground` → UI → Text - TextMeshPro
+    - Name: `XPText`
+    - RectTransform: Stretch to fill parent
+    - TextMeshPro Settings:
+      - Text: "8500 / 10000"
+      - Font Asset: `Roboto-Regular SDF`
+      - Font Size: **14**
+      - Color: `#FFFFFF`
+      - Alignment: **Center, Middle**
+      - Outline: **✓**, Thickness **0.3**, Color Black
+
+---
+
+#### **Step 14: Build Logo and Notification Area (Top-Center)**
+
+1. **Create Container:**
+   - Right-click `TopBar` → Create Empty
+   - Name: `LogoArea`
+   - RectTransform:
+     - Anchor: **Top Center**
+     - Pivot: `(0.5, 1)`
+     - Position: `(0, -20)`
+     - Width: **600**
+     - Height: **120**
+
+2. **Add Game Logo:**
+   - Right-click `LogoArea` → UI → Image
+   - Name: `GameLogo`
+   - RectTransform:
+     - Anchor: **Middle Center**
+     - Width: **500**
+     - Height: **80**
+   - Image: `frame_Logo.png` or your game logo
+   - Preserve Aspect: **✓**
+
+3. **Add Notification Button:**
+   - Right-click `LogoArea` → UI → Button
+   - Name: `NotificationButton`
+   - RectTransform:
+     - Anchor: **Middle Left**
+     - Position: `(-280, 0)`
+     - Width: **60**
+     - Height: **60**
+
+4. **Add Notification Icon:**
+   - Right-click `NotificationButton` → UI → Image
+   - Name: `NotificationIcon`
+   - RectTransform: Stretch to fill parent
+   - Image: `icon_Reminder.png`
+   - Button Component:
+     - Transition: **Sprite Swap**
+     - Normal: icon_Reminder (normal state)
+     - Highlighted: icon_Reminder (slightly brighter)
+     - Pressed: icon_Reminder (darker)
+
+5. **Add Calendar Button:**
+   - Right-click `LogoArea` → UI → Button
+   - Name: `CalendarButton`
+   - RectTransform:
+     - Anchor: **Middle Right**
+     - Position: `(280, 0)`
+     - Width: **60**
+     - Height: **60**
+   - Image: `icon_Calendar.png`
+   - Button setup: Same as Notification
+
+---
+
+#### **Step 15: Build Currency Panel (Top-Right)**
+
+1. **Create Panel:**
+   - Right-click `TopBar` → UI → Panel
+   - Name: `CurrencyPanel`
+   - RectTransform:
+     - Anchor: **Top-Right**
+     - Pivot: `(1, 1)`
+     - Position: `(-20, -20)`
+     - Width: **320**
+     - Height: **160**
+   - Image:
+     - Color: `#1A1A26`
+     - Image Type: **Sliced**
+
+2. **Create Coins Row:**
+   - Right-click `CurrencyPanel` → Create Empty
+   - Name: `CoinsRow`
+   - RectTransform:
+     - Anchor: **Top Stretch**
+     - Height: **45**
+     - Top: **15**
+     - Left: **15**, Right: **15**
+
+3. **Add Coins Icon:**
+   - Right-click `CoinsRow` → UI → Image
+   - Name: `CoinsIcon`
+   - RectTransform:
+     - Anchor: **Middle Left**
+     - Width: **40**
+     - Height: **40**
+   - Image: `icon_Coins_Frame.png`
+   - Preserve Aspect: **✓**
+
+4. **Add Coins Text:**
+   - Right-click `CoinsRow` → UI → Text - TextMeshPro
+   - Name: `CoinsText`
+   - RectTransform:
+     - Anchor: **Middle Stretch**
+     - Left: **50**
+     - Right: **60**
+   - TextMeshPro:
+     - Text: "12,450"
+     - Font: `Roboto-Mono SDF`
+     - Font Size: **28**
+     - Color: `#FFD700` (gold)
+     - Alignment: **Right, Middle**
+     - Outline: **✓**
+
+5. **Add Coins Plus Button:**
+   - Right-click `CoinsRow` → UI → Button
+   - Name: `CoinsPlusButton`
+   - RectTransform:
+     - Anchor: **Middle Right**
+     - Width: **45**
+     - Height: **45**
+   - Image Component:
+     - Source Image: `icon_CoinsPlus_Normal.png`
+   - Button Component:
+     - Transition: **Sprite Swap**
+     - Highlighted Sprite: `icon_CoinsPlus_Hover.png`
+     - Pressed Sprite: `icon_CoinsPlus_Pressed.png`
+     - Disabled Sprite: `icon_CoinsPlus_Disabled.png`
+
+6. **Repeat for Gems Row:**
+   - Duplicate `CoinsRow` (Ctrl+D)
+   - Rename: `GemsRow`
+   - Position: `Y = -65`
+   - Update icons to Gems versions:
+     - `icon_Gems_Frame.png`
+     - `icon_GemsPlus_*.png`
+   - Gems text color: `#00FFFF` (cyan)
+
+7. **Add Battle Pass Progress:**
+   - Right-click `CurrencyPanel` → UI → Panel
+   - Name: `BattlePassProgress`
+   - RectTransform:
+     - Anchor: **Bottom Stretch**
+     - Height: **50**
+     - Bottom: **15**
+     - Left: **15**, Right: **15**
+   - Image: `icon_BattlePassProgress_Frame.png`
+
+8. **Add Battle Pass Fill Bar:**
+   - Right-click `BattlePassProgress` → UI → Image
+   - Name: `BattlePassFillBar`
+   - RectTransform: Stretch to fill
    - Image Type: **Filled**
    - Fill Method: **Horizontal**
-   - Fill Origin: **Left**
-   - Fill Amount: **0.5** (50% - will be dynamic)
+   - Fill Amount: **0.24** (Tier 12/50 = 24%)
+   - Color: `#9B59B6` (purple)
 
-3. **XP Text**:
-   - Right-click **XPBarBackground** → UI → Text - TextMeshPro
-   - Name: **"XPText"**
-   - Text: "500 / 1000 XP"
-   - Font Size: **16**
-   - Color: #FFFFFF
-   - Alignment: Center
+9. **Add Battle Pass Text:**
+   - Right-click `BattlePassProgress` → UI → Text - TextMeshPro
+   - Name: `BattlePassText`
+   - Text: "Battle Pass - Tier 12/50"
+   - Font Size: **14**
+   - Alignment: **Center, Middle**
+   - Outline: **✓**
 
-#### **Step 14: Add ELO and Rank**
-
-1. **ELO Text**:
-   - Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
-   - Name: **"ELOText"**
-   - Text: "1200 ELO"
-   - Font: **Orbitron-Bold SDF**
-   - Font Size: **28**
-   - Color: #FFD700
-   - Position: (10, -130)
-
-2. **Rank Icon**:
-   - Right-click **PlayerInfoPanel** → UI → Image
-   - Name: **"RankIcon"**
-   - Size: (48, 48)
-   - Position: (10, -175)
-   - Sprite: **icon_rank_gold_3** (default)
-
-3. **Rank Text**:
-   - Right-click **PlayerInfoPanel** → UI → Text - TextMeshPro
-   - Name: **"RankText"**
-   - Text: "Gold III"
-   - Font Size: **20**
-   - Color: #FFD700
-   - Position: (70, -185)
+10. **Make Progress Clickable:**
+    - Select `BattlePassProgress`
+    - Add Component → **Button**
+    - Target Graphic: BattlePassProgress Image
+    - Transition: **Color Tint**
+    - OnClick: Will wire later to open Battle Pass screen
 
 ---
 
-### **Phase 5: Build Currency Panel**
+### **Phase 6: Build Center Ship Viewer Display**
 
-#### **Step 15: Create Currency Panel**
+#### **Step 16: Add Ship Viewer to Canvas**
 
-1. Right-click **HomePanel** → UI → Panel
-2. Name: **"CurrencyPanel"**
-3. Settings:
-   - Anchor: **Top-Right**
-   - Position: (-145, -90)
-   - Size: (250, 120)
-   - Color: #1A1A26, alpha 180
+1. **Create Raw Image:**
+   - Right-click `MainMenuCanvas` → UI → Raw Image
+   - Name: `ShipViewerDisplay`
 
-#### **Step 16: Add Credits Display**
+2. **RectTransform:**
+   - Anchor: **Middle Center**
+   - Position: `(0, 50)` (slightly above center)
+   - Width: **600**
+   - Height: **600**
 
-1. **Credits Group** (for organization):
-   - Right-click **CurrencyPanel** → Create Empty
-   - Name: **"CreditsGroup"**
-   - Horizontal Layout Group (optional)
+3. **Raw Image Component:**
+   - Texture: Drag `ShipViewerRT` here
+   - Color: **White** (full opacity)
+   - Material: **None**
+   - UV Rect: `(0, 0, 1, 1)` (default)
 
-2. **Credits Icon**:
-   - Right-click **CreditsGroup** → UI → Image
-   - Name: **"CreditsIcon"**
-   - Size: (32, 32)
-   - Sprite: **icon_credits**
-   - Position: (10, -20)
-
-3. **Credits Text**:
-   - Right-click **CreditsGroup** → UI → Text - TextMeshPro
-   - Name: **"CreditsText"**
-   - Text: "1,250"
-   - Font: **Roboto Mono SDF**
-   - Font Size: **24**
-   - Color: #FFD700
-   - Alignment: Right
-   - Position: (50, -20)
-
-#### **Step 17: Add Gems Display**
-
-Repeat same process as Credits:
-- **GemsGroup**
-- **GemsIcon** (sprite: icon_gems)
-- **GemsText** (color: #00FFFF cyan)
-- Position below credits (Y: -70)
+**The ship viewer is now connected! Any 3D model in ShipContainer will appear here.**
 
 ---
 
-### **Phase 6: Build Navigation Buttons**
+### **Phase 7: Build Left Navigation Frame**
+
+#### **Step 17: Create Left Frame Container**
+
+1. **Create Panel:**
+   - Right-click `MainMenuCanvas` → UI → Panel
+   - Name: `LeftNavigationFrame`
+
+2. **RectTransform:**
+   - Anchor: **Middle Left**
+   - Pivot: `(0, 0.5)`
+   - Position: `(20, 0)`
+   - Width: **180**
+   - Height: **500**
+
+3. **Image:**
+   - Color: `#1A1A26` (semi-transparent)
+   - Alpha: **180**
+
+4. **Add Vertical Layout Group** (auto-spacing):
+   - Add Component → Vertical Layout Group
+   - Padding: Top **20**, Bottom **20**, Left **15**, Right **15**
+   - Spacing: **15**
+   - Child Alignment: **Upper Center**
+   - Child Force Expand: Width **✓**, Height **✗**
+
+---
 
 #### **Step 18: Create Navigation Button Prefab**
 
-1. Right-click **HomePanel** → UI → Button
-2. Name: **"NavigationButton"**
-3. **Button** component settings:
-   - Size: (180, 80)
-   - Colors:
-     - Normal: #2C3E50
-     - Highlighted: #34495E
-     - Pressed: #1ABC9C
-     - Disabled: #95A5A6
-   - Transition: **Sprite Swap** (more versatile than Color Tint)
+**Create a reusable button prefab:**
 
-4. **Add Icon**:
-   - Right-click **NavigationButton** → UI → Image
-   - Name: **"IconImage"**
-   - Size: (48, 48)
-   - Position: (-50, 0) (left side of button)
+1. **Create Button:**
+   - Right-click `LeftNavigationFrame` → UI → Button
+   - Name: `NavButton_Template`
 
-5. **Update Button Text**:
-   - Select **Text (TMP)** child
-   - Font: **Rajdhani Bold SDF**
+2. **RectTransform:**
+   - Width: **150**
+   - Height: **100**
+
+3. **Button Component:**
+   - **Transition: Sprite Swap** (IMPORTANT - not Color Tint)
+   - Target Graphic: The Image component
+   - Navigation: **Automatic**
+
+4. **Add Icon Image:**
+   - Right-click `NavButton_Template` → UI → Image
+   - Name: `Icon`
+   - RectTransform:
+     - Anchor: **Top Center**
+     - Position: `(0, -10)`
+     - Width: **64**
+     - Height: **64**
+   - Raycast Target: **✗** (unchecked - let button handle clicks)
+
+5. **Add Text Label:**
+   - Right-click `NavButton_Template` → UI → Text - TextMeshPro
+   - Name: `Label`
+   - RectTransform:
+     - Anchor: **Bottom Stretch**
+     - Height: **30**
+     - Bottom: **5**
+     - Left: **0**, Right: **0**
+   - TextMeshPro:
+     - Text: "BUTTON"
+     - Font: `Rajdhani-Bold SDF`
+     - Font Size: **16**
+     - Color: `#FFFFFF`
+     - Alignment: **Center, Middle**
+     - Outline: **✓**
+     - Outline Thickness: **0.2**
+
+6. **Make Prefab:**
+   - Drag `NavButton_Template` to `Assets/UI/MainMenuHub/Prefabs/`
+   - Name it: `NavigationButton.prefab`
+   - **Delete from scene** (we'll create instances next)
+
+---
+
+#### **Step 19: Create All Left Navigation Buttons**
+
+**Now create the 4 buttons using the prefab:**
+
+1. **Ships Garage Button:**
+   - Drag `NavigationButton.prefab` into `LeftNavigationFrame`
+   - Rename: `ShipsGarageButton`
+   - Icon sprite: `icon_ShipGarage_Normal.png`
+   - Label text: "SHIPS\nGARAGE"
+   - Button Component → Sprite Swap:
+     - Highlighted Sprite: `icon_ShipGarage_Hover.png`
+     - Pressed Sprite: `icon_ShipGarage_Pressed.png`
+     - Disabled Sprite: `icon_ShipGarage_Disabled.png`
+
+2. **Inventory Button:**
+   - Duplicate button or drag prefab
+   - Rename: `InventoryButton`
+   - Icon: `icon_Inventory_Normal.png` (+ hover, pressed, disabled)
+   - Label: "INVENTORY"
+
+3. **Leaderboards Button:**
+   - Rename: `LeaderboardsButton`
+   - Icon: `icon_LeaderBoards_Normal.png` (+ hover, pressed, disabled)
+   - Label: "LEADER-\nBOARDS"
+
+4. **Friends Button:**
+   - Rename: `FriendsButton`
+   - Icon: `icon_Friends_Normal.png` (+ hover, pressed, disabled)
+   - Label: "FRIENDS"
+
+**Vertical Layout Group should auto-space them!**
+
+---
+
+### **Phase 8: Build Right Navigation Frame**
+
+#### **Step 20: Create Right Frame**
+
+Repeat the same process for right side:
+
+1. **Duplicate `LeftNavigationFrame`:**
+   - Select `LeftNavigationFrame`
+   - Ctrl+D (duplicate)
+   - Rename: `RightNavigationFrame`
+
+2. **RectTransform:**
+   - Anchor: **Middle Right**
+   - Pivot: `(1, 0.5)`
+   - Position: `(-20, 0)`
+
+3. **Delete all buttons inside it**
+
+4. **Create 4 buttons:**
+
+   **Shop Button:**
+   - Icon: `icon_Shop_Normal.png` (+ states)
+   - Label: "SHOP"
+
+   **Achievements Button:**
+   - Icon: `icon_Achievements_Normal.png` (+ states)
+   - Label: "ACHIEVE-\nMENTS"
+
+   **Account Progress Button:**
+   - Icon: `icon_Progress_Normal.png` (+ states)
+   - Label: "ACCOUNT\nPROGRESS"
+
+   **Clan Button:**
+   - Icon: `icon_Clan_Normal.png` (+ states)
+   - Label: "CLAN"
+
+---
+
+### **Phase 9: Build Center Action Buttons**
+
+#### **Step 21: Create Stats Display (Above Play Button)**
+
+1. **Create Panel:**
+   - Right-click `MainMenuCanvas` → UI → Panel
+   - Name: `StatsDisplay`
+   - RectTransform:
+     - Anchor: **Middle Center**
+     - Position: `(0, -150)`
+     - Width: **400**
+     - Height: **40**
+   - Image Color: `#2A2A3A` (dark, semi-transparent)
+
+2. **Add Stats Text:**
+   - Right-click `StatsDisplay` → UI → Text - TextMeshPro
+   - Name: `StatsText`
+   - RectTransform: Stretch to fill
+   - Text: "W/L: 84/43  |  ELO: 1450"
+   - Font: `Roboto-Mono SDF`
    - Font Size: **20**
-   - Color: #FFFFFF
-   - Alignment: Right
-   - Position: (20, 0)
-
-6. **Make Prefab**:
-   - Drag **NavigationButton** to `Assets/UI/MainMenu/Prefabs/`
-   - Delete from scene (we'll create instances next)
-
-#### **Step 19: Create Left Navigation**
-
-1. Right-click **HomePanel** → Create Empty
-2. Name: **"LeftNavigation"**
-3. Position: (-700, 0)
-
-4. **Ships Button**:
-   - Drag **NavigationButton** prefab into **LeftNavigation**
-   - Name: **"ShipsButton"**
-   - Position: (0, 150)
-   - Icon: **icon_ships_normal**
-   - Text: "SHIPS"
-   - **Button Transition → Sprite Swap**:
-     - Highlighted Sprite: icon_ships_hover
-     - Pressed Sprite: icon_ships_pressed
-     - Disabled Sprite: icon_ships_disabled
-
-5. **Quests Button**:
-   - Duplicate **ShipsButton**
-   - Name: **"QuestsButton"**
-   - Position: (0, -50)
-   - Icon: icon_quests_normal (+ hover, pressed, disabled)
-   - Text: "QUESTS"
-
-#### **Step 20: Create Right Navigation**
-
-Same process:
-1. Create **"RightNavigation"** at (700, 0)
-2. **MissilesButton** at (0, 150)
-3. **BattlePassButton** at (0, -50)
-
-#### **Step 21: Create Top Navigation**
-
-1. Create **"TopNavigation"** at (0, 480)
-2. **ProfileButton** at (-850, 0) - size (150, 70)
-3. **LeaderboardButton** at (-650, 0)
-4. **SettingsButton** at (850, 0)
+   - Color: `#FFD700` (gold)
+   - Alignment: **Center, Middle**
+   - Outline: **✓**
 
 ---
 
-### **Phase 7: Build Ship Viewer Display**
+#### **Step 22: Create Center Button Container**
 
-#### **Step 22: Add Ship Viewer to Canvas**
+1. **Create Empty:**
+   - Right-click `MainMenuCanvas` → Create Empty
+   - Name: `CenterButtonsContainer`
+   - RectTransform:
+     - Anchor: **Middle Center**
+     - Position: `(0, -220)`
+     - Width: **850**
+     - Height: **120**
 
-1. Right-click **HomePanel** → UI → Raw Image
-2. Name: **"ShipViewerDisplay"**
-3. Settings:
-   - Position: (0, 50) (center)
-   - Size: (600, 600)
-   - Texture: **ShipViewerRT**
+2. **Add Horizontal Layout Group:**
+   - Add Component → Horizontal Layout Group
+   - Spacing: **25**
+   - Child Alignment: **Middle Center**
+   - Child Force Expand: Both **✓**
 
 ---
 
-### **Phase 8: Build Quick Play Button**
+#### **Step 23: Create Main Buttons**
 
-#### **Step 23: Create Quick Play Button**
+1. **Quests Button:**
+   - Drag `NavigationButton.prefab` into `CenterButtonsContainer`
+   - Rename: `QuestsButton`
+   - Width: **200**, Height: **120**
+   - Icon: `icon_Quests_Normal.png` (+ states)
+   - Icon size: **80x80**
+   - Label: "QUESTS"
+   - Label font size: **24**
+   - Button sprite swap states configured
 
-1. Right-click **HomePanel** → UI → Button
-2. Name: **"QuickPlayButton"**
-3. Settings:
-   - Position: (0, -380)
-   - Size: (400, 120)
-   - Colors:
-     - Normal: #27AE60 (green)
-     - Highlighted: #2ECC71
-     - Pressed: #229954
-     - Disabled: #95A5A6
+2. **Play Now Button:** (LARGEST BUTTON)
+   - Create new Button (not from prefab)
+   - Right-click `CenterButtonsContainer` → UI → Button
+   - Name: `PlayNowButton`
+   - Width: **300**, Height: **120**
 
-4. **Add Icon**:
-   - Right-click **QuickPlayButton** → UI → Image
-   - Name: **"QuickPlayIcon"**
-   - Size: (64, 64)
-   - Sprite: **icon_quickplay**
-   - Position: (-120, 0)
+   **Button Image:**
+   - Source Image: `icon_Play_Normal.png`
+   - Image Type: **Simple**
 
-5. **Update Text**:
-   - Select **Text (TMP)**
-   - Text: "QUICK PLAY"
-   - Font: **Orbitron Bold SDF**
+   **Button Component:**
+   - Transition: **Sprite Swap**
+   - Highlighted: `icon_Play_Hover.png`
+   - Pressed: `icon_Play_Pressed.png`
+   - Disabled: `icon_Play_Disabled.png`
+   - Colors (if using Color Tint instead):
+     - Normal: `#27AE60` (green)
+     - Highlighted: `#2ECC71` (bright green)
+     - Pressed: `#229954` (dark green)
+     - Disabled: `#95A5A6` (gray)
+
+   **Add Play Icon:**
+   - Right-click `PlayNowButton` → UI → Image
+   - Name: `PlayIcon`
+   - Position: Left side of button
+   - Width: **80**, Height: **80**
+   - Image: Play triangle icon
+
+   **Add Text:**
+   - Right-click `PlayNowButton` → UI → Text - TextMeshPro
+   - Name: `PlayText`
+   - Text: "PLAY NOW"
+   - Font: `Orbitron-Bold SDF`
    - Font Size: **36**
-   - Bold: ✓
-   - Position: (30, 0)
+   - Color: `#FFFFFF`
+   - Alignment: **Center, Middle**
+   - Bold: **✓**
+
+3. **Battle Pass Button:**
+   - Drag `NavigationButton.prefab`
+   - Rename: `BattlePassButton`
+   - Width: **200**, Height: **120**
+   - Icon: `icon_BattlePass_Normal.png` (+ states)
+   - Icon size: **80x80**
+   - Label: "BATTLE\nPASS"
+   - Label font size: **24**
 
 ---
 
-### **Phase 9: Wire Up Scripts**
+### **Phase 10: Build Game Mode Selector**
 
-#### **Step 24: Add MainMenuUI Component**
+#### **Step 24: Create Game Mode Frame**
 
-1. Select **MainMenuCanvas**
-2. Add Component → **MainMenuUI**
-3. Assign references in Inspector:
-   - **Player Info Panel**:
-     - Username Text: UsernameText
-     - Level Text: LevelText
-     - XP Fill Bar: XPFillBar
-     - XP Text: XPText
-     - ELO Text: ELOText
-     - Rank Icon: RankIcon
-     - Rank Text: RankText
-   - **Currency Panel**:
-     - Credits Text: CreditsText
-     - Gems Text: GemsText
-   - **Rank Icons** array (18 elements - Military/Naval Ranks):
-     - [0] icon_rank_cadet
-     - [1] icon_rank_midshipman
-     - [2] icon_rank_ensign
-     - ... (all 18 rank icons through Grand Admiral)
-   - **Navigation Buttons**:
-     - Ships Button: ShipsButton
-     - Quests Button: QuestsButton
-     - Missiles Button: MissilesButton
-     - Battle Pass Button: BattlePassButton
-     - Profile Button: ProfileButton
-     - Leaderboard Button: LeaderboardButton
-     - Settings Button: SettingsButton
-   - **Quick Play Button**: QuickPlayButton
+1. **Create Panel:**
+   - Right-click `MainMenuCanvas` → UI → Panel
+   - Name: `GameModeFrame`
+   - RectTransform:
+     - Anchor: **Middle Center**
+     - Position: `(0, -370)`
+     - Width: **600**
+     - Height: **80**
+   - Image:
+     - Source Image: `frame_GameMode.png`
+     - Color: `#2C3E50`
+     - Image Type: **Sliced**
 
-#### **Step 25: Add PanelManager Component**
+2. **Add Horizontal Layout Group:**
+   - Spacing: **10**
+   - Padding: **10** on all sides
+   - Child Alignment: **Middle Center**
+   - Child Force Expand: Both **✓**
 
-1. Select **MainMenuCanvas**
-2. Add Component → **PanelManager**
-3. Assign panel references:
-   - Home Panel: HomePanel
-   - (Others will be empty for now)
+---
 
-#### **Step 26: Add MainMenuController**
+#### **Step 25: Create Game Mode Toggle Buttons**
 
-1. Create empty GameObject in scene: **"MainMenuController"**
-2. Add Component → **MainMenuController**
-3. Assign:
-   - Ship Viewer: ShipViewerSystem
-   - Menu UI: MainMenuCanvas
+**IMPORTANT:** These have only **3 states** (Normal, Hover, Toggled) - NO DISABLED STATE
 
-#### **Step 27: Wire Button OnClick Events**
+**Create Toggle Button Prefab:**
+
+1. **Create Toggle:**
+   - Right-click `GameModeFrame` → UI → Toggle
+   - Name: `GameModeToggle_Template`
+
+2. **RectTransform:**
+   - Width: **180**
+   - Height: **60**
+
+3. **Remove default checkmark:**
+   - Delete the "Background" and "Checkmark" child objects
+   - We'll use sprite swap instead
+
+4. **Configure Toggle Component:**
+   - Is On: **✗** (unchecked by default)
+   - Transition: **Sprite Swap**
+   - Toggle Transition: **None**
+
+5. **Configure Image (Background):**
+   - Source Image: Will be set per mode
+
+6. **Add Icon and Label** (same as nav buttons)
+
+**Make Prefab:**
+- Save as `GameModeToggle.prefab`
+- Delete from scene
+
+**Create 3 Toggles:**
+
+1. **Local Toggle:**
+   - Drag prefab into `GameModeFrame`
+   - Rename: `LocalToggle`
+   - Image sprite: `icon_Local_Normal.png`
+   - Toggle Component → Sprite Swap:
+     - Highlighted Sprite: `icon_Local_Hover.png`
+     - Selected Sprite: `icon_Local_Toggled.png`
+   - Label: "LOCAL"
+   - Is On: **✓** (default selected)
+
+2. **Online Toggle:**
+   - Sprite: `icon_Online_Normal.png` (+ hover, toggled)
+   - Label: "ONLINE"
+   - Is On: **✗**
+
+3. **Ranked Toggle:**
+   - Sprite: `icon_Ranked_Normal.png` (+ hover, toggled)
+   - Label: "RANKED"
+   - Is On: **✗**
+
+4. **Create Toggle Group:**
+   - Select `GameModeFrame`
+   - Add Component → **Toggle Group**
+   - Allow Switch Off: **✗** (unchecked - one must always be selected)
+
+5. **Assign Toggles to Group:**
+   - Select `LocalToggle`
+   - Toggle Component → Group: Drag `GameModeFrame` here
+   - Repeat for Online and Ranked toggles
+
+**Now only ONE mode can be selected at a time!**
+
+---
+
+### **Phase 11: Build Bottom Elements**
+
+#### **Step 26: Create Settings Button (Bottom-Left)**
+
+1. **Create Button:**
+   - Right-click `MainMenuCanvas` → UI → Button
+   - Name: `SettingsButton`
+   - RectTransform:
+     - Anchor: **Bottom-Left**
+     - Pivot: `(0, 0)`
+     - Position: `(20, 80)`
+     - Width: **80**
+     - Height: **80**
+
+2. **Button Component:**
+   - Transition: **Sprite Swap**
+   - Image: `icon_Settings_Normal.png` (if you have it) or gear icon
+   - Highlighted: `icon_Settings_Hover.png`
+   - Pressed: `icon_Settings_Pressed.png`
+   - Disabled: `icon_Settings_Disabled.png`
+
+---
+
+#### **Step 27: Create Loadout Frame (Bottom-Right)**
+
+1. **Create Panel:**
+   - Right-click `MainMenuCanvas` → UI → Panel
+   - Name: `LoadoutFrame`
+   - RectTransform:
+     - Anchor: **Bottom-Right**
+     - Pivot: `(1, 0)`
+     - Position: `(-20, 80)`
+     - Width: **200**
+     - Height: **100**
+   - Image Color: `#1A1A26`
+
+2. **Add Horizontal Layout Group:**
+   - Spacing: **15**
+   - Padding: **10**
+   - Child Force Expand: Both **✓**
+
+3. **Create Missile Loadout Button:**
+   - Right-click `LoadoutFrame` → UI → Button
+   - Name: `MissileLoadoutButton`
+   - Width: **85**
+   - Height: **80**
+   - **Special:** Icon will be 3D model of equipped missile (rendered to texture)
+   - For now, use placeholder icon
+   - Button sprite swap configured
+
+4. **Create Custom Builder Button:**
+   - Right-click `LoadoutFrame` → UI → Button
+   - Name: `CustomBuilderButton`
+   - Width: **85**
+   - Height: **80**
+   - Icon: Wrench/tools icon (or use Progress icon temporarily)
+   - Button sprite swap configured
+
+---
+
+#### **Step 28: Create Latest News Bar (Bottom)**
+
+1. **Create Panel:**
+   - Right-click `MainMenuCanvas` → UI → Panel
+   - Name: `NewsBar`
+   - RectTransform:
+     - Anchor: **Bottom Stretch**
+     - Height: **60**
+     - Bottom: **0**
+     - Left: **0**, Right: **0**
+   - Image Color: `#0D0D14` (very dark)
+
+2. **Add News Text:**
+   - Right-click `NewsBar` → UI → Text - TextMeshPro
+   - Name: `NewsText`
+   - RectTransform:
+     - Stretch to fill
+     - Padding Left: **20**, Right: **20**
+   - Text: "LATEST UPDATE: New 'Void Stalker' Ship Released! Triple XP Weekend!"
+   - Font: `Roboto-Regular SDF`
+   - Font Size: **18**
+   - Color: `#FFD700` (gold)
+   - Alignment: **Left, Middle**
+   - Overflow: **Ellipsis**
+
+3. **Make Clickable:**
+   - Select `NewsBar`
+   - Add Component → **Button**
+   - Transition: **Color Tint**
+   - Highlighted Color: Slightly brighter
+   - OnClick: Will wire later
+
+---
+
+### **Phase 12: Create Panel System**
+
+#### **Step 29: Create Panels Container**
+
+1. **Create Empty:**
+   - Right-click `MainMenuCanvas` → Create Empty
+   - Name: `PanelsContainer`
+   - RectTransform: Stretch to fill entire canvas
+
+2. **Create Home Panel:**
+   - Right-click `PanelsContainer` → Create Empty
+   - Name: `HomePanel`
+   - RectTransform: Stretch to fill
+   - **Move ALL main menu elements into this panel:**
+     - Drag TopBar, LeftNavigationFrame, RightNavigationFrame, ShipViewerDisplay, CenterButtonsContainer, GameModeFrame, SettingsButton, LoadoutFrame, NewsBar into `HomePanel`
+
+3. **Create Empty Placeholder Panels:**
+
+   For each screen, create an empty panel with Back button:
+
+   **Template for each:**
+   - Right-click `PanelsContainer` → UI → Panel
+   - Name: e.g., `ShipsGaragePanel`
+   - RectTransform: Stretch to fill
+   - Image Color: `#0D0D14`
+   - Set Active: **✗** (unchecked - hidden by default)
+
+   **Add Back Button:**
+   - Right-click panel → UI → Button
+   - Name: `BackButton`
+   - Position: Top-Left `(50, -50)`
+   - Width: **150**, Height: **60**
+   - Text: "← BACK"
+   - OnClick: Will wire to PanelManager later
+
+   **Add Title:**
+   - Right-click panel → UI → Text - TextMeshPro
+   - Name: `PanelTitle`
+   - Position: Top-Center `(0, -50)`
+   - Text: Panel name (e.g., "SHIPS GARAGE")
+   - Font: `Orbitron-Bold SDF`
+   - Font Size: **48**
+
+   **Create these panels:**
+   - ShipsGaragePanel
+   - InventoryPanel
+   - LeaderboardsPanel
+   - FriendsPanel
+   - ShopPanel
+   - AchievementsPanel
+   - AccountProgressPanel
+   - ClanPanel
+   - QuestsPanel
+   - BattlePassPanel
+   - MissileLoadoutPanel
+   - CustomBuilderPanel
+   - SettingsPanel
+   - PlayerProfilePanel
+   - NotificationsPanel
+   - EventsCalendarPanel
+   - NewsPanel
+
+   **Only HomePanel should be active initially.**
+
+---
+
+## 🔌 Wiring Up Scripts and Functionality
+
+### **Phase 13: Add Scripts to Scene**
+
+You should already have these scripts from previous development. If not, you'll need to create them based on your architecture.
+
+#### **Step 30: Add MainMenuManager**
+
+1. **Create Empty GameObject:**
+   - Hierarchy → Create Empty
+   - Name: `MainMenuManager`
+   - Position: `(0, 0, 0)`
+
+2. **Add MainMenuController Component:**
+   - Add Component → Search "MainMenuController" (your script)
+   - If script doesn't exist, you'll need to create it
+
+3. **Assign References:**
+   - Ship Viewer System: Drag `ShipViewerSystem`
+   - Menu Canvas: Drag `MainMenuCanvas`
+
+---
+
+#### **Step 31: Add PanelManager Component**
+
+1. **Select `MainMenuCanvas`**
+
+2. **Add PanelManager Component:**
+   - Add Component → Search "PanelManager"
+
+3. **Assign All Panel References:**
+   - Home Panel: `HomePanel`
+   - Ships Garage Panel: `ShipsGaragePanel`
+   - Inventory Panel: `InventoryPanel`
+   - ... (assign all 17 panels)
+
+---
+
+#### **Step 32: Wire Button OnClick Events**
 
 For each navigation button:
-1. **ShipsButton**:
-   - OnClick() → PanelManager.ShowPanel("ships")
 
-2. **QuestsButton**:
-   - OnClick() → PanelManager.ShowPanel("quests")
+**Left Navigation:**
+1. **ShipsGarageButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String parameter: "ships"
 
-3. **MissilesButton**:
-   - OnClick() → PanelManager.ShowPanel("missiles")
+2. **InventoryButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "inventory"
 
-4. **BattlePassButton**:
-   - OnClick() → PanelManager.ShowPanel("battlepass")
+3. **LeaderboardsButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "leaderboards"
 
-5. **ProfileButton**:
-   - OnClick() → PanelManager.ShowPanel("profile")
+4. **FriendsButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "friends"
 
-6. **SettingsButton**:
-   - OnClick() → PanelManager.ShowPanel("settings")
+**Right Navigation:**
+5. **ShopButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "shop"
 
-7. **LeaderboardButton**:
-   - OnClick() → PanelManager.ShowPanel("leaderboard")
+6. **AchievementsButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "achievements"
 
-8. **QuickPlayButton**:
-   - OnClick() → MainMenuController.OnQuickPlayClicked()
+7. **AccountProgressButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "accountprogress"
+
+8. **ClanButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "clan"
+
+**Center Buttons:**
+9. **QuestsButton:**
+   - OnClick() → `PanelManager.ShowPanel`
+   - String: "quests"
+
+10. **PlayNowButton:**
+    - OnClick() → `MainMenuController.OnPlayNowClicked`
+
+11. **BattlePassButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "battlepass"
+
+**Loadout:**
+12. **MissileLoadoutButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "missileloadout"
+
+13. **CustomBuilderButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "custombuilder"
+
+**Other:**
+14. **SettingsButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "settings"
+
+15. **ProfileIcon (in PlayerProfilePanel):**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "profile"
+
+16. **NotificationButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "notifications"
+
+17. **CalendarButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "events"
+
+18. **NewsBar:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "news"
+
+19. **BattlePassProgress (top-right):**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "battlepass"
+
+20. **CoinsPlusButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "shop"
+
+21. **GemsPlusButton:**
+    - OnClick() → `PanelManager.ShowPanel`
+    - String: "shop"
+
+**Back Buttons (on all panels):**
+- OnClick() → `PanelManager.ShowPanel`
+- String: "home"
 
 ---
 
-### **Phase 10: Create Empty Panels**
-
-#### **Step 28: Create Placeholder Panels**
-
-For each screen, create a basic placeholder:
-
-1. Right-click **PanelsContainer** → UI → Panel
-2. Name: **"ShipSelectionPanel"** (repeat for each)
-3. Stretch to full screen
-4. Add **Back Button**:
-   - Position: Top-Left (50, -50)
-   - Text: "← BACK"
-   - OnClick() → PanelManager.ShowPanel("home")
-5. Add **Title Text**:
-   - Position: Top-Center (0, -50)
-   - Text: "SHIPS" (or screen name)
-   - Font Size: 48
-
-Repeat for:
-- MissileLoadoutPanel
-- BattlePassPanel
-- QuestsPanel
-- ProfilePanel
-- SettingsPanel
-- LeaderboardPanel (future: InventoryPanel)
-
----
-
-### **Phase 11: Create Prefabs**
-
-#### **Step 29: Save Reusable Prefabs**
-
-1. **PlayerInfoPanel**:
-   - Drag to `Assets/UI/MainMenu/Prefabs/PlayerInfoPanel.prefab`
-
-2. **CurrencyPanel**:
-   - Drag to `Assets/UI/MainMenu/Prefabs/CurrencyPanel.prefab`
-
-3. **NavigationButton**:
-   - Already saved
-
-4. **MainMenuCanvas**:
-   - Drag entire canvas to `Assets/UI/MainMenu/Prefabs/MainMenuCanvas.prefab`
-
----
-
-## 🧪 Unity Component Settings
+## 📱 Component Settings Reference
 
 ### **Canvas Settings**
 ```
@@ -1003,207 +1419,341 @@ Canvas
     └── Match: 0.5
 ```
 
-### **Button Component (Navigation Buttons)**
+### **Button with Sprite Swap (4 States)**
 ```
-Button
+Button Component
+├── Interactable: ✓
 ├── Transition: Sprite Swap
-├── Target Graphic: Background Image
-├── Normal Sprite: icon_[name]_normal
-├── Highlighted Sprite: icon_[name]_hover
-├── Pressed Sprite: icon_[name]_pressed
-├── Disabled Sprite: icon_[name]_disabled
+├── Target Graphic: Button's Image component
+├── Highlighted Sprite: [name]_Hover.png
+├── Pressed Sprite: [name]_Pressed.png
+├── Disabled Sprite: [name]_Disabled.png
 └── Navigation: Automatic
 ```
 
-### **Image Component (Filled - XP Bar)**
+### **Toggle with Sprite Swap (3 States)**
 ```
-Image
+Toggle Component
+├── Is On: ✓ (for default mode only)
+├── Transition: Sprite Swap
+├── Target Graphic: Toggle's Image component
+├── Highlighted Sprite: [name]_Hover.png
+├── Selected Sprite: [name]_Toggled.png
+├── Group: GameModeFrame (Toggle Group)
+└── Navigation: Automatic
+```
+
+### **Image - Filled (Progress Bars)**
+```
+Image Component
 ├── Image Type: Filled
 ├── Fill Method: Horizontal
 ├── Fill Origin: Left
 ├── Fill Amount: 0.0 - 1.0 (dynamic)
-└── Preserve Aspect: ✗
+├── Preserve Aspect: ✗
+└── Raycast Target: ✗ (if not clickable)
 ```
 
 ### **TextMeshPro Settings**
 ```
 TextMeshPro - Text
-├── Font Asset: Orbitron-Bold SDF
-├── Font Size: [see table above]
+├── Font Asset: [font] SDF
+├── Font Size: [see specifications]
 ├── Auto Size: ✗
-├── Color: [see table above]
+├── Color: [see specifications]
+├── Alignment: Center, Middle (or as specified)
+├── Wrapping: Enabled (if multi-line)
+├── Overflow: Ellipsis or Overflow
 ├── Extra Settings
-│   ├── Enable Outline: ✓
-│   ├── Outline Thickness: 0.2
-│   └── Outline Color: #000000 (alpha 200)
-└── Overflow: Ellipsis or Overflow
+│   ├── Outline: ✓
+│   ├── Thickness: 0.2 - 0.3
+│   └── Color: #000000 (black, alpha 200)
+└── Raycast Target: ✗ (if not clickable)
+```
+
+### **Raw Image (Ship Viewer)**
+```
+Raw Image Component
+├── Texture: ShipViewerRT
+├── Color: White (1, 1, 1, 1)
+├── Material: None
+├── UV Rect: (0, 0, 1, 1)
+└── Raycast Target: ✗
+```
+
+### **Render Texture (Ship Viewer)**
+```
+Render Texture
+├── Size: 1024 x 1024
+├── Depth Buffer: 16 bit
+├── Anti-aliasing: 4x
+├── Color Format: Default
+├── Filter Mode: Bilinear
+└── Wrap Mode: Clamp
+```
+
+### **Camera (Ship Viewer)**
+```
+Camera Component
+├── Clear Flags: Solid Color
+├── Background: #000000 or #0A0A14
+├── Culling Mask: Everything
+├── Projection: Perspective
+├── Field of View: 40
+├── Clipping Planes: Near 0.3, Far 100
+├── Depth: -2
+├── Target Texture: ShipViewerRT
+└── Target Display: Display 1
 ```
 
 ---
 
 ## ✅ Testing Checklist
 
-### **Visual Checks**
-- [ ] All icons display correctly in all 4 states
+### **Visual Tests**
+- [ ] All icons display correctly
+- [ ] All 4-state buttons show correct sprites on hover/press
+- [ ] Game mode toggles work (only one selected at a time)
 - [ ] Text is readable and properly sized
 - [ ] Colors match specifications
 - [ ] Layout looks correct at 1920x1080
-- [ ] Ship viewer displays in center (even if empty)
+- [ ] Ship viewer renders in center (even if empty)
 - [ ] No overlapping UI elements
-- [ ] Currency panel aligned to top-right
-- [ ] Player info panel aligned to top-left
-- [ ] Quick Play button is prominent at bottom
+- [ ] All frames and panels aligned correctly
 
-### **Functionality Checks**
-- [ ] Navigation buttons switch panels
+### **Functionality Tests**
+- [ ] All navigation buttons switch to correct panels
 - [ ] Back buttons return to home panel
-- [ ] Buttons show hover state when mouse over
-- [ ] Buttons show pressed state when clicked
-- [ ] Quick Play button triggers correct function
-- [ ] Ship viewer camera renders to texture
+- [ ] Play Now button triggers correctly
+- [ ] Game mode selection works (one at a time)
+- [ ] Currency +buttons clickable
+- [ ] Battle Pass progress bar clickable
+- [ ] Profile icon clickable
+- [ ] Notification/Calendar buttons clickable
+- [ ] Settings button works
+- [ ] Loadout buttons work
+- [ ] News bar clickable
 
-### **Animation Checks** (LeanTween)
-- [ ] Main menu fades in smoothly when scene loads (0.5s)
-- [ ] Main menu fades out smoothly when transitioning (0.5s)
-- [ ] Buttons scale down to 95% then back when clicked
-- [ ] No LeanTween errors in console
-- [ ] Animations feel smooth and responsive
+### **State Tests**
+- [ ] Buttons show hover state on mouse over
+- [ ] Buttons show pressed state on click
+- [ ] Disabled buttons appear greyed out
+- [ ] Toggles show toggled state when selected
+- [ ] Only one game mode toggled at a time
 
-### **Integration Checks**
+### **Animation Tests** (if LeanTween implemented)
+- [ ] Menu fades in smoothly on load
+- [ ] Panels transition smoothly
+- [ ] Buttons have subtle press animation
+- [ ] No animation errors in console
+
+### **Integration Tests**
 - [ ] ProgressionManager loads player data
-- [ ] Username displays from PlayerAccountData
+- [ ] Username displays correctly
 - [ ] Level displays correctly
 - [ ] XP bar fills based on actual XP
 - [ ] ELO displays correctly
 - [ ] Rank icon changes based on ELO
-- [ ] Credits display with comma formatting (1,250)
-- [ ] Gems display correctly
-- [ ] Ship loads in viewer (when equipped)
+- [ ] Win/Loss ratio displays correctly
+- [ ] Coins/Gems display with formatting
+- [ ] Battle Pass tier displays correctly
+- [ ] Ship loads in 3D viewer (when equipped)
 
-### **Performance Checks**
+### **Performance Tests**
 - [ ] No console errors
 - [ ] Smooth 60 FPS
-- [ ] No memory leaks (check Profiler)
-- [ ] UI scales properly on different resolutions
+- [ ] No memory leaks
+- [ ] UI scales properly at different resolutions:
+  - [ ] 1920x1080 (primary)
+  - [ ] 1280x720
+  - [ ] 2560x1440
+  - [ ] 3840x2160
+
+### **Accessibility Tests**
+- [ ] All buttons large enough to click easily
+- [ ] Text readable at all sizes
+- [ ] Sufficient contrast between text and background
+- [ ] Color-blind friendly (if applicable)
 
 ---
 
-## 📊 Resolution Testing
+## 🎨 Design Tips
 
-Test these resolutions:
-- **1920x1080** (Primary)
-- **1280x720** (HD)
-- **2560x1440** (2K)
-- **3840x2160** (4K)
+### **Creating Icons in PaintShop Pro**
 
-UI should scale proportionally on all.
+**For 4-State Buttons:**
 
----
-
-## 🎨 PaintShop Pro Tips
-
-### **Creating Icons**
-
-1. **New Image**:
-   - Size: 512x512 (or 256x256 for small icons)
-   - Background: Transparent
-   - Color Depth: 16 million colors (24-bit)
-
-2. **Design Icon**:
+1. **Create Base (Normal State):**
+   - New image: 512x512, transparent background
    - Use vector tools for clean edges
-   - Keep design centered
-   - Leave 20-30px padding from edges
+   - Base color: Medium gray `#B0B0B0`
+   - Keep 30-40px padding from edges
+   - Save master as .pspimage
 
-3. **Create Variations**:
-   - Save master as .psp file
-   - For **Normal**: Use base gray color (#B0B0B0)
-   - For **Hover**: Duplicate, adjust to white (#FFFFFF), add glow:
-     - Effects → 3D Effects → Outer Glow
-     - Color: Match theme (blue, gold, etc.)
-     - Opacity: 80%
-     - Blur: 10-15
-   - For **Pressed**: Darken (#808080), add inner shadow:
-     - Effects → 3D Effects → Inner Bevel (slight)
-   - For **Disabled**: Very dark (#404040), reduce opacity to 50%
+2. **Create Hover State:**
+   - Duplicate layer
+   - Adjust → Brightness/Contrast → Brightness +30
+   - Change color to white `#FFFFFF`
+   - Add outer glow:
+     - Effects → 3D Effects → Drop Shadow
+     - Modify for glow effect
+     - Color: Thematic (blue, gold, etc.)
+     - Opacity: 70-80%
+     - Blur: 12px
+   - Export as `[name]_Hover.png`
 
-4. **Export**:
-   - File → Export → PNG Optimizer
-   - Format: PNG-24 (with transparency)
-   - Compression: 9 (max)
-   - Interlacing: None
+3. **Create Pressed State:**
+   - Duplicate base
+   - Adjust → Brightness/Contrast → Brightness -20
+   - Color: Dark gray `#808080`
+   - Add inner bevel:
+     - Effects → 3D Effects → Inner Bevel
+     - Depth: 5
+     - Smoothness: 10
+   - Export as `[name]_Pressed.png`
+
+4. **Create Disabled State:**
+   - Duplicate base
+   - Adjust → Brightness/Contrast → Brightness -40
+   - Color: Very dark `#404040`
+   - Layers → Opacity: 50%
+   - Export as `[name]_Disabled.png`
+
+**Export Settings:**
+- File → Export → PNG Optimizer
+- Format: PNG-24
+- Transparency: Yes
+- Compression: 9 (maximum)
+- Interlacing: None
 
 ---
 
-## 🚀 Next Steps After First Screen
+## 🚀 Next Steps
 
-Once the main hub is complete:
+### **After Main Hub is Complete:**
 
-1. **Implement Ship Selection Panel**
-   - Display ship cards
-   - Allow equipping ships
-   - Show ship stats
+1. **Implement Individual Screens:**
+   - Start with Ships Garage Screen (most important)
+   - Then Missile Loadout
+   - Then Quests and Battle Pass
+   - Settings Screen
+   - Profile Screen
+   - etc.
 
-2. **Implement Missile Loadout Panel**
-   - Display missile presets
-   - Allow equipping missiles
-   - Show missile stats
+2. **Add Ship Models:**
+   - Import 3D ship models
+   - Place in Resources folder or assign to ship data
+   - Test loading in ShipViewer
 
-3. **Add More Animations** (Basic animations already included via LeanTween)
-   - Panel slide transitions (in/out from sides)
-   - Additional button hover effects
-   - Ship rotation smoothing/easing
+3. **Polish Animations:**
+   - Add LeanTween fade animations
+   - Button press scale effects
+   - Panel slide transitions
 
-4. **Polish**
-   - Add sound effects
-   - Add particle effects
-   - Improve visual feedback
+4. **Add Sound Effects:**
+   - Button click sounds
+   - Panel transition sounds
+   - UI feedback sounds
 
-5. **Test Online Integration**
-   - Wire Quick Play to matchmaking
-   - Test with real player data
+5. **Test with Real Data:**
+   - Load actual player data
+   - Test with different ELO ranges
+   - Test with different levels
+   - Test unlocked/locked states
+
+6. **Optimize:**
+   - Reduce texture sizes if needed
+   - Pool UI elements
+   - Optimize render texture
+
+---
+
+## 📊 Asset Summary
+
+**Total Assets Required:**
+
+| Category | Count | Notes |
+|----------|-------|-------|
+| Navigation Icons (4 states) | 44 files | 11 buttons × 4 states |
+| Game Mode Icons (3 states) | 9 files | 3 modes × 3 states |
+| Currency Icons | 10 files | Coins, Gems frames + buttons |
+| Rank Icons | 18 files | rank1.png to rank18.png |
+| Frame Assets | 4+ files | GameMode, Level, XP, Logo |
+| Special Icons | 5+ files | Notification, Calendar, Settings |
+| **TOTAL** | **~90 files** | PNG format |
+
+**Fonts Required:**
+- Orbitron Bold (or Rajdhani Bold)
+- Roboto Regular
+- Roboto Mono
+
+**Scripts Required:**
+- MainMenuController
+- PanelManager
+- ShipViewer3D
+- CurrencyDisplay
+- StatsDisplay
+- GameModeSelector
+- (Plus all screen-specific scripts)
 
 ---
 
 ## 📝 Quick Reference
 
-### **Key Shortcuts**
-- **Alt + Shift + Anchor Preset** = Stretch to fill parent
-- **Ctrl + D** = Duplicate selected object
-- **Ctrl + Shift + N** = Create new GameObject
-- **F** = Frame selected object in Scene view
-- **Shift + F** = Frame and lock camera to object
+### **Common Unity Shortcuts**
+- **F** - Frame selected object
+- **Ctrl+D** - Duplicate
+- **Ctrl+Shift+N** - New GameObject
+- **Alt+Shift+Click Anchor** - Stretch to fill parent
 
 ### **Common Colors**
 ```
 Dark Background: #0D0D14
-Panel Background: #1A1A26 (alpha 180)
+Panel Background: #1A1A26
 Button Normal: #2C3E50
 Button Hover: #34495E
 Button Pressed: #1ABC9C
-White Text: #FFFFFF
-Gold Text: #FFD700
+Gold: #FFD700
 Cyan: #00FFFF
 Green (Play): #27AE60
+White: #FFFFFF
 ```
+
+### **Common Positions**
+- Top-Left: `(20, -20)`
+- Top-Right: `(-20, -20)`
+- Bottom-Left: `(20, 20)`
+- Bottom-Right: `(-20, 20)`
+- Center: `(0, 0)`
 
 ---
 
-## 🎯 Summary
+## 🎯 Final Notes
 
-**Total Assets to Create:**
-- **55 icon files** (PNG) - Updated to 18 military/naval rank icons
-- **2 fonts** (imported from Google Fonts, converted to TMP)
-- **7 prefabs** (NavigationButton, PlayerInfoPanel, CurrencyPanel, etc.)
-- **1 scene** (MainMenuScene.unity)
-- **1 render texture** (ShipViewerRT)
-- **LeanTween** ✓ Already included (animation system)
+1. **Test frequently** - After each section, press Play and verify everything works
 
-**Estimated Time:**
-- Icon creation: **8-12 hours** (for all 55 icons with variations)
-- Unity setup: **4-6 hours**
-- Testing & polish: **2-3 hours**
-- **Total: 14-21 hours**
+2. **Save often** - Save scene and project frequently (Ctrl+S)
 
-**You are now ready to build the first screen!** 🚀
+3. **Use prefabs** - Reuse button prefabs to maintain consistency
 
-Start with creating the icons in PaintShop Pro, then import to Unity and follow the step-by-step build process. Good luck!
+4. **Organize hierarchy** - Keep hierarchy clean and organized with empty containers
+
+5. **Name consistently** - Use clear, descriptive names for all objects
+
+6. **Comment your work** - Add comments in Inspector for complex setups
+
+7. **Back up your project** - Use version control (Git) or manual backups
+
+8. **Optimize as you go** - Don't wait until the end to optimize
+
+9. **Test on target hardware** - Test on actual devices, not just editor
+
+10. **Get feedback** - Show to others and iterate based on feedback
+
+---
+
+**You now have a complete, step-by-step guide to build the Main Menu Hub!** 🚀
+
+Follow each phase carefully, test as you go, and you'll have a professional main menu that rivals commercial games.
+
+Good luck! 🎮
