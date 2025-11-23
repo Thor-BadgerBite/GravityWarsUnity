@@ -141,25 +141,29 @@ Based on the provided file list screenshot, here are ALL the icons you need:
 - `icon_BattlePassProgress_Frame.png`
 - `icon_PlayerFrame.png`
 
-#### **Rank Icons (18 total - Single version each, NO states)**
-- `rank1.png` (Highest rank - Grand Admiral 3700+)
-- `rank2.png` (Supreme Admiral 3500-3699)
-- `rank3.png` (Fleet Admiral 3300-3499)
-- `rank4.png` (High Admiral 3100-3299)
-- `rank5.png` (Admiral 2900-3099)
-- `rank6.png` (Vice Admiral 2700-2899)
-- `rank7.png` (Rear Admiral Upper Half 2500-2699)
-- `rank8.png` (Rear Admiral 2300-2499)
-- `rank9.png` (Commodore 2100-2299)
-- `rank10.png` (Senior Captain 1900-2099)
-- `rank11.png` (Captain 1700-1899)
-- `rank12.png` (Commander 1500-1699)
-- `rank13.png` (Lieutenant Commander 1300-1499)
-- `rank14.png` ⭐ (Lieutenant 1100-1299) **STARTING RANK**
-- `rank15.png` (Sub-Lieutenant 900-1099)
-- `rank16.png` (Ensign 700-899)
-- `rank17.png` (Midshipman 500-699)
-- `rank18.png` (Cadet 0-499 - Lowest rank)
+#### **Rank Icons (16 total - Single version each, NO states)**
+- `rank1.png` (Highest rank - Grand Admiral 3000+)
+- `rank2.png` (Supreme Admiral 2850-2999)
+- `rank3.png` (Fleet Admiral 2700-2849)
+- `rank4.png` (High Admiral 2550-2699)
+- `rank5.png` (Admiral 2400-2549)
+- `rank6.png` (Vice Admiral 2250-2399)
+- `rank7.png` (Rear Admiral Upper Half 2100-2249)
+- `rank8.png` (Rear Admiral 1950-2099)
+- `rank9.png` (Commodore 1800-1949)
+- `rank10.png` (Senior Captain 1650-1799)
+- `rank11.png` (Captain 1500-1649)
+- `rank12.png` (Commander 1350-1499)
+- `rank13.png` (Lieutenant Commander 1200-1349)
+- `rank14.png` (Lieutenant 1050-1199)
+- `rank15.png` ⭐ (Ensign 700-1049) **STARTING RANK (800)**
+- `rank16.png` (Cadet 0-699 - Lowest rank)
+
+**Note:** Missing icons to be created:
+- `icon_MissileLoadout_*.png` (4 states)
+- `icon_CustomBuilder_*.png` (4 states)
+- `icon_Settings_*.png` (4 states)
+- `frame_LoadoutFrame.png`
 
 ---
 
@@ -246,7 +250,7 @@ Assets/
    - **Navigation:** All navigation button icons (Ships, Inventory, Leaderboards, Friends, Shop, Achievements, Progress, Clan, Quests, Play, BattlePass)
    - **GameModes:** Local, Online, Ranked icons
    - **Currency:** Coins, Gems, Plus button icons
-   - **Ranks:** rank1.png through rank18.png
+   - **Ranks:** rank1.png through rank16.png
    - **Frames:** frame_*.png files
 
 3. **Configure Import Settings** for ALL icons:
@@ -530,7 +534,7 @@ The 3D ship viewer is the visual centerpiece. Set this up first.
      - Position: `(-15, -15)`
      - Width: **50**
      - Height: **50**
-   - Image: `rank14.png` (Lieutenant - starting rank)
+   - Image: `rank15.png` (Ensign - starting rank)
    - Preserve Aspect: **✓**
 
 8. **Add XP Progress Bar Background:**
@@ -1677,10 +1681,10 @@ Camera Component
 | Navigation Icons (4 states) | 44 files | 11 buttons × 4 states |
 | Game Mode Icons (3 states) | 9 files | 3 modes × 3 states |
 | Currency Icons | 10 files | Coins, Gems frames + buttons |
-| Rank Icons | 18 files | rank1.png to rank18.png |
+| Rank Icons | 16 files | rank1.png to rank16.png |
 | Frame Assets | 4+ files | GameMode, Level, XP, Logo |
 | Special Icons | 5+ files | Notification, Calendar, Settings |
-| **TOTAL** | **~90 files** | PNG format |
+| **TOTAL** | **~88 files** | PNG format |
 
 **Fonts Required:**
 - Orbitron Bold (or Rajdhani Bold)
