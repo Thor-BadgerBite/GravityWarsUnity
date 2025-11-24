@@ -16,9 +16,9 @@ MonoBehaviour:
   missileType: 1
   visualModelPrefab: {fileID: 5064258758001045331, guid: 67a1919f779d055438ad43c5902fc393, type: 3}
   icon: {fileID: 0}
-  displayMass: 500
-  overridePhysicsMass: 0
-  customPhysicsMass: 1.5
+  requiredAccountLevel: 0
+  physicsMass: 1.06
+  displayMass: 353.32977
   minLaunchVelocity: 0.1
   maxLaunchVelocity: 20
   maxVelocity: 50

@@ -1,0 +1,297 @@
+Shader "UIRotateScaleFX/MultiLayerFadeCenter"
+{
+    Properties
+    {
+        _LayerTex ("Layer Texture", 2D) = "white" {}
+        [HDR] _LayerColor ("Layer Color", Color) = (1,1,1,1)
+        _LayerScaleLifeTime ("Layer Scale Cycle Time", Float) = 1.5
+        [Enum(ScaleOut,0,ScaleIn,1)] _LayerScaleDirection ("Layer Scale Direction", Int) = 0
+        _LayerRotAngleSpeed ("Layer Rotation Speed (Degrees/sec)", Float) = 0
+        
+        [Range(1, 10)] _LayerCount ("Layer Count", Int) = 3
+        
+        _ImageEdgeFade ("Image Edge Fade", Range(0.0, 1)) = 0
+        _ImageCenterFade ("Image Center Fade", Range(0.0, 1)) = 0
+        _TextureEdgeFade ("Texture Edge Fade", Range(0.0, 1)) = 0
+
+        _MinScale ("Min Scale", Float) = 0
+        _MinScaleFade ("Min Scale Fade", Range(0.0, 1.0)) = 0.0
+
+        _MaxScale ("Max Scale", Float) = 1
+        _MaxScaleFade ("Max Scale Fade", Range(0.0, 1.0)) = 1.0
+        [Enum(Loop,1,Once,0)] _Loop ("Animation Mode", Int) = 1
+    }
+
+    SubShader
+    {
+        Tags
+        {
+            "Queue" = "Transparent"
+            "IgnoreProjector" = "True"
+            "RenderType" = "Transparent"
+            "PreviewType" = "Plane"
+            "CanUseSpriteAtlas" = "True"
+        }
+
+        Cull Off
+        Lighting Off
+        ZWrite Off
+        ZTest [unity_GUIZTestMode]
+        Blend SrcAlpha OneMinusSrcAlpha
+
+        Pass
+        {
+            CGPROGRAM
+            #pragma vertex vert
+            #pragma fragment frag
+            #pragma target 2.0
+
+            #include "UnityCG.cginc"
+            #include "UnityUI.cginc"
+
+            struct appdata_t
+            {
+                float4 vertex : POSITION;
+                float4 color : COLOR;
+                float2 texcoord : TEXCOORD0;
+                UNITY_VERTEX_INPUT_INSTANCE_ID
+            };
+
+            struct v2f
+            {
+                float4 vertex : SV_POSITION;
+                fixed4 color : COLOR;
+                float2 texcoord : TEXCOORD0;
+                float4 worldPosition : TEXCOORD1;
+                UNITY_VERTEX_OUTPUT_STEREO
+            };
+
+            struct ScaleInfo
+            {
+                float scale;
+                float fadeAlpha;
+            };
+
+            struct LayerInfo
+            {
+                float2 uv;
+                float fadeAlpha;
+                bool valid;
+            };
+
+            fixed4 _TextureSampleAdd;
+            float4 _ClipRect;
+
+            sampler2D _LayerTex;
+            half4 _LayerColor;
+            float _LayerScaleLifeTime;
+            int _LayerScaleDirection;
+            float _LayerRotAngleSpeed;
+            int _LayerCount;
+
+            float _ImageEdgeFade;
+            float _ImageCenterFade;
+            float _TextureEdgeFade;
+            float _MaxScaleFade;
+            float _MinScaleFade;
+
+            float _MinScale;
+            float _MaxScale;
+            int _Loop;
+
+            v2f vert(appdata_t v)
+            {
+                v2f OUT;
+                UNITY_SETUP_INSTANCE_ID(v);
+                UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(OUT);
+                OUT.worldPosition = v.vertex;
+                OUT.vertex = UnityObjectToClipPos(v.vertex);
+                OUT.texcoord = v.texcoord;
+                OUT.color = v.color;
+                return OUT;
+            }
+
+            ScaleInfo getSawtoothScale(float lifeTime, int direction, float minS, float maxS, float deltaTime)
+            {
+                ScaleInfo result;
+                
+                // Check if minScale and maxScale are equal
+                if (abs(minS - maxS) < 0.0001)
+                {
+                    // If equal, don't perform scale animation, just use fixed scale
+                    result.scale = minS; // or maxS, they're equal
+                    result.fadeAlpha = 1.0; // No fadeout
+                    return result;
+                }
+                
+                // Prevent division by zero
+                float cycleTime = max(abs(lifeTime), 0.0001);
+                float speed = 1.0 / cycleTime;
+                
+                if (lifeTime <= 0) {
+                    result.scale = direction == 0 ? minS : maxS; // Fixed initial value when lifetime is 0
+                    result.fadeAlpha = 1.0; // No fadeout
+                    return result;
+                }
+                
+                float t = (_Time.y + deltaTime) * speed;
+                float p;
+                
+                if (_Loop == 1)
+                {
+                    p = frac(t); // 0-1 loop
+                }
+                else
+                {
+                    p = saturate(t); // 0-1 one-time interpolation
+                }
+                
+                // Determine scale value
+                result.scale = direction == 0 ? lerp(minS, maxS, p) : lerp(maxS, minS, p);
+                
+                // Calculate fadeout effect - transparent when close to maxScale or minScale
+                float scaleRange = maxS - minS;
+                float normalizedScale = (result.scale - minS) / max(scaleRange, 0.0001);
+                
+                float maxFadeAlpha = 1.0;
+                float minFadeAlpha = 1.0;
+                
+                // Transparency when close to maximum value
+                if (_MaxScaleFade > 0) {
+                    float maxDistance = normalizedScale;  // Normalized distance to max value
+                    if (maxDistance > (1.0 - _MaxScaleFade)) {
+                        // Calculate transparency when close to max value
+                        float maxFadeProgress = (maxDistance - (1.0 - _MaxScaleFade)) / _MaxScaleFade;
+                        maxFadeAlpha = 1.0 - maxFadeProgress;
+                    }
+                }
+                
+                // Transparency when close to minimum value
+                if (_MinScaleFade > 0) {
+                    float minDistance = normalizedScale;  // Normalized distance to min value
+                    if (minDistance < _MinScaleFade) {
+                        // Calculate transparency when close to min value
+                        float minFadeProgress = minDistance / _MinScaleFade;
+                        minFadeAlpha = minFadeProgress;
+                    }
+                }
+                
+                // Use the smaller of the two alpha values as the final transparency
+                result.fadeAlpha = min(maxFadeAlpha, minFadeAlpha);
+                
+                return result;
+            }
+
+            float2 rotateAndScaleUV(float2 uv, float scaleLifeTime, int scaleDirection, float rotSpeed, float deltaTime, out float fadeAlpha)
+            {
+                float time = _Time.y + deltaTime;
+
+                // Move center
+                uv -= 0.5;
+
+                ScaleInfo scaleInfo = getSawtoothScale(scaleLifeTime, scaleDirection, _MinScale, _MaxScale, deltaTime);
+                fadeAlpha = scaleInfo.fadeAlpha;
+                
+                // Only scale when scale is not 0, avoid division by zero
+                if (abs(scaleInfo.scale) > 0.0001) {
+                    uv /= scaleInfo.scale;
+                }
+
+                float angle = radians(time * rotSpeed);
+                float cosA = cos(angle);
+                float sinA = sin(angle);
+                float2x2 rot = float2x2(cosA, -sinA, sinA, cosA);
+                uv = mul(rot, uv);
+
+                uv += 0.5;
+                return uv;
+            }
+
+            float calculateTextureEdgeFade(float2 uv, float edgeFadeFactor)
+            {
+                float2 center = float2(0.5, 0.5);
+                float2 distFromCenter = abs(uv - center) * 2.0;
+                float totalDist = length(distFromCenter);
+                float edgeFade = totalDist - edgeFadeFactor;
+                return 1.0 - saturate(edgeFade);
+            }
+
+            float calculateCenterFade(float2 uv, float centerFadeFactor)
+            {
+                float2 center = float2(0.5, 0.5);
+                float2 distFromCenter = abs(uv - center) * 2.0;
+                float totalDist = length(distFromCenter);
+    
+                // If distance is less than or equal to centerFadeFactor, return 0 (completely transparent)
+                if (totalDist <= centerFadeFactor) {
+                    return 0.0;
+                }
+    
+                // Calculate mid point between centerFadeFactor and 1.0
+                float mid = centerFadeFactor + (1.0 - centerFadeFactor) / 2.0;
+    
+                // Calculate normalized distance from either centerFadeFactor or 1.0 to mid
+                float fadeValue;
+                if (totalDist < mid) {
+                    // Distance from centerFadeFactor to mid, mapped to 0-1
+                    fadeValue = (totalDist - centerFadeFactor) / (mid - centerFadeFactor);
+                } else {
+                    // Distance from mid to 1.0, mapped to 1-0 (inverted)
+                    fadeValue = 1.0 - ((totalDist - mid) / (1.0 - mid));
+                }
+    
+                // Clamp result between 0 and 1
+                return saturate(fadeValue);
+            }
+
+            fixed4 frag(v2f IN) : SV_Target
+            {
+                float2 uv = IN.texcoord;
+                
+                // Initialize with transparent color
+                half4 result = half4(0, 0, 0, 0);
+                
+                // Calculate time offset per layer
+                float deltaTimeStep = _LayerScaleLifeTime / max(_LayerCount, 1);
+                
+                // Process each layer
+                for (int i = 0; i < _LayerCount; i++)
+                {
+                    // Calculate the time offset for this layer
+                    float layerDeltaTime = deltaTimeStep * i;
+                    
+                    // Calculate UV and alpha for this layer
+                    float fadeAlpha;
+                    float2 layerUV = rotateAndScaleUV(uv, _LayerScaleLifeTime, _LayerScaleDirection, _LayerRotAngleSpeed, layerDeltaTime, fadeAlpha);
+                    
+                    // Check if UVs are valid
+                    bool layerValid = layerUV.x > 0.0 && layerUV.x < 1.0 && layerUV.y > 0.0 && layerUV.y < 1.0;
+                    
+                    if (layerValid)
+                    {
+                        // Sample texture for this layer
+                        half4 layerColor = tex2D(_LayerTex, layerUV) * _LayerColor;
+                        layerColor.a *= calculateTextureEdgeFade(layerUV, _TextureEdgeFade) * fadeAlpha;
+                        
+                        // Blend with result using alpha blending
+                        float a = layerColor.a + result.a * (1 - layerColor.a);
+                        float3 rgb = (layerColor.rgb * layerColor.a + result.rgb * result.a * (1 - layerColor.a)) / max(a, 0.0001);
+                        result = half4(rgb, a);
+                    }
+                }
+                
+                // Apply final adjustments
+                result *= IN.color;
+                
+                float edgeFade = calculateTextureEdgeFade(uv, _ImageEdgeFade);
+                float centerFade = calculateCenterFade(uv, _ImageCenterFade);
+                
+                result.a *= UnityGet2DClipping(IN.worldPosition.xy, _ClipRect);
+                result.a *= edgeFade * centerFade; // Apply both edge and center fade
+                
+                return result;
+            }
+            ENDCG
+        }
+    }
+}
