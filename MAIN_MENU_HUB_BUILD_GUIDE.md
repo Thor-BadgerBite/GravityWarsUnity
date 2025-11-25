@@ -1207,7 +1207,9 @@ Repeat the same process for right side:
 
 ---
 
-### **Phase 12: Create Panel System**
+### **Phase 12: Create Panel System (Semi-Transparent Overlay)**
+
+**DESIGN PHILOSOPHY:** All panels appear as semi-transparent overlays on top of the main menu. The ship viewer, planet background, and main menu elements remain visible underneath, creating a layered, immersive experience.
 
 #### **Step 29: Create Panels Container**
 
@@ -1215,42 +1217,99 @@ Repeat the same process for right side:
    - Right-click `MainMenuCanvas` → Create Empty
    - Name: `PanelsContainer`
    - RectTransform: Stretch to fill entire canvas
+   - **Keep this ABOVE all main menu elements in hierarchy** (so panels render on top)
 
-2. **Create Home Panel:**
-   - Right-click `PanelsContainer` → Create Empty
-   - Name: `HomePanel`
-   - RectTransform: Stretch to fill
-   - **Move ALL main menu elements into this panel:**
-     - Drag TopBar, LeftNavigationFrame, RightNavigationFrame, ShipViewerDisplay, CenterButtonsContainer, GameModeFrame, SettingsButton, LoadoutFrame, NewsBar into `HomePanel`
+2. **Add Background Dimmer (Shared Overlay):**
+   - Right-click `PanelsContainer` → UI → Panel
+   - Name: `BackgroundDimmer`
+   - RectTransform: Stretch to fill entire canvas
+   - Image Component:
+     - Color: `#000000` (Black)
+     - Alpha: **128** (50% transparency - adjustable)
+     - Material: **None**
+   - Set Active: **✗** (unchecked - only shown when panels are open)
+   - **This creates the darkened overlay effect behind panels**
 
-3. **Create Empty Placeholder Panels:**
+3. **Create Semi-Transparent Panel Template:**
 
-   For each screen, create an empty panel with Back button:
+   For each screen, create a semi-transparent panel that sits on top:
 
-   **Template for each:**
+   **Template for each panel:**
    - Right-click `PanelsContainer` → UI → Panel
    - Name: e.g., `ShipsGaragePanel`
-   - RectTransform: Stretch to fill
-   - Image Color: `#0D0D14`
+   - RectTransform:
+     - Anchor: **Middle Center**
+     - Position: `(0, 0)`
+     - Width: **1400** (doesn't fill entire screen)
+     - Height: **900**
+   - Image Component:
+     - Color: `#1A1A26` (Dark blue-gray)
+     - Alpha: **220** (86% opacity - semi-transparent)
+     - Image Type: **Sliced** (if using frame)
+     - Material: **None**
+   - Add Component → **Canvas Group**:
+     - Alpha: **1**
+     - Interactable: **✓**
+     - Block Raycasts: **✓**
    - Set Active: **✗** (unchecked - hidden by default)
+
+   **Add Optional Decorative Frame:**
+   - Right-click panel → UI → Image
+   - Name: `PanelFrame`
+   - RectTransform: Stretch to fill parent (all zeros)
+   - Source Image: Frame asset (if available)
+   - Color: `#3A4A5A` (Lighter accent color)
+   - Alpha: **180**
+   - Image Type: **Sliced**
+   - Raycast Target: **✗**
 
    **Add Back Button:**
    - Right-click panel → UI → Button
    - Name: `BackButton`
-   - Position: Top-Left `(50, -50)`
-   - Width: **150**, Height: **60**
-   - Text: "← BACK"
+   - RectTransform:
+     - Anchor: **Top-Left**
+     - Position: `(30, -30)`
+     - Width: **150**, Height: **60**
+   - Image Color: `#2C3E50`
+   - Button Component:
+     - Transition: **Color Tint**
+     - Highlighted: `#34495E`
+     - Pressed: `#1ABC9C`
+   - **Add Text:**
+     - Right-click `BackButton` → UI → Text - TextMeshPro
+     - Text: "← BACK"
+     - Font: `Orbitron-Bold SDF`
+     - Font Size: **20**
+     - Color: `#FFFFFF`
+     - Alignment: **Center, Middle**
    - OnClick: Will wire to PanelManager later
 
    **Add Title:**
    - Right-click panel → UI → Text - TextMeshPro
    - Name: `PanelTitle`
-   - Position: Top-Center `(0, -50)`
+   - RectTransform:
+     - Anchor: **Top Center**
+     - Position: `(0, -40)`
+     - Width: **800**, Height: **80**
    - Text: Panel name (e.g., "SHIPS GARAGE")
    - Font: `Orbitron-Bold SDF`
-   - Font Size: **48**
+   - Font Size: **56**
+   - Color: `#FFFFFF`
+   - Alignment: **Center, Middle**
+   - Outline: **✓**, Thickness **0.3**, Color Black
+   - Shadow: **✓** (optional for depth)
 
-   **Create these panels:**
+   **Add Content Container:**
+   - Right-click panel → Create Empty
+   - Name: `ContentContainer`
+   - RectTransform:
+     - Anchor: **Stretch/Stretch**
+     - Top: **120** (below title)
+     - Bottom: **30**
+     - Left: **30**, Right: **30**
+   - **This is where panel-specific content goes**
+
+   **Create these semi-transparent overlay panels:**
    - ShipsGaragePanel
    - InventoryPanel
    - LeaderboardsPanel
@@ -1269,7 +1328,15 @@ Repeat the same process for right side:
    - EventsCalendarPanel
    - NewsPanel
 
-   **Only HomePanel should be active initially.**
+   **All panels should be inactive initially. Only main menu elements are visible.**
+
+4. **Organization Tips:**
+   - Keep `BackgroundDimmer` as first child of `PanelsContainer` (renders first)
+   - Order panels in hierarchy by usage frequency
+   - Use consistent sizing for similar panel types:
+     - **Full-screen content:** 1400x900
+     - **Medium popups:** 1000x700
+     - **Small dialogs:** 600x400
 
 ---
 
@@ -1303,11 +1370,31 @@ You should already have these scripts from previous development. If not, you'll 
 2. **Add PanelManager Component:**
    - Add Component → Search "PanelManager"
 
-3. **Assign All Panel References:**
-   - Home Panel: `HomePanel`
+3. **Assign Panel References:**
+   - Background Dimmer: `BackgroundDimmer` (IMPORTANT - needed for overlay effect)
    - Ships Garage Panel: `ShipsGaragePanel`
    - Inventory Panel: `InventoryPanel`
-   - ... (assign all 17 panels)
+   - Leaderboards Panel: `LeaderboardsPanel`
+   - Friends Panel: `FriendsPanel`
+   - Shop Panel: `ShopPanel`
+   - Achievements Panel: `AchievementsPanel`
+   - Account Progress Panel: `AccountProgressPanel`
+   - Clan Panel: `ClanPanel`
+   - Quests Panel: `QuestsPanel`
+   - Battle Pass Panel: `BattlePassPanel`
+   - Missile Loadout Panel: `MissileLoadoutPanel`
+   - Custom Builder Panel: `CustomBuilderPanel`
+   - Settings Panel: `SettingsPanel`
+   - Player Profile Panel: `PlayerProfilePanel`
+   - Notifications Panel: `NotificationsPanel`
+   - Events Calendar Panel: `EventsCalendarPanel`
+   - News Panel: `NewsPanel`
+
+**Note on PanelManager Behavior:**
+- When showing a panel: Enable `BackgroundDimmer` + Enable target panel
+- When hiding a panel: Disable panel + Disable `BackgroundDimmer`
+- Main menu elements (ship viewer, navigation, etc.) remain always active
+- Use LeanTween for smooth fade-in/fade-out animations on panels
 
 ---
 
@@ -1404,8 +1491,16 @@ For each navigation button:
     - String: "shop"
 
 **Back Buttons (on all panels):**
+- OnClick() → `PanelManager.HideCurrentPanel` (or `ClosePanel`)
+- **No parameter needed** - closes current overlay and returns to main menu view
+
+**Alternative Back Button Setup (if using ShowPanel method):**
 - OnClick() → `PanelManager.ShowPanel`
-- String: "home"
+- String: "" (empty string closes panels and shows main menu)
+
+**ESC Key Handling:**
+- Should close current panel overlay when pressed
+- Returns to main menu view (no panel active)
 
 ---
 
@@ -1524,19 +1619,31 @@ Camera Component
 - [ ] Ship viewer renders in center (even if empty)
 - [ ] No overlapping UI elements
 - [ ] All frames and panels aligned correctly
+- [ ] **Overlay Tests:**
+  - [ ] Panels appear semi-transparent (can see ship/background behind)
+  - [ ] Background dimmer creates proper darkening effect
+  - [ ] Text remains readable on semi-transparent panels
+  - [ ] Panel shadows/frames provide depth separation
+  - [ ] Overlay panels don't completely obscure main menu
+  - [ ] Layering looks correct (dimmer → panel → content)
 
 ### **Functionality Tests**
-- [ ] All navigation buttons switch to correct panels
-- [ ] Back buttons return to home panel
+- [ ] All navigation buttons open correct overlay panels
+- [ ] Back buttons close overlay and return to main menu
+- [ ] Background dimmer appears when panel opens
+- [ ] Background dimmer disappears when panel closes
+- [ ] Ship viewer remains visible behind panels
+- [ ] Main menu elements remain visible behind semi-transparent panels
 - [ ] Play Now button triggers correctly
 - [ ] Game mode selection works (one at a time)
-- [ ] Currency +buttons clickable
-- [ ] Battle Pass progress bar clickable
-- [ ] Profile icon clickable
-- [ ] Notification/Calendar buttons clickable
-- [ ] Settings button works
-- [ ] Loadout buttons work
-- [ ] News bar clickable
+- [ ] Currency +buttons clickable and open shop overlay
+- [ ] Battle Pass progress bar clickable and opens battle pass overlay
+- [ ] Profile icon clickable and opens profile overlay
+- [ ] Notification/Calendar buttons open respective overlays
+- [ ] Settings button opens settings overlay
+- [ ] Loadout buttons open loadout overlays
+- [ ] News bar clickable and opens news overlay
+- [ ] ESC key closes current overlay panel
 
 ### **State Tests**
 - [ ] Buttons show hover state on mouse over
@@ -1547,9 +1654,13 @@ Camera Component
 
 ### **Animation Tests** (if LeanTween implemented)
 - [ ] Menu fades in smoothly on load
-- [ ] Panels transition smoothly
+- [ ] Overlay panels fade in smoothly when opened
+- [ ] Overlay panels fade out smoothly when closed
+- [ ] Background dimmer fades in/out with panels
+- [ ] Panel animations don't interfere with ship viewer
 - [ ] Buttons have subtle press animation
 - [ ] No animation errors in console
+- [ ] Smooth transitions maintain semi-transparency effect
 
 ### **Integration Tests**
 - [ ] ProgressionManager loads player data
@@ -1629,6 +1740,127 @@ Camera Component
 - Transparency: Yes
 - Compression: 9 (maximum)
 - Interlacing: None
+
+---
+
+## 💡 Semi-Transparent Overlay Implementation Tips
+
+### **Adjusting Transparency Levels**
+
+**Background Dimmer:**
+- **Light dimming:** Alpha 80-100 (subtle darkening)
+- **Medium dimming:** Alpha 128-150 (balanced - recommended)
+- **Heavy dimming:** Alpha 180-200 (dramatic focus on panel)
+
+**Panel Background:**
+- **Subtle transparency:** Alpha 200-230 (barely see-through)
+- **Medium transparency:** Alpha 180-220 (recommended - good balance)
+- **High transparency:** Alpha 150-180 (very see-through, requires careful contrast)
+
+### **Ensuring Text Readability**
+
+1. **Use text outlines/shadows:**
+   - Outline Thickness: 0.2-0.3 minimum
+   - Outline Color: Black with alpha 200+
+   - This prevents background from interfering with text
+
+2. **Add text background panels:**
+   - For critical text, add a darker sub-panel behind it
+   - Color: `#000000`, Alpha: 100-150
+   - Provides contrast while maintaining overlay aesthetic
+
+3. **Choose high-contrast text colors:**
+   - Prefer: White, Bright Gold, Bright Cyan
+   - Avoid: Gray tones, dim colors
+
+### **Panel Depth and Visual Hierarchy**
+
+**Layer Order (bottom to top):**
+1. Background Panel (solid dark background)
+2. Ship Viewer (3D rendered texture)
+3. Main Menu Elements (navigation, buttons, top bar)
+4. Background Dimmer (semi-transparent black overlay)
+5. Overlay Panels (semi-transparent content panels)
+6. Panel Content (buttons, text, interactive elements)
+
+**Creating Depth:**
+- Add subtle drop shadows to panels (offset 5-10px)
+- Use decorative frames with lighter colors
+- Stack multiple transparency layers for richness
+- Consider blur effect on background dimmer (requires shader)
+
+### **Performance Considerations**
+
+**Optimization:**
+- Don't stack too many transparent layers (max 2-3)
+- Disable unused panels completely (SetActive false)
+- Use Canvas Groups for batch alpha changes
+- Minimize overdraw by sizing panels appropriately
+
+**Avoid:**
+- Full-screen transparent images (expensive)
+- Complex transparency with many UI elements underneath
+- Animated transparency on large panels (use fade on Canvas Group instead)
+
+### **Alternative Design Variations**
+
+**Frosted Glass Effect:**
+- Requires UI Blur shader
+- Background Dimmer uses blur material instead of solid black
+- Creates premium, modern look
+- More expensive performance-wise
+
+**Slide-in Panels:**
+- Panels slide from edges instead of fade in center
+- Main menu slides to side when panel opens
+- More dynamic, less overlay-focused
+
+**Hybrid Approach:**
+- Some panels are overlays (quick access: shop, settings)
+- Others replace view entirely (major screens: ships garage)
+- Best of both worlds
+
+### **Code Example - Panel Manager Logic**
+
+```csharp
+public void ShowPanel(string panelName) {
+    // Hide current panel if any
+    if (currentPanel != null) {
+        LeanTween.alphaCanvas(currentPanel, 0f, 0.2f).setOnComplete(() => {
+            currentPanel.gameObject.SetActive(false);
+        });
+    }
+
+    // Show background dimmer
+    backgroundDimmer.SetActive(true);
+    LeanTween.alpha(backgroundDimmer.GetComponent<RectTransform>(), 0.5f, 0.2f);
+
+    // Show new panel
+    GameObject panel = GetPanel(panelName);
+    panel.SetActive(true);
+    CanvasGroup cg = panel.GetComponent<CanvasGroup>();
+    cg.alpha = 0f;
+    LeanTween.alphaCanvas(cg, 1f, 0.3f);
+
+    currentPanel = cg;
+}
+
+public void HideCurrentPanel() {
+    if (currentPanel == null) return;
+
+    // Fade out panel
+    LeanTween.alphaCanvas(currentPanel, 0f, 0.2f).setOnComplete(() => {
+        currentPanel.gameObject.SetActive(false);
+        currentPanel = null;
+    });
+
+    // Fade out background dimmer
+    Image dimmer = backgroundDimmer.GetComponent<Image>();
+    LeanTween.alpha(dimmer.rectTransform, 0f, 0.2f).setOnComplete(() => {
+        backgroundDimmer.SetActive(false);
+    });
+}
+```
 
 ---
 
