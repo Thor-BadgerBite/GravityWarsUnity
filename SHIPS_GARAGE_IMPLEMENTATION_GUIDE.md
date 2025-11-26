@@ -180,12 +180,17 @@ You already have `ShipViewer3D.cs` in the project, which is perfect!
    - Scrollbar Vertical → Scrollbar (if you have one)
 
 3. On the `Content` object:
-   - Add `Vertical Layout Group` component:
-     - Spacing: 10
-     - Child Alignment: Upper Center
-     - Child Force Expand: Width ON, Height OFF
+   - Add `Grid Layout Group` component:
+     - Cell Size: 200x250 (adjust based on your card size)
+     - Spacing: 10x10 (horizontal and vertical gap between cards)
+     - Start Corner: Upper Left
+     - Start Axis: Horizontal (fills left to right first)
+     - Child Alignment: Upper Left
+     - Constraint: Fixed Column Count
+     - Constraint Count: 4 (this creates 4 columns)
    - Add `Content Size Fitter` component:
      - Vertical Fit: Preferred Size
+     - Horizontal Fit: Unconstrained
 
 ### Step 6: Connect to Main Menu
 
@@ -246,7 +251,8 @@ private void HandleShipsClicked()
   - Active tab: Gold/orange highlight
   - Inactive tabs: White/gray
 
-- **Scrollable Grid** (2 columns):
+- **Scrollable Grid** (4 columns):
+  - Ships fill from left to right, then create new rows
   - Each card shows:
     - Ship thumbnail/icon (top)
     - Ship name (center)
