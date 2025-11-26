@@ -365,6 +365,9 @@ public class ShipsGarageController : MonoBehaviour
         {
             shipViewer.PlayCelebrationSpin();
         }
+
+        // Close the garage window after equipping
+        CloseGarage();
     }
 
     #endregion

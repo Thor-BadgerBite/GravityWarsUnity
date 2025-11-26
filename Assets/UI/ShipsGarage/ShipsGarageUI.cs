@@ -25,6 +25,7 @@ public class ShipsGarageUI : MonoBehaviour
     [Header("Top Bar")]
     [SerializeField] private TextMeshProUGUI titleText;
     [SerializeField] private Button closeButton;
+    [SerializeField] private Button cancelButton;
 
     [Header("Ship Info Panel (Left)")]
     [SerializeField] private GameObject shipInfoPanel;
@@ -47,6 +48,7 @@ public class ShipsGarageUI : MonoBehaviour
     [SerializeField] private ScrollRect inventoryScrollRect;
     [SerializeField] private Transform inventoryContent;
     [SerializeField] private GameObject shipCardPrefab;
+    [SerializeField] private ToggleGroup shipToggleGroup;
 
     [Header("Archetype Tabs")]
     [SerializeField] private Button allTabButton;
@@ -107,6 +109,9 @@ public class ShipsGarageUI : MonoBehaviour
         if (closeButton != null)
             closeButton.onClick.AddListener(() => OnCloseClicked?.Invoke());
 
+        if (cancelButton != null)
+            cancelButton.onClick.AddListener(() => OnCloseClicked?.Invoke());
+
         if (equipButton != null)
             equipButton.onClick.AddListener(() => OnEquipClicked?.Invoke());
 
@@ -133,6 +138,7 @@ public class ShipsGarageUI : MonoBehaviour
     private void RemoveButtonListeners()
     {
         if (closeButton != null) closeButton.onClick.RemoveAllListeners();
+        if (cancelButton != null) cancelButton.onClick.RemoveAllListeners();
         if (equipButton != null) equipButton.onClick.RemoveAllListeners();
         if (allTabButton != null) allTabButton.onClick.RemoveAllListeners();
         if (tankTabButton != null) tankTabButton.onClick.RemoveAllListeners();
@@ -185,6 +191,13 @@ public class ShipsGarageUI : MonoBehaviour
         if (card != null)
         {
             card.Setup(ship, isEquipped);
+
+            // Set toggle group for mutual exclusivity
+            if (shipToggleGroup != null)
+            {
+                card.SetToggleGroup(shipToggleGroup);
+            }
+
             card.OnCardClicked += () => OnShipSelected?.Invoke(ship);
             _shipCards.Add(card);
         }
@@ -236,33 +249,34 @@ public class ShipsGarageUI : MonoBehaviour
 
         _currentlyDisplayedShip = ship;
 
-        // Ship name and type
+        // Ship name
         if (shipNameText != null)
             shipNameText.text = ship.bodyName;
 
+        // Ship type (archetype)
         if (shipTypeText != null)
             shipTypeText.text = GetArchetypeDisplayName(ship.archetype);
 
         // Ship level
         int shipLevel = progression != null ? progression.shipLevel : 1;
         if (shipLevelText != null)
-            shipLevelText.text = $"LEVEL {shipLevel}";
+            shipLevelText.text = $"Level: {shipLevel}";
 
-        // Calculate stats at current level
-        // For damage, we'll show a base value (this would normally be missile damage × ship multiplier)
-        // Since we don't know which missile is equipped, we'll show the multiplier
+        // Damage (numerical damage with equipped missile)
+        // For now, we assume medium missile base damage of 1000 for display
+        // This would normally come from the equipped missile
         if (shipDamageText != null)
         {
-            // Assume medium missile base damage of 1000 for display
             int baseMissileDamage = 1000;
             int displayDamage = Mathf.RoundToInt(baseMissileDamage * ship.baseDamageMultiplier);
             shipDamageText.text = displayDamage.ToString();
         }
 
-        // Health and Armor (base values at level 1)
+        // Health (current health of ship)
         if (shipHealthText != null)
             shipHealthText.text = Mathf.RoundToInt(ship.baseHealth).ToString();
 
+        // Armor (current armor of ship)
         if (shipArmorText != null)
             shipArmorText.text = Mathf.RoundToInt(ship.baseArmor).ToString();
 
@@ -277,7 +291,7 @@ public class ShipsGarageUI : MonoBehaviour
                 xpProgressBar.fillAmount = progress;
 
             if (xpText != null)
-                xpText.text = $"{currentXP} / {nextLevelXP} XP";
+                xpText.text = $"{currentXP}/{nextLevelXP}";
         }
         else
         {
@@ -286,7 +300,7 @@ public class ShipsGarageUI : MonoBehaviour
                 xpProgressBar.fillAmount = 0f;
 
             if (xpText != null)
-                xpText.text = "0 / 275 XP";
+                xpText.text = "0/275";
         }
 
         // Update equip button
