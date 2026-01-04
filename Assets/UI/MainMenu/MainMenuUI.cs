@@ -54,9 +54,7 @@ public class MainMenuUI : MonoBehaviour
 
     [Header("Rank Icons")]
     [SerializeField] private Sprite cadetRankIcon;
-    [SerializeField] private Sprite midshipmanRankIcon;
     [SerializeField] private Sprite ensignRankIcon;
-    [SerializeField] private Sprite subLieutenantRankIcon;
     [SerializeField] private Sprite lieutenantRankIcon;
     [SerializeField] private Sprite lieutenantCommanderRankIcon;
     [SerializeField] private Sprite commanderRankIcon;
@@ -214,9 +212,7 @@ public class MainMenuUI : MonoBehaviour
         switch (rank)
         {
             case CompetitiveRank.Cadet: return cadetRankIcon;
-            case CompetitiveRank.Midshipman: return midshipmanRankIcon;
             case CompetitiveRank.Ensign: return ensignRankIcon;
-            case CompetitiveRank.SubLieutenant: return subLieutenantRankIcon;
             case CompetitiveRank.Lieutenant: return lieutenantRankIcon;
             case CompetitiveRank.LieutenantCommander: return lieutenantCommanderRankIcon;
             case CompetitiveRank.Commander: return commanderRankIcon;
