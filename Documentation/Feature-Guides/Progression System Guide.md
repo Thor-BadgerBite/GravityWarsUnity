@@ -34,7 +34,11 @@ The progression system is designed to **gradually unlock features** and keep pla
 
 ### XP Gain (Per Match)
 
-#### Base XP
+> **IMPORTANT XP SOURCES CLARIFICATION:**
+> - **Account XP & Ship XP**: Earned from battles (awarded simultaneously)
+> - **Battle Pass XP**: Earned from daily quests ONLY (NOT from battles)
+
+#### Base Account/Ship XP (From Battles)
 
 **Ranked Matches:**
 - **Win**: 200 XP (100 base × 2 win multiplier)
@@ -45,6 +49,7 @@ The progression system is designed to **gradually unlock features** and keep pla
 - **Loss**: 50 XP
 
 > **Note**: Players get XP even on loss (smaller amount) to maintain engagement!
+> **Note**: Both Account XP and Ship XP are awarded at the same time (e.g., +200 Account XP AND +200 Ship XP)
 
 #### Performance Bonuses
 
@@ -73,7 +78,7 @@ Damage (600):         +60
 Accuracy (80%):       +50
 Win Streak (5):       +50
 ─────────────────────────
-Total:                360 XP
+Total:                360 Account XP + 360 Ship XP (awarded simultaneously)
 ```
 
 **Casual Loss with Average Performance:**
@@ -82,7 +87,7 @@ Base XP:              50
 Damage (300):         +30
 Accuracy (45%):       +0
 ─────────────────────────
-Total:                80 XP
+Total:                80 Account XP + 80 Ship XP (awarded simultaneously)
 ```
 
 ### XP Requirements

@@ -108,7 +108,7 @@
 **Each turn, players have 3 action points** (Controller archetype has 4).
 
 Action points can be spent on:
-- **Fire Missile** - Costs 0 AP (always available)
+- **Fire Missile** - Costs 0 AP (always available, multiple times per turn)
 - **Move Ship** - Costs 1 AP per move
 - **Activate Perk** - Costs 1-3 AP depending on tier:
   - Tier 1 Perks: 1 AP
@@ -116,9 +116,9 @@ Action points can be spent on:
   - Tier 3 Perks: 3 AP
 
 **Examples:**
-- Player uses 3 moves in one turn (3 AP) → No perks available
-- Player uses 1 move (1 AP) + Tier 2 perk (2 AP) → Total 3 AP
-- Controller uses 1 move + Tier 3 perk = 4 AP (unique advantage!)
+- Player uses 3 moves in one turn (3 AP) → Can still fire missiles (0 AP)
+- Player uses 1 move (1 AP) + Tier 2 perk (2 AP) → Total 3 AP, still can fire
+- Controller uses 1 move (1 AP) + Tier 3 perk (3 AP) = 4 AP total (unique advantage!)
 
 ### Physics System
 
@@ -367,7 +367,7 @@ Effective HP = HP × (1 + Armor / 400)
 ### Dual XP Systems
 
 **1. Account XP (Global, Levels 1-100+)**
-- Earned from: Matches, daily quests, achievements
+- Earned from: Battles (simultaneous with Ship XP)
 - Unlocks: Ships, ship bodies, perks, passives, game modes
 - Formula: `XP = 1000 + (Level × 500)`
 - Example milestones:
@@ -377,16 +377,21 @@ Effective HP = HP × (1 + Armor / 400)
   - **Level 50:** Unlock premium battle pass tier
 
 **2. Ship XP (Per-ship, Levels 1-20)**
-- Earned from: Matches while ship equipped
+- Earned from: Battles while ship equipped (simultaneous with Account XP)
 - Unlocks: Passive (L10), Perks (L5/15/20)
 - Formula: `XP = 200 + 75 × Level²`
 - **Tied to ship configuration** (NOT missile type)
+
+**3. Battle Pass XP (Seasonal Progress)**
+- Earned from: Daily quests ONLY (not from battles)
+- Progresses: Free and premium track simultaneously
+- Used for: Unlocking seasonal rewards and cosmetics
 
 ### Battle Pass System (Two Types)
 
 #### Free Battle Pass (Non-Seasonal)
 - **Available to:** ALL players permanently
-- **Progress via:** Account XP gain
+- **Progress via:** Daily quest XP
 - **Rewards:**
   - Basic ship bodies (Tank, DD, Controller, All-Around variants)
   - Common perks and passives
@@ -403,6 +408,7 @@ Effective HP = HP × (1 + Armor / 400)
   - **Hard currency** (Gems) - **enough to buy next season's pass**
   - **Cosmetics** (ship trails, explosion effects, UI themes)
 - **Purpose:** Monetization without pay-to-win
+- **Note:** Battle Pass XP progresses via daily quests ONLY, NOT from battles
 
 **Key Design Decision:**
 - Premium battle pass gives **zero gameplay advantage**
@@ -507,19 +513,21 @@ Effective HP = HP × (1 + Armor / 400)
 
 **Features:**
 - **ELO System:**
-  - Starting ELO: 1200 (Commander rank)
+  - Starting ELO: 800 (Ensign rank)
   - Gain/lose ELO per match based on opponent strength
   - K-factor: 32 (volatile) → 16 (stable at high ELO)
-- **18 Rank Tiers:**
-  - Bronze: Cadet (0-599), Ensign (600-799)
-  - Silver: Lieutenant (800-999), Lt. Commander (1000-1199)
-  - Gold: **Commander** (1200-1399), Captain (1400-1599)
-  - Blue: Commodore (1600-1799), Rear Admiral (1800-1999)
-  - Purple: Vice Admiral (2000-2199), Admiral (2200-2399)
-  - Red: Fleet Admiral (2400-2599), **Grand Admiral** (2600+)
+- **16 Rank Tiers:**
+  - Bronze: Ensign (800-899), Lieutenant (900-999)
+  - Silver: Lt. Commander (1000-1099), Commander (1100-1199)
+  - Gold: Captain (1200-1299), Commodore (1300-1399)
+  - Blue: Rear Admiral (1400-1499), Vice Admiral (1500-1599)
+  - Purple: Admiral (1600-1699), Fleet Admiral (1700-1799)
+  - Red: Grand Admiral (1800-1899), Supreme Admiral (1900-1999)
+  - Elite: Imperial Admiral (2000-2099), Galactic Admiral (2100-2199)
+  - Legendary: Eternal Admiral (2200+)
 - **Season System:**
   - 3-month seasons
-  - Soft reset at season end (ELO reduced by 20%, min 1000)
+  - Soft reset at season end (ELO reduced by 20%, min 800)
   - Seasonal rewards based on peak rank
 - **Leaderboards:**
   - Global top 100
@@ -899,7 +907,7 @@ Missiles/
 - Match completion rate: 90%+
 
 **Competitive Health:**
-- ELO distribution: Bell curve centered at 1200
+- ELO distribution: Bell curve centered at 1200 (with starting point at 800)
 - Match balance: 45-55% win rate for most players
 - Ranked population: 30%+ of active players
 

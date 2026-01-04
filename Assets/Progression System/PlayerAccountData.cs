@@ -459,28 +459,27 @@ public class ShipProgressionEntry
 /// <summary>
 /// Competitive ranking tiers for matchmaking.
 /// Military/Naval-themed ranks progressing from Cadet to Grand Admiral.
+/// 16 ranks total - Starting rank: Ensign (800 ELO)
 /// </summary>
 [System.Serializable]
 public enum CompetitiveRank
 {
-    Cadet,                  // 0-499 ELO - Training/Beginner
-    Midshipman,             // 500-699 ELO - Junior Trainee
-    Ensign,                 // 700-899 ELO - Junior Officer
-    SubLieutenant,          // 900-1099 ELO - Junior Commissioned Officer
-    Lieutenant,             // 1100-1299 ELO - Officer (Starting ELO range)
-    LieutenantCommander,    // 1300-1499 ELO - Senior Officer
-    Commander,              // 1500-1699 ELO - Command Officer
-    Captain,                // 1700-1899 ELO - Ship Captain
-    SeniorCaptain,          // 1900-2099 ELO - Distinguished Captain
-    Commodore,              // 2100-2299 ELO - Fleet Officer
-    RearAdmiral,            // 2300-2499 ELO - Lower Admiral
-    RearAdmiralUpperHalf,   // 2500-2699 ELO - Senior Rear Admiral
-    ViceAdmiral,            // 2700-2899 ELO - High Admiral
-    Admiral,                // 2900-3099 ELO - Admiral
-    HighAdmiral,            // 3100-3299 ELO - Distinguished Admiral
-    FleetAdmiral,           // 3300-3499 ELO - Supreme Commander
-    SupremeAdmiral,         // 3500-3699 ELO - Elite Commander
-    GrandAdmiral            // 3700+ ELO - Legendary Rank
+    Cadet,                  // Rank 16 (Lowest): 0-699 ELO
+    Ensign,                 // Rank 15 (Starting): 700-1049 ELO ⭐ STARTING RANK (800)
+    Lieutenant,             // Rank 14: 1050-1199 ELO
+    LieutenantCommander,    // Rank 13: 1200-1349 ELO
+    Commander,              // Rank 12: 1350-1499 ELO
+    Captain,                // Rank 11: 1500-1649 ELO
+    SeniorCaptain,          // Rank 10: 1650-1799 ELO
+    Commodore,              // Rank 9: 1800-1949 ELO
+    RearAdmiral,            // Rank 8: 1950-2099 ELO
+    RearAdmiralUpperHalf,   // Rank 7: 2100-2249 ELO
+    ViceAdmiral,            // Rank 6: 2250-2399 ELO
+    Admiral,                // Rank 5: 2400-2549 ELO
+    HighAdmiral,            // Rank 4: 2550-2699 ELO
+    FleetAdmiral,           // Rank 3: 2700-2849 ELO
+    SupremeAdmiral,         // Rank 2: 2850-2999 ELO
+    GrandAdmiral            // Rank 1 (Highest): 3000+ ELO
 }
 
 /// <summary>

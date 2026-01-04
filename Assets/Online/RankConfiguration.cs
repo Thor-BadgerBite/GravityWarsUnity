@@ -43,42 +43,16 @@ public static class RankConfiguration
                     starCount = 0
                 };
 
-            case CompetitiveRank.Midshipman:
-                return new RankData
-                {
-                    rank = rank,
-                    displayName = "Midshipman",
-                    description = "Junior Trainee - Advancing through basic fleet operations",
-                    color = new Color(0.6f, 0.4f, 0.2f),
-                    minELO = minELO,
-                    maxELO = maxELO,
-                    abbreviation = "MIDN",
-                    starCount = 0
-                };
-
             case CompetitiveRank.Ensign:
                 return new RankData
                 {
                     rank = rank,
-                    displayName = "Ensign",
-                    description = "Junior Officer - Proving your worth in the fleet",
+                    displayName = "⭐ Ensign",
+                    description = "Starting Rank - Proving your worth in the fleet",
                     color = new Color(0.8f, 0.5f, 0.2f),
                     minELO = minELO,
                     maxELO = maxELO,
                     abbreviation = "ENS",
-                    starCount = 1
-                };
-
-            case CompetitiveRank.SubLieutenant:
-                return new RankData
-                {
-                    rank = rank,
-                    displayName = "Sub-Lieutenant",
-                    description = "Junior Commissioned Officer - Developing tactical competence",
-                    color = new Color(0.7f, 0.7f, 0.7f),
-                    minELO = minELO,
-                    maxELO = maxELO,
-                    abbreviation = "SBLT",
                     starCount = 1
                 };
 
@@ -88,11 +62,11 @@ public static class RankConfiguration
                     rank = rank,
                     displayName = "Lieutenant",
                     description = "Commissioned Officer - A skilled tactical operator",
-                    color = new Color(0.75f, 0.75f, 0.75f),
+                    color = new Color(0.7f, 0.7f, 0.7f),
                     minELO = minELO,
                     maxELO = maxELO,
                     abbreviation = "LT",
-                    starCount = 2
+                    starCount = 1
                 };
 
             case CompetitiveRank.LieutenantCommander:
@@ -371,30 +345,28 @@ public static class RankConfiguration
     }
 
     /// <summary>
-    /// Get all ranks in ascending order.
+    /// Get all ranks in ascending order (16 ranks total).
     /// </summary>
     public static CompetitiveRank[] GetAllRanks()
     {
         return new CompetitiveRank[]
         {
-            CompetitiveRank.Cadet,
-            CompetitiveRank.Midshipman,
-            CompetitiveRank.Ensign,
-            CompetitiveRank.SubLieutenant,
-            CompetitiveRank.Lieutenant,
-            CompetitiveRank.LieutenantCommander,
-            CompetitiveRank.Commander,
-            CompetitiveRank.Captain,
-            CompetitiveRank.SeniorCaptain,
-            CompetitiveRank.Commodore,
-            CompetitiveRank.RearAdmiral,
-            CompetitiveRank.RearAdmiralUpperHalf,
-            CompetitiveRank.ViceAdmiral,
-            CompetitiveRank.Admiral,
-            CompetitiveRank.HighAdmiral,
-            CompetitiveRank.FleetAdmiral,
-            CompetitiveRank.SupremeAdmiral,
-            CompetitiveRank.GrandAdmiral
+            CompetitiveRank.Cadet,               // Rank 16 (Lowest)
+            CompetitiveRank.Ensign,              // Rank 15 (Starting)
+            CompetitiveRank.Lieutenant,          // Rank 14
+            CompetitiveRank.LieutenantCommander, // Rank 13
+            CompetitiveRank.Commander,           // Rank 12
+            CompetitiveRank.Captain,             // Rank 11
+            CompetitiveRank.SeniorCaptain,       // Rank 10
+            CompetitiveRank.Commodore,           // Rank 9
+            CompetitiveRank.RearAdmiral,         // Rank 8
+            CompetitiveRank.RearAdmiralUpperHalf,// Rank 7
+            CompetitiveRank.ViceAdmiral,         // Rank 6
+            CompetitiveRank.Admiral,             // Rank 5
+            CompetitiveRank.HighAdmiral,         // Rank 4
+            CompetitiveRank.FleetAdmiral,        // Rank 3
+            CompetitiveRank.SupremeAdmiral,      // Rank 2
+            CompetitiveRank.GrandAdmiral         // Rank 1 (Highest)
         };
     }
 }

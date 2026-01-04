@@ -4,26 +4,24 @@ using UnityEngine;
 /// ELO Rating System implementation (based on chess ELO formula).
 /// Used for competitive matchmaking and ranking in Gravity Wars.
 ///
-/// Military/Naval Rank ELO Ranges (18 Ranks Total):
-/// - Starting ELO: 1200 (Lieutenant Rank)
-/// - Cadet: 0-499 (Training/Beginner)
-/// - Midshipman: 500-699 (Junior Trainee)
-/// - Ensign: 700-899 (Junior Officer)
-/// - Sub-Lieutenant: 900-1099 (Junior Commissioned Officer)
-/// - Lieutenant: 1100-1299 (Officer)
-/// - Lieutenant Commander: 1300-1499 (Senior Officer)
-/// - Commander: 1500-1699 (Command Officer)
-/// - Captain: 1700-1899 (Ship Captain)
-/// - Senior Captain: 1900-2099 (Distinguished Captain)
-/// - Commodore: 2100-2299 (Fleet Officer)
-/// - Rear Admiral: 2300-2499 (Lower Admiral)
-/// - Rear Admiral Upper Half: 2500-2699 (Senior Rear Admiral)
-/// - Vice Admiral: 2700-2899 (High Admiral)
-/// - Admiral: 2900-3099 (Admiral)
-/// - High Admiral: 3100-3299 (Distinguished Admiral)
-/// - Fleet Admiral: 3300-3499 (Supreme Commander)
-/// - Supreme Admiral: 3500-3699 (Elite Commander)
-/// - Grand Admiral: 3700+ (Legendary)
+/// Military/Naval Rank ELO Ranges (16 Ranks Total):
+/// - Starting ELO: 800 (Ensign Rank)
+/// - Rank 16 (Lowest): Cadet 0-699
+/// - Rank 15 (Starting): Ensign 700-1049 ⭐
+/// - Rank 14: Lieutenant 1050-1199
+/// - Rank 13: Lieutenant Commander 1200-1349
+/// - Rank 12: Commander 1350-1499
+/// - Rank 11: Captain 1500-1649
+/// - Rank 10: Senior Captain 1650-1799
+/// - Rank 9: Commodore 1800-1949
+/// - Rank 8: Rear Admiral 1950-2099
+/// - Rank 7: Rear Admiral Upper Half 2100-2249
+/// - Rank 6: Vice Admiral 2250-2399
+/// - Rank 5: Admiral 2400-2549
+/// - Rank 4: High Admiral 2550-2699
+/// - Rank 3: Fleet Admiral 2700-2849
+/// - Rank 2: Supreme Admiral 2850-2999
+/// - Rank 1 (Highest): Grand Admiral 3000+
 /// </summary>
 public static class ELORatingSystem
 {
@@ -40,9 +38,9 @@ public static class ELORatingSystem
     private const int K_FACTOR_MASTER = 16;        // 1800+ ELO
 
     /// <summary>
-    /// Starting ELO for all new players
+    /// Starting ELO for all new players (Ensign rank)
     /// </summary>
-    public const int STARTING_ELO = 1200;
+    public const int STARTING_ELO = 800;
 
     /// <summary>
     /// Minimum ELO (prevents going below this)
@@ -184,27 +182,26 @@ public static class ELORatingSystem
 
     /// <summary>
     /// Get competitive rank based on ELO rating.
+    /// 16-rank system with starting rank at Ensign (700-1049 ELO).
     /// </summary>
     public static CompetitiveRank GetRankFromELO(int elo)
     {
-        if (elo < 500) return CompetitiveRank.Cadet;
-        if (elo < 700) return CompetitiveRank.Midshipman;
-        if (elo < 900) return CompetitiveRank.Ensign;
-        if (elo < 1100) return CompetitiveRank.SubLieutenant;
-        if (elo < 1300) return CompetitiveRank.Lieutenant;
-        if (elo < 1500) return CompetitiveRank.LieutenantCommander;
-        if (elo < 1700) return CompetitiveRank.Commander;
-        if (elo < 1900) return CompetitiveRank.Captain;
-        if (elo < 2100) return CompetitiveRank.SeniorCaptain;
-        if (elo < 2300) return CompetitiveRank.Commodore;
-        if (elo < 2500) return CompetitiveRank.RearAdmiral;
-        if (elo < 2700) return CompetitiveRank.RearAdmiralUpperHalf;
-        if (elo < 2900) return CompetitiveRank.ViceAdmiral;
-        if (elo < 3100) return CompetitiveRank.Admiral;
-        if (elo < 3300) return CompetitiveRank.HighAdmiral;
-        if (elo < 3500) return CompetitiveRank.FleetAdmiral;
-        if (elo < 3700) return CompetitiveRank.SupremeAdmiral;
-        return CompetitiveRank.GrandAdmiral;
+        if (elo < 700) return CompetitiveRank.Cadet;               // 0-699
+        if (elo < 1050) return CompetitiveRank.Ensign;             // 700-1049 (Starting)
+        if (elo < 1200) return CompetitiveRank.Lieutenant;         // 1050-1199
+        if (elo < 1350) return CompetitiveRank.LieutenantCommander; // 1200-1349
+        if (elo < 1500) return CompetitiveRank.Commander;          // 1350-1499
+        if (elo < 1650) return CompetitiveRank.Captain;            // 1500-1649
+        if (elo < 1800) return CompetitiveRank.SeniorCaptain;      // 1650-1799
+        if (elo < 1950) return CompetitiveRank.Commodore;          // 1800-1949
+        if (elo < 2100) return CompetitiveRank.RearAdmiral;        // 1950-2099
+        if (elo < 2250) return CompetitiveRank.RearAdmiralUpperHalf; // 2100-2249
+        if (elo < 2400) return CompetitiveRank.ViceAdmiral;        // 2250-2399
+        if (elo < 2550) return CompetitiveRank.Admiral;            // 2400-2549
+        if (elo < 2700) return CompetitiveRank.HighAdmiral;        // 2550-2699
+        if (elo < 2850) return CompetitiveRank.FleetAdmiral;       // 2700-2849
+        if (elo < 3000) return CompetitiveRank.SupremeAdmiral;     // 2850-2999
+        return CompetitiveRank.GrandAdmiral;                       // 3000+
     }
 
     /// <summary>
@@ -216,41 +213,37 @@ public static class ELORatingSystem
         switch (rank)
         {
             case CompetitiveRank.Cadet:
-                return (MINIMUM_ELO, 499);
-            case CompetitiveRank.Midshipman:
-                return (500, 699);
+                return (MINIMUM_ELO, 699);           // Rank 16
             case CompetitiveRank.Ensign:
-                return (700, 899);
-            case CompetitiveRank.SubLieutenant:
-                return (900, 1099);
+                return (700, 1049);                   // Rank 15 (Starting)
             case CompetitiveRank.Lieutenant:
-                return (1100, 1299);
+                return (1050, 1199);                  // Rank 14
             case CompetitiveRank.LieutenantCommander:
-                return (1300, 1499);
+                return (1200, 1349);                  // Rank 13
             case CompetitiveRank.Commander:
-                return (1500, 1699);
+                return (1350, 1499);                  // Rank 12
             case CompetitiveRank.Captain:
-                return (1700, 1899);
+                return (1500, 1649);                  // Rank 11
             case CompetitiveRank.SeniorCaptain:
-                return (1900, 2099);
+                return (1650, 1799);                  // Rank 10
             case CompetitiveRank.Commodore:
-                return (2100, 2299);
+                return (1800, 1949);                  // Rank 9
             case CompetitiveRank.RearAdmiral:
-                return (2300, 2499);
+                return (1950, 2099);                  // Rank 8
             case CompetitiveRank.RearAdmiralUpperHalf:
-                return (2500, 2699);
+                return (2100, 2249);                  // Rank 7
             case CompetitiveRank.ViceAdmiral:
-                return (2700, 2899);
+                return (2250, 2399);                  // Rank 6
             case CompetitiveRank.Admiral:
-                return (2900, 3099);
+                return (2400, 2549);                  // Rank 5
             case CompetitiveRank.HighAdmiral:
-                return (3100, 3299);
+                return (2550, 2699);                  // Rank 4
             case CompetitiveRank.FleetAdmiral:
-                return (3300, 3499);
+                return (2700, 2849);                  // Rank 3
             case CompetitiveRank.SupremeAdmiral:
-                return (3500, 3699);
+                return (2850, 2999);                  // Rank 2
             case CompetitiveRank.GrandAdmiral:
-                return (3700, MAXIMUM_ELO);
+                return (3000, MAXIMUM_ELO);           // Rank 1 (Highest)
             default:
                 return (STARTING_ELO, STARTING_ELO);
         }
@@ -266,12 +259,8 @@ public static class ELORatingSystem
         {
             case CompetitiveRank.Cadet:
                 return "Cadet";
-            case CompetitiveRank.Midshipman:
-                return "Midshipman";
             case CompetitiveRank.Ensign:
                 return "Ensign";
-            case CompetitiveRank.SubLieutenant:
-                return "Sub-Lieutenant";
             case CompetitiveRank.Lieutenant:
                 return "Lieutenant";
             case CompetitiveRank.LieutenantCommander:
@@ -314,15 +303,11 @@ public static class ELORatingSystem
         switch (rank)
         {
             case CompetitiveRank.Cadet:
-                return new Color(0.5f, 0.35f, 0.15f); // Very Dark Bronze
-            case CompetitiveRank.Midshipman:
-                return new Color(0.6f, 0.4f, 0.2f); // Dark Bronze
+                return new Color(0.5f, 0.35f, 0.15f); // Dark Bronze
             case CompetitiveRank.Ensign:
                 return new Color(0.8f, 0.5f, 0.2f); // Bronze
-            case CompetitiveRank.SubLieutenant:
-                return new Color(0.7f, 0.7f, 0.7f); // Light Silver
             case CompetitiveRank.Lieutenant:
-                return new Color(0.75f, 0.75f, 0.75f); // Silver
+                return new Color(0.7f, 0.7f, 0.7f); // Light Silver
             case CompetitiveRank.LieutenantCommander:
                 return new Color(0.9f, 0.9f, 0.95f); // Bright Silver
             case CompetitiveRank.Commander:

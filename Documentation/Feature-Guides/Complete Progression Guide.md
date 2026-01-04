@@ -9,11 +9,14 @@ This guide documents the complete progression system (Levels 1-100), Battle Pass
 ## Table of Contents
 
 1. [System Overview](#system-overview)
-2. [Account Level Progression (1-100)](#account-level-progression)
-3. [Battle Pass System](#battle-pass-system)
-4. [Missile Retrofit System](#missile-retrofit-system)
-5. [Integration Guide](#integration-guide)
-6. [Complete Unlock Schedule](#complete-unlock-schedule)
+2. [XP Sources & Progression Types](#xp-sources--progression-types)
+3. [Action Points System](#action-points-system)
+4. [Rank System](#rank-system)
+5. [Account Level Progression (1-100)](#account-level-progression)
+6. [Battle Pass System](#battle-pass-system)
+7. [Missile Retrofit System](#missile-retrofit-system)
+8. [Integration Guide](#integration-guide)
+9. [Complete Unlock Schedule](#complete-unlock-schedule)
 
 ---
 
@@ -35,6 +38,142 @@ The progression system uses **placeholder names** for all content. When you're r
 - **Custom ship building** uses: Body + Passive + Active (missiles selected separately)
 - **Prebuild ships** are ready-to-use ships with pre-configured stats
 - **Placeholder names** throughout - easy to find and replace later
+
+---
+
+## XP Sources & Progression Types
+
+### Three Types of XP
+
+**1. Account XP**
+- **Source**: Battles (PvP matches, custom matches)
+- **Progression**: Levels 1-100 with permanent unlocks
+- **Awards**: Ships, abilities, features, game modes
+- **Note**: Account XP and Ship XP are awarded **simultaneously** from the same source
+
+**2. Ship XP**
+- **Source**: Battles (same as Account XP)
+- **Progression**: Individual ship mastery system
+- **Awards**: Ship-specific upgrades and cosmetics
+- **Note**: When you earn 200 XP from a battle, you receive **both** 200 Account XP **and** 200 Ship XP
+
+**3. Battle Pass XP**
+- **Source**: **Daily Quests ONLY**
+- **Progression**: Seasonal 25-level system
+- **Awards**: Seasonal rewards (skins, ships, gems)
+- **Note**: Battle Pass XP is **separate** from battle rewards
+
+### XP Award Summary
+
+**After Each Battle:**
+- ✅ Account XP: 200 XP (example amount)
+- ✅ Ship XP: 200 XP (same amount, awarded simultaneously)
+- ❌ Battle Pass XP: 0 XP (not awarded from battles)
+
+**After Completing Daily Quest:**
+- ❌ Account XP: 0 XP (not awarded from quests)
+- ❌ Ship XP: 0 XP (not awarded from quests)
+- ✅ Battle Pass XP: 100 XP (example amount, quests only)
+
+---
+
+## Action Points System
+
+### Overview
+
+Action Points (AP) determine what actions players can perform during their turn in battle.
+
+### AP Pool
+
+- **Default**: 3 Action Points per turn
+- **Controller Archetype**: 4 Action Points per turn (special advantage)
+
+### AP Costs
+
+**Missile Fire:**
+- Cost: **0 AP** (always available, free action)
+
+**Movement:**
+- Cost: **1 AP per move**
+- **Repeatable**: Can move multiple times if you have AP remaining
+- Example: With 3 AP, you can move 3 times in one turn
+
+**Active Perks (Abilities):**
+- **Tier 1 Perks**: 1 AP
+- **Tier 2 Perks**: 2 AP
+- **Tier 3 Perks**: 3 AP
+- **One-time use**: Perks can only be used **once per turn**
+
+### Action Rules
+
+**Move Actions:**
+- ✅ Can be repeated multiple times (if you have AP)
+- ✅ Example: Move → Move → Move (costs 3 AP total)
+
+**Perk Actions:**
+- ❌ Can only be used **once per turn** (regardless of AP remaining)
+- ❌ Example: Cannot use "Afterburner" twice in one turn, even with 3+ AP
+
+**Turn Ending:**
+- Moving **ends your turn** by default
+- **Exception**: Passive abilities that allow "Fire After Move" enable firing after movement
+- Without this passive, moving is your final action
+
+### Example Turn Sequences
+
+**Example 1: All-Around Ship (3 AP)**
+- Fire Missile (0 AP) → Move (1 AP) → Move (1 AP) → Move (1 AP) = Turn ends
+- Total AP used: 3 AP
+
+**Example 2: Controller Ship (4 AP)**
+- Move (1 AP) → Move (1 AP) → Use Tier 2 Perk (2 AP) → Fire Missile (0 AP) = Turn ends
+- Total AP used: 4 AP
+
+**Example 3: Tank Ship with Tier 3 Perk (3 AP)**
+- Use Tier 3 Perk (3 AP) → Fire Missile (0 AP) = Turn ends
+- Total AP used: 3 AP
+
+---
+
+## Rank System
+
+### Overview
+
+The competitive ranking system uses **16 ranks** from Ensign to Grand Admiral, based on ELO rating.
+
+### Starting Rank
+
+- **Starting Rank**: Ensign
+- **Starting ELO**: 800
+- **Ensign Range**: 700-1049 ELO
+
+### Complete Rank List (16 Ranks)
+
+| Rank | ELO Range | Description |
+|------|-----------|-------------|
+| 1. Ensign | 700-1049 | Starting rank for all new players |
+| 2. Lieutenant | 1050-1199 | Beginner competitive players |
+| 3. Captain | 1200-1349 | Competent tactical awareness |
+| 4. Major | 1350-1499 | Above-average skill level |
+| 5. Commander | 1500-1649 | Strong strategic understanding |
+| 6. Colonel | 1650-1799 | Advanced competitive player |
+| 7. Brigadier | 1800-1949 | Expert-level performance |
+| 8. General | 1950-2099 | Elite tier player |
+| 9. Field Marshal | 2100-2249 | Top 5% of players |
+| 10. Admiral | 2250-2399 | Top 2% of players |
+| 11. Fleet Admiral | 2400-2549 | Top 1% of players |
+| 12. Supreme Admiral | 2550-2699 | Top 0.5% of players |
+| 13. High Admiral | 2700-2849 | Top 0.25% of players |
+| 14. Grand Admiral | 2850-2999 | Top 0.1% of players |
+| 15. Legendary Admiral | 3000-3149 | Top 0.05% of players |
+| 16. Apex Legend | 3150+ | Top 0.01% - The absolute best |
+
+### Rank Progression
+
+- **ELO Gain/Loss**: ±20-30 ELO per match (varies by opponent rating)
+- **Promotion**: Automatically promoted when reaching next rank's ELO threshold
+- **Demotion**: Can drop ranks if ELO falls below current rank minimum
+- **Season Resets**: Soft reset at start of each competitive season
 
 ---
 
@@ -70,11 +209,11 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 ### Unlock Types
 
-1. **Prebuild Ships** - 40 total (10 per archetype)
+1. **Prebuild Ships** - 36 total (9 per archetype, distributed across levels 1-100)
 2. **Ship Bodies** - 16 total (4 per archetype)
 3. **Passive Abilities** - 30 total
 4. **Active Abilities** - 20 total
-5. **Missiles** - 17 total (separate retrofit system)
+5. **Missiles** - 17 total (separate retrofit system, starter missile included)
 6. **Ship Classes** - 4 archetypes (All-Around, Tank, DD, Controller)
 7. **Game Modes** - Ranked, Custom Match
 8. **Features** - Achievements, Quests, Leaderboards
@@ -89,8 +228,9 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 **Level 1** (Starting)
 - Ship Class: All-Around (starter)
 - Custom Slot #1 (starter)
-- Prebuild Ship: "Starter Ship" (given on account creation)
-- Missile: "Standard Mk-I" (basic missile)
+- Ship Body: "StarSparrow Class" (starter body - All-Around)
+- Prebuild Ship: "StarSparrow" (starter ship, given on account creation)
+- Missile: "Default Starter Medium Missile" (basic missile, all players start with this)
 
 **Level 3**
 - Prebuild Ship: "Nova Class" (All-Around)
@@ -104,7 +244,6 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Feature: Daily Quests
 - Game Mode: Custom Match
 - Passive: "Armor Boost I" (+10% armor)
-- Prebuild Ship: "Apex Scout" (All-Around)
 - Gems: **10 gems** 💎
 
 **Level 6**
@@ -112,19 +251,18 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 7**
 - Passive: "Engine Tuning I" (+5% speed)
-- Prebuild Ship: "Velocity Class" (All-Around)
+- Prebuild Ship: "Phoenix Mk-I" (All-Around)
 
 **Level 8**
 - Feature: Leaderboards
 - Missile: "Light Swarm" (fast, low damage)
-- Prebuild Ship: "Iron Bulwark" (Tank)
 
 **Level 9**
 - Active: "Afterburner" (temporary speed boost, 10s cooldown)
 
 **Level 10**
 - Game Mode: **Ranked PVP** (competitive mode unlocked!)
-- Prebuild Ship: "Stellar Cruiser" (All-Around)
+- Prebuild Ship: "Eclipse Striker" (All-Around)
 - Gems: **20 gems** 💎
 
 ### Levels 11-20 (Mid-Early Game)
@@ -133,7 +271,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Armor Boost II" (+20% armor)
 
 **Level 12**
-- Prebuild Ship: "Fortress Prime" (Tank)
+- Prebuild Ship: "Bastion Class" (Tank)
 - Missile: "Heavy Impact" (slow, high damage)
 
 **Level 13**
@@ -144,7 +282,6 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 15**
 - Ship Class: Damage Dealer (unlock glass cannon ships!)
-- Prebuild Ship: "Horizon Vanguard" (All-Around)
 - Gems: **30 gems** 💎
 
 **Level 16**
@@ -155,7 +292,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Speed Boost II" (+15% speed)
 
 **Level 18**
-- Prebuild Ship: "Bastion Supreme" (Tank)
+- Prebuild Ship: "Juggernaut" (Tank)
 - Active: "Shield Overcharge" (temporary +50% armor, 60s cooldown)
 
 **Level 19**
@@ -163,7 +300,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 20**
 - **Custom Slot #2** (second loadout slot!)
-- Prebuild Ship: "Eclipse Commander" (All-Around)
+- Prebuild Ship: "Horizon Vanguard" (All-Around)
 - Gems: **40 gems** 💎
 
 ### Levels 21-30 (Mid Game)
@@ -186,7 +323,6 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 25**
 - Ship Class: Controller (unlock tactical ships!)
-- Prebuild Ship: "Shadow Dominator" (Damage Dealer)
 - Gems: **50 gems** 💎
 
 **Level 26**
@@ -205,7 +341,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 30**
 - Feature: Clans (future feature)
-- Prebuild Ship: "Dreadnought Titan" (Tank)
+- Prebuild Ship: "Crimson Tempest" (Damage Dealer)
 - Gems: **60 gems** 💎
 
 ### Levels 31-40 (Mid-Late Game)
@@ -224,7 +360,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Critical Strike II" (+20% crit chance)
 
 **Level 35**
-- Prebuild Ship: "Quantum Destroyer" (Damage Dealer)
+- Prebuild Ship: "Sovereign Elite" (Tank)
 - Gems: **70 gems** 💎
 
 **Level 36**
@@ -234,10 +370,10 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Speed Boost III" (+25% speed)
 
 **Level 38**
-- Prebuild Ship: "Warlord Class" (Tank)
+- Active: "Time Dilation" (slow time briefly, 180s cooldown)
 
 **Level 39**
-- Active: "Time Dilation" (slow time briefly, 180s cooldown)
+- Passive: "Reactive Armor" (reduce incoming damage 15%)
 
 **Level 40**
 - **Custom Slot #3** (third loadout slot!)
@@ -257,7 +393,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Active: "Phase Shift" (teleport short distance, 120s cooldown)
 
 **Level 44**
-- Passive: "Reactive Armor" (reduce incoming damage 15%)
+- Passive: "Energy Shield" (absorb first hit)
 
 **Level 45**
 - Prebuild Ship: "Omega Apex" (All-Around)
@@ -265,10 +401,10 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Gems: **90 gems** 💎
 
 **Level 46**
-- Passive: "Energy Shield" (absorb first hit)
+- Passive: "Vampiric Strikes" (heal on hit)
 
 **Level 47**
-- Prebuild Ship: "Annihilator Prime" (Damage Dealer)
+- Active: "Reflect Shield" (return damage to sender, 180s cooldown)
 
 **Level 48**
 - Ship Body: "Assault Chassis" (Damage Dealer)
@@ -277,7 +413,7 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Active: "EMP Blast" (disable all enemies briefly, 240s cooldown)
 
 **Level 50**
-- Prebuild Ship: "Invincible Fortress" (Tank)
+- Prebuild Ship: "Celestial Monarch" (Controller)
 - Gems: **100 gems** 💎
 
 ### Levels 51-60 (Veteran)
@@ -286,16 +422,16 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Critical Strike III" (+30% crit chance)
 
 **Level 52**
-- Prebuild Ship: "Astral Phantom" (Controller)
+- Prebuild Ship: "Astral Wraith" (Controller)
 
 **Level 53**
 - Active: "Overdrive" (double fire rate, 180s cooldown)
 
 **Level 54**
 - Passive: "Armor Boost IV" (+40% armor)
+- Prebuild Ship: "Annihilator Prime" (Damage Dealer)
 
 **Level 55**
-- Prebuild Ship: "Executioner Class" (Damage Dealer)
 - Missile: "Ultimate Oblivion" (one-shot capability)
 - Gems: **110 gems** 💎
 
@@ -304,15 +440,15 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 57**
 - Passive: "Speed Boost IV" (+35% speed)
+- Prebuild Ship: "Fortress Apex" (Tank)
 
 **Level 58**
-- Prebuild Ship: "Colossus Titan" (Tank)
-
-**Level 59**
 - Active: "Black Hole Generator" (massive gravity well, 300s cooldown)
 
+**Level 59**
+- Prebuild Ship: "Stellar Vanguard" (All-Around)
+
 **Level 60**
-- Prebuild Ship: "Sovereign Elite" (All-Around)
 - Gems: **120 gems** 💎
 
 ### Levels 61-70 (Elite)
@@ -321,32 +457,31 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Firepower Boost III" (+30% damage)
 
 **Level 62**
-- Prebuild Ship: "Dominator Class" (Controller)
+- Prebuild Ship: "Nebula Striker" (Damage Dealer)
 
 **Level 63**
-- Active: "Reflect Shield" (return damage to sender, 180s cooldown)
+- Passive: "Critical Damage" (crits deal +50% damage)
 
 **Level 64**
-- Passive: "Vampiric Strikes" (heal on hit)
+- Prebuild Ship: "Warlord Supreme" (Tank)
 
 **Level 65**
-- Prebuild Ship: "Crimson Tempest" (Damage Dealer)
 - Gems: **130 gems** 💎
 
 **Level 66**
 - Ship Body: "Master Frame" (All-Around)
+- Prebuild Ship: "Cosmic Dreadnought" (All-Around)
 
 **Level 67**
-- Passive: "Critical Damage" (crits deal +50% damage)
-
-**Level 68**
-- Prebuild Ship: "Juggernaut Supreme" (Tank)
-
-**Level 69**
 - Active: "Temporal Freeze" (freeze enemies, 240s cooldown)
 
+**Level 68**
+- Prebuild Ship: "Void Harbinger" (Controller)
+
+**Level 69**
+- Passive: "Phoenix Rebirth" (revive once per match at 50% HP)
+
 **Level 70**
-- Prebuild Ship: "Ethereal Phantom" (Controller)
 - Gems: **140 gems** 💎
 
 ### Levels 71-80 (Master)
@@ -356,65 +491,64 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Level 72**
 - Passive: "Armor Boost V" (+50% armor)
+- Prebuild Ship: "Titan Colossus" (Tank)
 
 **Level 73**
-- Prebuild Ship: "Obliterator Class" (Damage Dealer)
-
-**Level 74**
 - Active: "Weapon Systems Override" (unlimited ammo brief, 300s cooldown)
 
+**Level 74**
+- Prebuild Ship: "Executioner Omega" (Damage Dealer)
+
 **Level 75**
-- Prebuild Ship: "Guardian Apex" (Tank)
 - Gems: **150 gems** 💎
 
 **Level 76**
 - Ship Body: "Ultimate Hull" (Tank - maximum armor)
+- Prebuild Ship: "Oracle Sovereign" (Controller)
 
 **Level 77**
 - Passive: "Speed Boost V" (+45% speed)
 
 **Level 78**
-- Prebuild Ship: "Celestial Vanguard" (All-Around)
+- Prebuild Ship: "Celestial Guardian" (All-Around)
 
 **Level 79**
 - Active: "Quantum Leap" (instant repositioning, 150s cooldown)
 
 **Level 80**
-- Prebuild Ship: "Cosmic Harbinger" (All-Around)
 - Gems: **160 gems** 💎
 
 ### Levels 81-90 (Grandmaster)
 
 **Level 81**
-- Passive: "Phoenix Rebirth" (revive once per match at 50% HP)
+- Passive: "Firepower Boost IV" (+40% damage)
 
 **Level 82**
-- Prebuild Ship: "Void Manipulator" (Controller)
+- Prebuild Ship: "Shadow Reaper" (Damage Dealer)
 
 **Level 83**
 - Ship Body: "Legendary Chassis" (Damage Dealer - ultimate offense)
 
 **Level 84**
 - Active: "Supernova" (massive AoE explosion, 360s cooldown)
+- Prebuild Ship: "Horizon Apex" (All-Around)
 
 **Level 85**
-- Prebuild Ship: "Ragnarok Ultimate" (Damage Dealer)
 - Gems: **170 gems** 💎
 
 **Level 86**
-- Passive: "Firepower Boost IV" (+40% damage)
+- Prebuild Ship: "Phantom Overlord" (Controller)
 
 **Level 87**
-- Prebuild Ship: "Immortal Titan" (Tank)
+- Passive: "Ultimate Reflexes" (dodge chance 25%)
 
 **Level 88**
 - Active: "Reality Distortion" (confuse enemy targeting, 240s cooldown)
 
 **Level 89**
-- Passive: "Ultimate Reflexes" (dodge chance 25%)
+- Passive: "Ascension" (near-invincible legendary passive)
 
 **Level 90**
-- Prebuild Ship: "Invincible Apex" (Tank)
 - Gems: **180 gems** 💎
 
 ### Levels 91-100 (Legend)
@@ -426,26 +560,25 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - Passive: "Armor Boost VI" (+60% armor - legendary)
 
 **Level 93**
-- Prebuild Ship: "Archangel Class" (All-Around)
-
-**Level 94**
 - Active: "Dimension Shift" (invulnerability brief, 420s cooldown)
 
+**Level 94**
+- Passive: "Combat Mastery" (enhanced combat effectiveness)
+
 **Level 95**
-- Prebuild Ship: "Celestial Monarch" (Controller)
 - Gems: **190 gems** 💎
 
 **Level 96**
-- Passive: "Ascension" (near-invincible legendary passive)
+- Passive: "Divine Protection" (auto-revive with full HP, once per match)
 
 **Level 97**
-- Prebuild Ship: "Apocalypse Bringer" (Damage Dealer)
-
-**Level 98**
 - Active: "Omega Strike" (one-shot kill ability, 600s cooldown)
 
+**Level 98**
+- Passive: "Legendary Mastery" (ultimate combat effectiveness)
+
 **Level 99**
-- Passive: "Divine Protection" (auto-revive with full HP, once per match)
+- Prebuild Ship: "Immortal Juggernaut" (Tank)
 
 **Level 100**
 - Prebuild Ship: **"APEX LEGEND"** (Ultimate ship - All-Around)
@@ -461,14 +594,15 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 - **Levels**: 25 total
 - **Duration**: ~3 months per season
 - **Tracks**: Free (all players) + Premium (purchased)
-- **XP**: Separate from account XP (match performance)
+- **XP**: Separate from account XP (earned ONLY from daily quests)
 - **Resets**: Every season
 
 ### XP Requirements
 
 - **Per Level**: 1,000 XP (flat, not exponential)
 - **Total for Level 25**: 25,000 XP
-- **Estimated Time**: ~50-75 hours of gameplay
+- **XP Source**: Daily quests only (NOT from battles)
+- **Estimated Time**: Complete daily quests consistently over ~3 months
 
 ### Free Track Rewards (Levels 1-25)
 
@@ -546,11 +680,23 @@ Only at milestone levels (5, 10, 15, 20, etc.)
 
 **Missiles are SEPARATE from ships!** Players select missiles before matches, not during ship building.
 
+**IMPORTANT**: This Complete Progression Guide is the **authoritative source** for all missile unlock information in Gravity Wars.
+
+### Starting Missile
+
+All players start with:
+- **Missile**: "Default Starter Medium Missile"
+- **Type**: Standard
+- **Compatible With**: All ships
+- **Given at**: Account creation (Level 1)
+
 ### Missile Unlock Schedule
+
+**Note**: Missiles are unlocked through player progression at specific account levels.
 
 | Level | Missile ID | Name | Type | Compatible With |
 |-------|-----------|------|------|----------------|
-| 1 | standard_mk1 | Standard Mk-I | Standard | All ships |
+| 1 | default_starter | Default Starter Medium Missile | Standard | All ships |
 | 4 | standard_mk2 | Standard Mk-II | Standard | All ships |
 | 8 | light_swarm | Swarm Light | Light | DD, All-Around |
 | 12 | heavy_impact | Heavy Impact | Heavy | Tank, All-Around |
@@ -740,10 +886,10 @@ Assets/Online/
 
 | Archetype | Total Ships | Levels Unlocked |
 |-----------|-------------|----------------|
-| All-Around | 10 | 1, 3, 5, 7, 10, 15, 20, 45, 60, 80, 93, 100 |
-| Tank | 10 | 6, 8, 12, 18, 30, 38, 50, 58, 68, 75, 87, 90 |
-| Damage Dealer | 10 | 16, 19, 23, 25, 35, 47, 55, 65, 73, 85, 97 |
-| Controller | 10 | 26, 28, 32, 40, 52, 62, 70, 82, 95 |
+| All-Around | 11 | 1, 3, 7, 10, 20, 45, 59, 66, 78, 84, 100 |
+| Tank | 8 | 6, 12, 18, 35, 57, 64, 72, 99 |
+| Damage Dealer | 8 | 16, 19, 23, 30, 54, 62, 74, 82 |
+| Controller | 9 | 26, 28, 32, 40, 50, 52, 68, 76, 86 |
 
 ### Ship Body Counts
 
@@ -758,10 +904,14 @@ Assets/Online/
 
 ## Summary
 
-✅ **Account Progression**: 100 levels with 40 ships, 16 bodies, 30 passives, 20 actives
-✅ **Battle Pass**: 25 levels with free + premium rewards
-✅ **Missile System**: 17 missiles with class-based compatibility
+✅ **Account Progression**: 100 levels with 36 ships, 16 bodies, 30 passives, 20 actives
+✅ **Battle Pass**: 25 levels with free + premium rewards (XP from daily quests only)
+✅ **Missile System**: 17 missiles with class-based compatibility (starter missile included)
+✅ **Action Points System**: 3 AP per turn (4 for Controller), missile fire costs 0 AP
+✅ **Rank System**: 16 ranks from Ensign (starting) to Apex Legend
+✅ **XP Sources**: Account XP & Ship XP from battles (simultaneous), Battle Pass XP from daily quests
+✅ **Starter Ship**: StarSparrow with StarSparrow Class body
 ✅ **Placeholder Names**: Easy to find and replace
 ✅ **Skeleton System**: Ready to fill with real data
 
-**All systems are integrated and ready to use!** 🚀
+**All systems are integrated and ready to use!**

@@ -2,35 +2,42 @@
 
 ## Overview
 
-The Gravity Wars competitive ranking system uses **military/naval-themed ranks** based on ELO ratings. Players progress through 12 distinct rank tiers, from **Cadet** to **Grand Admiral**, earning prestige and demonstrating their mastery of gravitational warfare.
+The Gravity Wars competitive ranking system uses **military/naval-themed ranks** based on ELO ratings. Players progress through **16 distinct rank tiers**, from **Cadet** to **Grand Admiral**, earning prestige and demonstrating their mastery of gravitational warfare.
+
+**Starting Rank**: ⭐ Ensign (800 ELO) - All new players begin their journey here!
 
 ---
 
-## Rank Progression Chart
+## Rank Progression Chart (16 Ranks Total)
 
-| Rank | ELO Range | Abbreviation | Stars | Color | Description |
-|------|-----------|--------------|-------|-------|-------------|
-| **Cadet** | 0-599 | CDT | ☆ | Dark Bronze | Training Officer - Begin your journey |
-| **Ensign** | 600-799 | ENS | ★ | Bronze | Junior Officer - Proving your worth |
-| **Lieutenant** | 800-999 | LT | ★★ | Silver | Commissioned Officer - Skilled tactician |
-| **Lieutenant Commander** | 1000-1199 | LCDR | ★★ | Bright Silver | Senior Officer - Exceptional prowess |
-| **Commander** | 1200-1399 | CDR | ★★★ | Gold | Command Officer - Strategic excellence |
-| **Captain** | 1400-1599 | CAPT | ★★★ | Bright Gold | Ship Captain - Master of warfare |
-| **Commodore** | 1600-1799 | CDRE | ★★★★ | Light Blue | Fleet Officer - Respected commander |
-| **Rear Admiral** | 1800-1999 | RADM | ★★★★ | Blue | Lower Admiral - Elite tactician |
-| **Vice Admiral** | 2000-2199 | VADM | ★★★★ | Purple | High Admiral - Galaxy's finest |
-| **Admiral** | 2200-2499 | ADM | ★★★★★ | Bright Purple | Admiral - Supreme authority |
-| **Fleet Admiral** | 2500-2799 | FADM | ★★★★★ | Red | Supreme Commander - Legendary |
-| **Grand Admiral** | 2800+ | GADM | ★★★★★ | Crimson | Pinnacle of excellence |
+| # | Rank | ELO Range | Abbreviation | Stars | Color | Description |
+|---|------|-----------|--------------|-------|-------|-------------|
+| 16 | **Cadet** | 0-699 | CDT | ☆ | Dark Bronze | Training Officer - Begin your journey |
+| 15 | **⭐ Ensign** | 700-1049 | ENS | ★ | Bronze | **STARTING RANK** - Proving your worth |
+| 14 | **Lieutenant** | 1050-1199 | LT | ★ | Light Silver | Commissioned Officer - Skilled tactician |
+| 13 | **Lieutenant Commander** | 1200-1349 | LCDR | ★★ | Bright Silver | Senior Officer - Exceptional prowess |
+| 12 | **Commander** | 1350-1499 | CDR | ★★★ | Gold | Command Officer - Strategic excellence |
+| 11 | **Captain** | 1500-1649 | CAPT | ★★★ | Bright Gold | Ship Captain - Master of warfare |
+| 10 | **Senior Captain** | 1650-1799 | SCPT | ★★★ | Sky Blue | Distinguished Captain - Veteran commander |
+| 9 | **Commodore** | 1800-1949 | CDRE | ★★★★ | Light Blue | Fleet Officer - Commands respect |
+| 8 | **Rear Admiral** | 1950-2099 | RADM | ★★★★ | Blue | Lower Admiral - Elite tactician |
+| 7 | **Rear Admiral (Upper Half)** | 2100-2249 | RADM(UH) | ★★★★ | Deep Blue | Senior Rear Admiral - Elite command |
+| 6 | **Vice Admiral** | 2250-2399 | VADM | ★★★★ | Purple | High Admiral - Galaxy's finest |
+| 5 | **Admiral** | 2400-2549 | ADM | ★★★★★ | Bright Purple | Admiral - Supreme authority |
+| 4 | **High Admiral** | 2550-2699 | HADM | ★★★★★ | Brilliant Purple | Distinguished Admiral - Renowned |
+| 3 | **Fleet Admiral** | 2700-2849 | FADM | ★★★★★ | Red | Supreme Commander - Legendary |
+| 2 | **Supreme Admiral** | 2850-2999 | SADM | ★★★★★ | Bright Red | Elite Commander - Greatest legends |
+| 1 | **Grand Admiral** | 3000+ | GADM | ★★★★★ | Crimson | **HIGHEST RANK** - Pinnacle of excellence |
 
 ---
 
 ## Starting Rank
 
-**All new players start at 1200 ELO**, which places them in the **Commander** rank tier. This provides:
+**All new players start at 800 ELO**, which places them in the **⭐ Ensign** rank tier (Rank 15). This provides:
 - A balanced starting point for matchmaking
-- Room to climb or fall based on performance
-- Immediate sense of prestige (not starting at the bottom)
+- Room to climb or fall based on performance (can drop to Cadet or climb to Grand Admiral)
+- Clear progression path with 14 ranks above to achieve
+- Starting rank is marked with ⭐ to indicate it's the entry point for new players
 
 ---
 
@@ -38,28 +45,32 @@ The Gravity Wars competitive ranking system uses **military/naval-themed ranks**
 
 Ranks use a color progression that reflects increasing prestige:
 
-1. **Bronze Tier** (Cadet, Ensign) - Training ranks
+1. **Bronze Tier** (Cadet, Ensign) - Training/Starting ranks
 2. **Silver Tier** (Lieutenant, Lieutenant Commander) - Intermediate ranks
-3. **Gold Tier** (Commander, Captain) - Advanced ranks
-4. **Blue Tier** (Commodore, Rear Admiral) - Expert ranks
-5. **Purple Tier** (Vice Admiral, Admiral) - Master ranks
-6. **Red Tier** (Fleet Admiral, Grand Admiral) - Legendary ranks
+3. **Gold Tier** (Commander, Captain, Senior Captain) - Advanced ranks
+4. **Blue Tier** (Commodore, Rear Admiral, Rear Admiral Upper Half) - Expert ranks
+5. **Purple Tier** (Vice Admiral, Admiral, High Admiral) - Master ranks
+6. **Red Tier** (Fleet Admiral, Supreme Admiral, Grand Admiral) - Legendary ranks
 
 ### RGB Color Values
 
 ```
-Cadet:                RGB(0.6, 0.4, 0.2)   - Dark Bronze
-Ensign:               RGB(0.8, 0.5, 0.2)   - Bronze
-Lieutenant:           RGB(0.75, 0.75, 0.75) - Silver
-Lieutenant Commander: RGB(0.9, 0.9, 0.95)  - Bright Silver
-Commander:            RGB(1.0, 0.84, 0.0)  - Gold
-Captain:              RGB(1.0, 0.92, 0.3)  - Bright Gold
-Commodore:            RGB(0.7, 0.9, 1.0)   - Light Blue
-Rear Admiral:         RGB(0.4, 0.7, 1.0)   - Blue
-Vice Admiral:         RGB(0.6, 0.2, 0.8)   - Purple
-Admiral:              RGB(0.8, 0.3, 0.9)   - Bright Purple
-Fleet Admiral:        RGB(1.0, 0.3, 0.3)   - Red
-Grand Admiral:        RGB(1.0, 0.2, 0.2)   - Crimson Red
+Cadet:                     RGB(0.5, 0.35, 0.15) - Dark Bronze
+⭐ Ensign (Starting):      RGB(0.8, 0.5, 0.2)   - Bronze
+Lieutenant:                RGB(0.7, 0.7, 0.7)   - Light Silver
+Lieutenant Commander:      RGB(0.9, 0.9, 0.95)  - Bright Silver
+Commander:                 RGB(1.0, 0.84, 0.0)  - Gold
+Captain:                   RGB(1.0, 0.92, 0.3)  - Bright Gold
+Senior Captain:            RGB(0.5, 0.8, 1.0)   - Sky Blue
+Commodore:                 RGB(0.7, 0.9, 1.0)   - Light Blue
+Rear Admiral:              RGB(0.4, 0.7, 1.0)   - Blue
+Rear Admiral Upper Half:   RGB(0.3, 0.5, 0.9)   - Deep Blue
+Vice Admiral:              RGB(0.6, 0.2, 0.8)   - Purple
+Admiral:                   RGB(0.8, 0.3, 0.9)   - Bright Purple
+High Admiral:              RGB(0.9, 0.4, 1.0)   - Brilliant Purple
+Fleet Admiral:             RGB(1.0, 0.3, 0.3)   - Red
+Supreme Admiral:           RGB(1.0, 0.25, 0.25) - Bright Red
+Grand Admiral:             RGB(1.0, 0.2, 0.2)   - Crimson Red
 ```
 
 ---
@@ -68,22 +79,23 @@ Grand Admiral:        RGB(1.0, 0.2, 0.2)   - Crimson Red
 
 Each rank displays a number of stars to indicate progression:
 - **0 Stars**: Cadet (training only)
-- **1 Star**: Ensign
-- **2 Stars**: Lieutenant, Lieutenant Commander
-- **3 Stars**: Commander, Captain
-- **4 Stars**: Commodore, Rear Admiral, Vice Admiral
-- **5 Stars**: Admiral, Fleet Admiral, Grand Admiral
+- **1 Star**: Ensign (⭐ starting rank), Lieutenant
+- **2 Stars**: Lieutenant Commander
+- **3 Stars**: Commander, Captain, Senior Captain
+- **4 Stars**: Commodore, Rear Admiral, Rear Admiral Upper Half, Vice Admiral
+- **5 Stars**: Admiral, High Admiral, Fleet Admiral, Supreme Admiral, Grand Admiral
 
 ---
 
 ## ELO System Details
 
 ### Starting ELO
-- **Default**: 1200 ELO (Commander rank)
+- **Default**: 800 ELO (⭐ Ensign rank - the starting rank for all new players)
 
 ### ELO Boundaries
 - **Minimum**: 100 ELO (cannot drop below)
-- **Maximum**: 3000 ELO (theoretical cap)
+- **Maximum**: 4000 ELO (theoretical cap)
+- **Grand Admiral Threshold**: 3000 ELO (highest rank)
 
 ### K-Factor (Rating Volatility)
 The K-factor determines how much ELO changes per match:
@@ -97,38 +109,47 @@ The K-factor determines how much ELO changes per match:
 Approximate target distribution for a healthy player base:
 
 ```
-Cadet:                5%  (New/struggling players)
-Ensign:               8%
-Lieutenant:           12%
-Lieutenant Commander: 15%
-Commander:            20% (Starting rank - largest group)
-Captain:              15%
-Commodore:            12%
-Rear Admiral:         8%
-Vice Admiral:         3%
-Admiral:              1.5%
-Fleet Admiral:        0.4%
-Grand Admiral:        0.1% (Top 0.1% of players)
+Cadet:                     5%  (Below starting rank)
+⭐ Ensign:                 20% (Starting rank - largest group)
+Lieutenant:                15%
+Lieutenant Commander:      12%
+Commander:                 10%
+Captain:                   8%
+Senior Captain:            7%
+Commodore:                 6%
+Rear Admiral:              5%
+Rear Admiral Upper Half:   4%
+Vice Admiral:              3%
+Admiral:                   2%
+High Admiral:              1.5%
+Fleet Admiral:             1%
+Supreme Admiral:           0.4%
+Grand Admiral:             0.1% (Top 0.1% of players)
 ```
 
 ---
 
 ## Rank Progression Examples
 
-### From Commander to Captain
-- Current: 1200 ELO (Commander)
-- Target: 1400 ELO (Captain)
-- **Need**: +200 ELO (~8-12 wins against equal opponents)
+### From Ensign to Lieutenant
+- Current: 800 ELO (⭐ Ensign - Starting)
+- Target: 1050 ELO (Lieutenant)
+- **Need**: +250 ELO (~10-14 wins against equal opponents)
 
-### From Rear Admiral to Vice Admiral
-- Current: 1800 ELO (Rear Admiral)
-- Target: 2000 ELO (Vice Admiral)
-- **Need**: +200 ELO (~12-16 wins, K-factor is lower at this level)
+### From Captain to Senior Captain
+- Current: 1500 ELO (Captain)
+- Target: 1650 ELO (Senior Captain)
+- **Need**: +150 ELO (~6-10 wins against equal opponents)
 
-### From Admiral to Fleet Admiral
-- Current: 2200 ELO (Admiral)
-- Target: 2500 ELO (Fleet Admiral)
-- **Need**: +300 ELO (~18-25 wins, very challenging)
+### From Rear Admiral to Rear Admiral Upper Half
+- Current: 1950 ELO (Rear Admiral)
+- Target: 2100 ELO (Rear Admiral Upper Half)
+- **Need**: +150 ELO (~9-13 wins, K-factor is lower at this level)
+
+### From Supreme Admiral to Grand Admiral
+- Current: 2850 ELO (Supreme Admiral)
+- Target: 3000 ELO (Grand Admiral - Highest Rank!)
+- **Need**: +150 ELO (~12-18 wins, very challenging at this level)
 
 ---
 
