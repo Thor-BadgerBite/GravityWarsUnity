@@ -24,6 +24,7 @@ public class MatchStatsTracker : MonoBehaviour
         public int missilesHit;
         public int roundsWon;
         public int perksUsed;
+        public int trickshots;
 
         public float Accuracy => missilesFired > 0 ? (float)missilesHit / missilesFired : 0f;
 
@@ -35,6 +36,7 @@ public class MatchStatsTracker : MonoBehaviour
             missilesHit = 0;
             roundsWon = 0;
             perksUsed = 0;
+            trickshots = 0;
         }
     }
 
@@ -140,6 +142,15 @@ public class MatchStatsTracker : MonoBehaviour
     {
         var stats = StatsFor(user);
         if (stats != null) stats.perksUsed++;
+    }
+
+    /// <summary>
+    /// Called by KillshotRecorder when a gravity-assist trickshot lands.
+    /// </summary>
+    public void RecordTrickshot(PlayerShip shooter)
+    {
+        var stats = StatsFor(shooter);
+        if (stats != null) stats.trickshots++;
     }
 
     /// <summary>

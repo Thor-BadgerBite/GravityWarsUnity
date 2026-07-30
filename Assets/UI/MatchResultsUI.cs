@@ -45,12 +45,29 @@ public class MatchResultsUI : MonoBehaviour
     [SerializeField] private GameObject battlePassBanner;
     [SerializeField] private TextMeshProUGUI battlePassText;
 
+    [Header("Engagement Banners")]
+    [SerializeField] private GameObject firstWinBanner;        // "FIRST WIN OF THE DAY - 2x BP XP!"
+    [SerializeField] private GameObject streakBanner;
+    [SerializeField] private TextMeshProUGUI streakText;
+    [SerializeField] private GameObject closeMatchBanner;      // "SO CLOSE! +50 XP"
+    [SerializeField] private TextMeshProUGUI closeMatchText;
+    [SerializeField] private GameObject trickshotBanner;       // "GRAVITY ASSIST BONUS"
+    [SerializeField] private TextMeshProUGUI trickshotText;
+    [SerializeField] private TextMeshProUGUI rivalryText;      // "vs Alex: 3-1"
+
+    [Header("Killshot Replay")]
+    [SerializeField] private Button watchReplayButton;
+
     [Header("Misc")]
     [SerializeField] private TextMeshProUGUI matchDurationText;
 
     [Header("Buttons")]
     [SerializeField] private Button playAgainButton;
     [SerializeField] private Button returnToMenuButton;
+    [SerializeField] private Button requeueButton;             // online: instant re-queue
+
+    /// <summary>Raised when the player wants to jump straight into another online match.</summary>
+    public event System.Action OnRequeueRequested;
 
     [Header("Navigation")]
     [Tooltip("Scene to load when returning to the main menu")]
@@ -64,6 +81,10 @@ public class MatchResultsUI : MonoBehaviour
             playAgainButton.onClick.AddListener(OnPlayAgainClicked);
         if (returnToMenuButton != null)
             returnToMenuButton.onClick.AddListener(OnReturnToMenuClicked);
+        if (requeueButton != null)
+            requeueButton.onClick.AddListener(() => OnRequeueRequested?.Invoke());
+        if (watchReplayButton != null)
+            watchReplayButton.onClick.AddListener(() => KillshotReplayUI.Instance?.PlayLastKillshot());
 
         if (resultsPanel != null)
             resultsPanel.SetActive(false);
@@ -130,6 +151,61 @@ public class MatchResultsUI : MonoBehaviour
             int seconds = Mathf.FloorToInt(summary.matchDurationSeconds % 60f);
             matchDurationText.text = $"Match time: {minutes:00}:{seconds:00}";
         }
+
+        // ===== Engagement banners =====
+
+        if (firstWinBanner != null)
+            firstWinBanner.SetActive(summary.firstWinOfTheDay);
+
+        if (streakBanner != null)
+        {
+            bool showStreak = summary.winStreak >= 2;
+            streakBanner.SetActive(showStreak);
+            if (showStreak)
+            {
+                string bonus = summary.streakBonusCredits > 0 ? $"  (+{summary.streakBonusCredits} credits)" : "";
+                SetText(streakText, $"🔥 {summary.winStreak} WIN STREAK{bonus}");
+            }
+        }
+
+        if (closeMatchBanner != null)
+        {
+            closeMatchBanner.SetActive(summary.closeMatch && summary.closeMatchBonusXP > 0);
+            if (summary.closeMatch)
+                SetText(closeMatchText, $"SO CLOSE! +{summary.closeMatchBonusXP} XP");
+        }
+
+        if (trickshotBanner != null)
+        {
+            bool showTrick = summary.trickshotBonusXP > 0;
+            trickshotBanner.SetActive(showTrick);
+            if (showTrick)
+                SetText(trickshotText, $"☄ GRAVITY ASSIST BONUS +{summary.trickshotBonusXP} XP");
+        }
+
+        // Rivalry line (online matches with a known opponent)
+        if (rivalryText != null)
+        {
+            var data = ProgressionManager.Instance != null ? ProgressionManager.Instance.currentPlayerData : null;
+            if (data != null && !string.IsNullOrEmpty(summary.opponentUsername))
+            {
+                var (wins, losses) = data.GetHeadToHeadRecord(summary.opponentUsername);
+                rivalryText.text = (wins + losses) > 0
+                    ? $"vs {summary.opponentUsername}: {wins}-{losses}"
+                    : "";
+            }
+            else
+            {
+                rivalryText.text = "";
+            }
+        }
+
+        // Killshot replay: auto-play once, keep the button for re-watching
+        bool hasReplay = KillshotReplayUI.Instance != null && KillshotReplayUI.Instance.HasKillshot;
+        if (watchReplayButton != null)
+            watchReplayButton.gameObject.SetActive(hasReplay);
+        if (hasReplay)
+            KillshotReplayUI.Instance.PlayLastKillshot();
     }
 
     private void FillStatsColumn(
@@ -193,4 +269,13 @@ public class MatchResultsSummary
     public bool leveledUp;
     public int newLevel;
     public int battlePassTiersGained;
+
+    // Engagement extras
+    public bool firstWinOfTheDay;       // 2x battle pass XP was applied
+    public int winStreak;               // local player's current streak
+    public int streakBonusCredits;      // credits from streak milestones
+    public bool closeMatch;             // loss was one round short
+    public int closeMatchBonusXP;
+    public int trickshotBonusXP;        // gravity assist bonus XP
+    public string opponentUsername;     // for the rivalry line (online)
 }

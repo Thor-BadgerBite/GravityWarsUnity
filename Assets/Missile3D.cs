@@ -296,6 +296,9 @@ void SetupHeatShieldEffect()
         trajectoryPoints.Clear();
         AddTrajectoryPoint(transform.position);
         StartCoroutine(EnableColliderWithDelay());
+
+        // Record flight path for killshot replay / trickshot detection
+        KillshotRecorder.Instance?.BeginTrack(this, firingShip);
         
         // Add null checks for audio
         if (AudioManager.Instance != null)

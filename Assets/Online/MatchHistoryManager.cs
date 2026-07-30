@@ -275,6 +275,13 @@ public class MatchHistoryManager : MonoBehaviour
             performanceCredits += streakBonus / 2;
         }
 
+        // Close-match consolation: losing one round short shouldn't feel wasted
+        if (!isWinner && playerStats.roundsLost - playerStats.roundsWon == 1 && playerStats.roundsWon > 0)
+        {
+            performanceXP += 50;
+            Debug.Log($"[MatchHistory] Close match consolation: +50 XP for {profile.username}");
+        }
+
         // Total rewards
         int totalXP = baseXP + performanceXP;
         int totalCredits = baseCredits + performanceCredits;
@@ -287,9 +294,17 @@ public class MatchHistoryManager : MonoBehaviour
         playerStats.xpGained = totalXP;
         playerStats.creditsGained = totalCredits;
 
-        // Battle pass XP: flat per match, bonus for winning.
+        // Battle pass XP: flat per match, bonus for winning,
+        // DOUBLED on the first win of the day.
         // Runs through profile fields so it persists via cloud save.
         int battlePassXP = isWinner ? 100 : 50;
+        string today = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        if (isWinner && profile.lastFirstWinDate != today)
+        {
+            profile.lastFirstWinDate = today;
+            battlePassXP *= 2;
+            Debug.Log($"[MatchHistory] ⭐ First win of the day for {profile.username} - 2x Battle Pass XP");
+        }
         profile.battlePassXP += battlePassXP;
         if (BattlePassSystem.Instance != null)
         {

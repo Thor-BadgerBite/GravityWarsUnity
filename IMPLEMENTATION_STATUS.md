@@ -112,12 +112,58 @@ This document tracks the code-level implementation of the remaining stages from
 
 ---
 
-## 💡 Design backlog (agreed ideas, not yet implemented)
+## 🎮 Engagement & Retention Features (second pass — all implemented)
 
-- **Tournament / normalized mode:** ship leveling grants real stat scaling
-  (health/armor/damage per level), so long-time players field stronger ships —
-  intended (Brawl Stars-style power levels), but matchmaking should pair
-  similar ship levels alongside ELO. For fully skill-based play, add a
-  "tournament mode" flag that applies all ships at a fixed reference level
-  (normalize in `ShipPresetSO.ApplyToShip` / leveling formula application —
-  no data model changes needed, just skip the level scaling when the flag is set).
+### First session (D1 retention)
+- **Bot opponent** (`Assets/Bot/BotController.cs`): simulates trajectories with
+  the real game physics (mirrors `PredictMissileTrajectory`, incl. the 0.5x
+  launch factor), coarse+refine search over angle/velocity, difficulty-based
+  aiming error, human-like think time. Enable via `GameManager.player2IsBot`
+  (+ `botDifficulty`) — auto-attached in `PlaceShips`.
+
+### Session loop ("one more match")
+- **Killshot replay** (`KillshotRecorder.cs` + `UI/KillshotReplayUI.cs`):
+  every missile's flight path is sampled; the fatal shot is kept and replayed
+  slow-mo on the results screen (auto-plays once + re-watch button).
+- **Trickshot / Gravity Assist detection**: cumulative path curvature ≥ 100°
+  on a landed hit → "GRAVITY ASSIST!" banner, per-player trickshot stat,
+  +25 XP per trickshot at match end.
+- **Instant requeue**: `MatchResultsUI.OnRequeueRequested` event +
+  requeue button (wire to matchmaking UI when netcode is enabled).
+- **Close-match consolation**: losing one round short of victory grants
+  +50 XP (local + online paths) with a "SO CLOSE!" banner.
+
+### Daily loop
+- **First win of the day**: 2x battle pass XP, tracked via
+  `PlayerAccountData.lastFirstWinDate` (local + online paths), banner on results.
+- **Win streaks**: tracked for ALL matches now (not only ranked); milestone
+  credit bonuses at 3/5/10 wins; streak banner with bonus on results screen.
+- **Next-unlock widget** (`UI/NextUnlockWidget.cs`): "Level 7 → 🚀 Phoenix Mk-I"
+  + XP progress bar, scans all unlock schedules for the nearest reward.
+
+### Long-term
+- **Ship mastery prestige**: titles (Veteran/Ace/Master/Legend at ship level
+  5/10/15/20) via `ShipProgressionEntry.GetMasteryTitle()`, mastery skins
+  auto-unlocked at levels 10/20, `UI/ShipMasteryBadgeUI.cs` display component.
+- **Seasonal ranked reset** (`Online/RankedSeasonSystem.cs`): soft ELO reset
+  (halfway to 1200), gems by peak rank, exclusive skins for Diamond+;
+  rolls over together with the battle pass season.
+- **Weekly mutators** (`MutatorSystem.cs`): deterministic weekly rotation
+  (None / Low Gravity / Giant Planets / Overdrive +2 AP), applied to planet
+  mass/size and action points; toggle `GameManager.enableWeeklyMutators`.
+- **Rivalry records**: `PlayerAccountData.GetHeadToHeadRecord()` from match
+  history; "vs X: 3-1" line on the results screen.
+
+### Fairness
+- **Comeback mechanic**: previous round's loser gets +1 action point
+  (toggle `GameManager.comebackBonusActionPoint`, on by default; applied in
+  `ApplyTurnBonuses` after ship presets, so it is never overwritten).
+- **Tournament mode** (`TournamentMode.cs`): normalizes every ship to a fixed
+  reference level (default 10) for skill-only matches; ship XP still accrues.
+
+### Extra editor wiring for the new features
+- Results screen: assign the new banner objects (first win, streak, close
+  match, trickshot, rivalry) + requeue/replay buttons on `MatchResultsUI`.
+- Replay: add a world-space LineRenderer + optional marker to `KillshotReplayUI`.
+- Main menu: place `NextUnlockWidget` and (optionally) `ShipMasteryBadgeUI`.
+- Practice mode: expose `player2IsBot`/`botDifficulty` in the setup screen UI.

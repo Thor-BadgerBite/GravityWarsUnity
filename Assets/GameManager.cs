@@ -53,6 +53,21 @@ public class GameManager : MonoBehaviour
     public string player1Name = "Player 1";
     public string player2Name = "Player 2";
 
+    [Header("Bot Opponent (Practice Mode)")]
+    [Tooltip("When true, Player 2 is controlled by the AI")]
+    public bool player2IsBot = false;
+    [Tooltip("Bot accuracy: 0 = wild shots, 1 = deadly precise")]
+    [Range(0f, 1f)] public float botDifficulty = 0.6f;
+
+    [Header("Engagement Features")]
+    [Tooltip("Apply the rotating weekly mutator (low gravity, giant planets, ...)")]
+    public bool enableWeeklyMutators = false;
+    [Tooltip("Previous round's loser gets +1 action point next round")]
+    public bool comebackBonusActionPoint = true;
+
+    // Which side lost the previous round (null on the first round of a match)
+    private bool? lastRoundLoserIsLeft = null;
+
     // ----------------------------------
     // OLD UI references
     // ----------------------------------
@@ -284,12 +299,22 @@ public class GameManager : MonoBehaviour
     pm2.SetIconSlots(player2PerkIcons);
 
         // ===== MATCH TRACKING & INTEGRATIONS =====
+        lastRoundLoserIsLeft = null;   // comeback bonus starts fresh each match
         MatchStatsTracker.GetOrCreate().ResetMatch();
+        KillshotRecorder.GetOrCreate().ResetMatch();
         GetComponent<GameManagerQuestIntegration>()?.OnMatchStart();
         GetComponent<GameManagerAchievementIntegration>()?.OnMatchStart();
         GetComponent<GameManagerLeaderboardIntegration>()?.OnMatchStart();
         GetComponent<GameManagerAnalytics>()?.TrackMatchStart();
         // =========================================
+
+        // Weekly mutator announcement
+        if (enableWeeklyMutators)
+        {
+            var mutator = MutatorSystem.GetCurrentMutator();
+            if (mutator != MutatorSystem.Mutator.None)
+                ShowInfoText($"{MutatorSystem.GetDisplayName(mutator)}\n{MutatorSystem.GetDescription(mutator)}");
+        }
 
         StartCoroutine(StartGamePhase());
     }
@@ -468,6 +493,24 @@ public class GameManager : MonoBehaviour
         }
 
         RepositionPlanets();
+
+        // ===== WEEKLY MUTATOR: planet mass/size adjustments =====
+        if (enableWeeklyMutators)
+        {
+            var mutator = MutatorSystem.GetCurrentMutator();
+            float massScale = MutatorSystem.GetPlanetMassScale(mutator);
+            float sizeScale = MutatorSystem.GetPlanetSizeScale(mutator);
+
+            if (!Mathf.Approximately(massScale, 1f) || !Mathf.Approximately(sizeScale, 1f))
+            {
+                foreach (var planet in planetComponents)
+                {
+                    planet.mass *= massScale;
+                    planet.transform.localScale *= sizeScale;
+                }
+                Debug.Log($"[GameManager] Mutator '{mutator}' applied: mass x{massScale}, size x{sizeScale}");
+            }
+        }
 
         // Update planet cache after all planets are spawned
         UpdatePlanetCache();
@@ -728,6 +771,13 @@ public class GameManager : MonoBehaviour
         pm2.SetIconSlots(player2PerkIcons);
         Debug.Log($"icon set for player2");
 
+        // ===== BOT OPPONENT (practice mode / offline play) =====
+        if (player2IsBot && player2Ship.GetComponent<BotController>() == null)
+        {
+            var bot = player2Ship.gameObject.AddComponent<BotController>();
+            bot.Configure(botDifficulty);
+            Debug.Log($"[GameManager] Player 2 is a bot (difficulty {botDifficulty:F2})");
+        }
     }
 
     Vector3 GetValidShipPosition(bool isLeftSide)
@@ -1091,6 +1141,7 @@ public class GameManager : MonoBehaviour
 
         // ===== ROUND TRACKING & INTEGRATIONS =====
         bool roundWonByPlayer1 = (winningShip == player1Ship);
+        lastRoundLoserIsLeft = destroyedShip.isLeftPlayer;   // comeback bonus next round
         MatchStatsTracker.Instance?.RecordRoundWon(winningShip);
         GetComponent<GameManagerQuestIntegration>()?.OnRoundEnd(winningShip, roundWonByPlayer1);
         GetComponent<GameManagerAchievementIntegration>()?.OnRoundEnd(winningShip, roundWonByPlayer1);
@@ -1230,23 +1281,39 @@ public class GameManager : MonoBehaviour
         // Resolve the loadout used by the local player (ship XP tracking)
         CustomShipLoadout equippedLoadout = ResolveEquippedLoadout(playerData);
 
+        // A loss one round short of victory is a "close match" (consolation bonus)
+        bool closeMatch = loser.score >= winningScore - 1 && loser.score > 0;
+        summary.closeMatch = closeMatch;
+
         // Award XP to winner
         Debug.Log($"[GameManager] Awarding XP to winner: {winner.playerName}");
-        ProgressionManager.Instance.AwardMatchXP(
+        var winnerResult = ProgressionManager.Instance.AwardMatchXP(
             won: true,
             roundsWon: winner.score,
             damageDealt: winnerStats.damageDealt,
-            usedLoadout: player1Won ? equippedLoadout : null
+            usedLoadout: player1Won ? equippedLoadout : null,
+            closeMatch: false,
+            trickshots: winnerStats.trickshots
         );
 
         // Award XP to loser (reduced, but still something)
         Debug.Log($"[GameManager] Awarding participation XP to: {loser.playerName}");
-        ProgressionManager.Instance.AwardMatchXP(
+        var loserResult = ProgressionManager.Instance.AwardMatchXP(
             won: false,
             roundsWon: loser.score,
             damageDealt: loserStats.damageDealt,
-            usedLoadout: player1Won ? null : equippedLoadout
+            usedLoadout: player1Won ? null : equippedLoadout,
+            closeMatch: closeMatch,
+            trickshots: loserStats.trickshots
         );
+
+        // Player 1 is the local player - their award drives the celebration UI
+        var localResult = player1Won ? winnerResult : loserResult;
+        summary.firstWinOfTheDay = winnerResult.firstWinOfTheDay || loserResult.firstWinOfTheDay;
+        summary.winStreak = localResult.winStreak;
+        summary.streakBonusCredits = localResult.streakBonusCredits;
+        summary.trickshotBonusXP = winnerResult.trickshotBonusXP + loserResult.trickshotBonusXP;
+        summary.closeMatchBonusXP = loserResult.closeMatchBonusXP;
 
         // Fill reward info for the results screen
         summary.xpGained = (playerData.currentXP - xpBefore) +
@@ -1381,6 +1448,47 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(FadeText(infoText, message, infoFadeDuration));
     }
+
+    /// <summary>
+    /// Public banner for external systems (trickshots, mutators, streaks).
+    /// </summary>
+    public void ShowBanner(string message)
+    {
+        ShowInfoText(message);
+    }
+
+    /// <summary>
+    /// Applies per-round action point bonuses (weekly mutator, comeback bonus).
+    /// Called by PlayerShip.Start() AFTER the ship preset applies its base values,
+    /// so the bonuses are never overwritten by ShipPresetSO.ApplyToShip.
+    /// </summary>
+    public void ApplyTurnBonuses(PlayerShip ship)
+    {
+        if (ship == null) return;
+
+        int bonus = 0;
+
+        if (enableWeeklyMutators)
+            bonus += MutatorSystem.GetBonusActionPoints(MutatorSystem.GetCurrentMutator());
+
+        if (comebackBonusActionPoint && lastRoundLoserIsLeft.HasValue &&
+            lastRoundLoserIsLeft.Value == ship.isLeftPlayer)
+        {
+            bonus += 1;
+            Debug.Log($"[GameManager] Comeback bonus: {ship.playerName} gets +1 action point this round");
+        }
+
+        if (bonus > 0)
+        {
+            ship.movesAllowedPerTurn += bonus;
+            ship.movesRemainingThisRound += bonus;
+        }
+    }
+
+    /// <summary>
+    /// The player whose turn it currently is (read-only, used by BotController).
+    /// </summary>
+    public PlayerShip CurrentPlayer => currentPlayer;
     void ClearTimerText()
     {
         timerText.text = "";

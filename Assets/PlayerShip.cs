@@ -205,6 +205,13 @@ public class PlayerShip : MonoBehaviour
             maxHealth = baseHealth;
         }
 
+        // Apply per-round action point bonuses (mutator / comeback) AFTER the
+        // preset has set movesAllowedPerTurn, so they are never overwritten.
+        if (!isGhost)
+        {
+            GameManager.Instance?.ApplyTurnBonuses(this);
+        }
+
         if (!isGhost)
         {
             ghostShipInstance = Instantiate(gameObject, transform.position, transform.rotation);
@@ -356,15 +363,18 @@ public class PlayerShip : MonoBehaviour
             return;
         }
 
+        // Tournament mode normalizes every ship to a fixed reference level
+        int effectiveLevel = TournamentMode.GetEffectiveLevel(shipLevel);
+
         // Calculate stats using ScriptableObject formulas
-        maxHealth = formula.CalculateHealthAtLevel(baseHealth, shipLevel);
-        armor = formula.CalculateArmorAtLevel(baseArmorValue, shipLevel);
-        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, shipLevel);
+        maxHealth = formula.CalculateHealthAtLevel(baseHealth, effectiveLevel);
+        armor = formula.CalculateArmorAtLevel(baseArmorValue, effectiveLevel);
+        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, effectiveLevel);
 
         // Initialize current health to max (ship starts at full health)
         currentHealth = maxHealth;
 
-        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+        Debug.Log($"{playerName} (PRESET) => L{effectiveLevel}{(TournamentMode.Enabled ? " [TOURNAMENT]" : "")}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
     }
 
     /// <summary>
@@ -373,7 +383,8 @@ public class PlayerShip : MonoBehaviour
     private void UpdateStatsFromHardcodedFormulas()
     {
         // This "level offset" = how many increments we are above level 1
-        int Loffset = shipLevel - 1;
+        // (Tournament mode normalizes every ship to a fixed reference level)
+        int Loffset = TournamentMode.GetEffectiveLevel(shipLevel) - 1;
         if (Loffset < 0) Loffset = 0;
 
         // Apply formulas based on archetype (with BALANCE FIXES!)
@@ -1229,6 +1240,47 @@ void OnCollisionEnter(Collision collision)
         playerUI?.SetActive(enable);
     }
 
+    // ---------------------------------------------------------
+    // BOT CONTROL API (used by BotController)
+    // ---------------------------------------------------------
+
+    /// <summary>
+    /// Sets the firing angle (degrees) and launch velocity directly.
+    /// Velocity is clamped to the equipped missile's launch range.
+    /// </summary>
+    public void BotSetAim(float angleDegrees, float velocity)
+    {
+        currentZRotation = Mathf.Repeat(angleDegrees, 360f);
+
+        float minV = equippedMissile != null ? equippedMissile.minLaunchVelocity : minLaunchVelocity;
+        float maxV = equippedMissile != null ? equippedMissile.maxLaunchVelocity : maxLaunchVelocity;
+        launchVelocity = Mathf.Clamp(velocity, minV, maxV);
+
+        // Update visual rotation to match the aim
+        if (rb != null)
+        {
+            rb.MoveRotation(Quaternion.Euler(0, 0, currentZRotation));
+        }
+    }
+
+    /// <summary>
+    /// Fires a missile with the current aim (bot equivalent of pressing fire).
+    /// Consumes an action via GameManager.PlayerActionUsed like a normal shot.
+    /// </summary>
+    public void BotFire()
+    {
+        if (isDestroyed) return;
+        FireMissile();
+    }
+
+    /// <summary>Effective launch velocity range for the currently equipped missile.</summary>
+    public (float min, float max) GetLaunchVelocityRange()
+    {
+        float minV = equippedMissile != null ? equippedMissile.minLaunchVelocity : minLaunchVelocity;
+        float maxV = equippedMissile != null ? equippedMissile.maxLaunchVelocity : maxLaunchVelocity;
+        return (minV, maxV);
+    }
+
     /// <summary>
     /// For external calls that just want to forcibly kill the ship (no explosion effect).
     /// </summary>
@@ -1737,6 +1789,9 @@ private IEnumerator ShakeAnimation(float shakeDuration, float maxAngle)
 
         // Report to match stats (damage dealt is attributed to the opponent)
         MatchStatsTracker.Instance?.RecordDamageTaken(this, effectiveDamage);
+
+        // Report to killshot recorder (replay + trickshot detection)
+        KillshotRecorder.Instance?.NotifyShipDamaged(this, currentHealth <= 0f);
 
         UpdateHealthUI();
 

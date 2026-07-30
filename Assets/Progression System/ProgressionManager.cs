@@ -2,6 +2,20 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// Breakdown of a single match's XP award, for the results screen.
+/// </summary>
+public class MatchXPResult
+{
+    public int accountXP;
+    public int battlePassXP;
+    public bool firstWinOfTheDay;
+    public int winStreak;
+    public int streakBonusCredits;
+    public int closeMatchBonusXP;
+    public int trickshotBonusXP;
+}
+
+/// <summary>
 /// Central manager for all progression systems (unlocks, XP, battle pass, currency).
 /// This is a singleton that persists across scenes.
 /// </summary>
@@ -202,10 +216,16 @@ public class ProgressionManager : MonoBehaviour
     #region XP & LEVELING
 
     /// <summary>
-    /// Awards XP after a match
+    /// Awards XP after a match. Handles the engagement bonuses:
+    /// first win of the day (2x battle pass XP), win streak milestones,
+    /// close-match consolation, trickshot bonus.
+    /// Returns a breakdown for the results screen.
     /// </summary>
-    public void AwardMatchXP(bool won, int roundsWon, int damageDealt, CustomShipLoadout usedLoadout)
+    public MatchXPResult AwardMatchXP(bool won, int roundsWon, int damageDealt, CustomShipLoadout usedLoadout,
+        bool closeMatch = false, int trickshots = 0)
     {
+        var result = new MatchXPResult();
+
         // Calculate XP amounts
         int baseXP = 50;
         int winBonus = won ? 100 : 0;
@@ -213,6 +233,48 @@ public class ProgressionManager : MonoBehaviour
         int damageBonus = Mathf.FloorToInt(damageDealt / 100f); // 1 XP per 100 damage
 
         int totalAccountXP = baseXP + winBonus + roundBonus + damageBonus;
+
+        // Trickshot bonus: reward flashy gravity-assist shots
+        if (trickshots > 0)
+        {
+            result.trickshotBonusXP = trickshots * 25;
+            totalAccountXP += result.trickshotBonusXP;
+            Debug.Log($"[ProgressionManager] Trickshot bonus: +{result.trickshotBonusXP} XP ({trickshots} gravity assists)");
+        }
+
+        // Close-match consolation: a narrow loss should never feel wasted
+        if (!won && closeMatch)
+        {
+            result.closeMatchBonusXP = 50;
+            totalAccountXP += result.closeMatchBonusXP;
+            Debug.Log("[ProgressionManager] Close match! +50 consolation XP");
+        }
+
+        // Win streak tracking (all matches, not just ranked)
+        if (won)
+        {
+            currentPlayerData.currentWinStreak++;
+            if (currentPlayerData.currentWinStreak > currentPlayerData.bestWinStreak)
+                currentPlayerData.bestWinStreak = currentPlayerData.currentWinStreak;
+
+            // Milestone bonuses at 3 / 5 / 10+ wins in a row
+            int streak = currentPlayerData.currentWinStreak;
+            if (streak >= 10) result.streakBonusCredits = 200;
+            else if (streak >= 5) result.streakBonusCredits = 100;
+            else if (streak >= 3) result.streakBonusCredits = 50;
+
+            if (result.streakBonusCredits > 0)
+            {
+                currentPlayerData.credits += result.streakBonusCredits;
+                Debug.Log($"[ProgressionManager] 🔥 {streak}-win streak! +{result.streakBonusCredits} credits");
+            }
+        }
+        else
+        {
+            currentPlayerData.currentWinStreak = 0;
+        }
+        result.winStreak = currentPlayerData.currentWinStreak;
+
         int totalShipXP = totalAccountXP; // Same for now, can be different
 
         // Apply premium pass bonus (e.g., +50% XP)
@@ -234,8 +296,16 @@ public class ProgressionManager : MonoBehaviour
             currentPlayerData.AddShipXP(usedLoadout, totalShipXP);
         }
 
-        // Award battle pass XP
-        currentPlayerData.battlePassXP += totalAccountXP;
+        // Battle pass XP - doubled on the first win of the day
+        int battlePassXP = totalAccountXP;
+        if (won && currentPlayerData.lastFirstWinDate != System.DateTime.Now.ToString("yyyy-MM-dd"))
+        {
+            currentPlayerData.lastFirstWinDate = System.DateTime.Now.ToString("yyyy-MM-dd");
+            battlePassXP *= 2;
+            result.firstWinOfTheDay = true;
+            Debug.Log("[ProgressionManager] ⭐ First win of the day! 2x Battle Pass XP");
+        }
+        currentPlayerData.battlePassXP += battlePassXP;
         CheckBattlePassTierUp();
 
         // Update stats
@@ -244,10 +314,15 @@ public class ProgressionManager : MonoBehaviour
         currentPlayerData.totalRoundsWon += roundsWon;
         currentPlayerData.totalDamageDealt += damageDealt;
 
-        Debug.Log($"[ProgressionManager] Match XP: Account +{totalAccountXP}, Ship +{totalShipXP}");
+        result.accountXP = totalAccountXP;
+        result.battlePassXP = battlePassXP;
+
+        Debug.Log($"[ProgressionManager] Match XP: Account +{totalAccountXP}, Ship +{totalShipXP}, BP +{battlePassXP}");
 
         if (autoSave)
             Save();
+
+        return result;
     }
 
     /// <summary>

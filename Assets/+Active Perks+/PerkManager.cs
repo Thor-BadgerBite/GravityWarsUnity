@@ -135,6 +135,11 @@ public class PerkManager : MonoBehaviour
         Debug.Log($"[PerkManager] Activating {so.perkName} BEFORE firing missile");
         perk.Activate(_ship);
         _usedThisTurn[_toggledSlot] = true;
+
+        // Match stats + quest/achievement tracking
+        MatchStatsTracker.Instance?.RecordPerkUsed(_ship);
+        GameManager.Instance?.GetComponent<GameManagerQuestIntegration>()?.OnPlayerActivatePerk(so.perkName);
+        GameManager.Instance?.GetComponent<GameManagerAchievementIntegration>()?.OnPlayerActivatePerk(so.perkName);
     }
 
     /// <summary>

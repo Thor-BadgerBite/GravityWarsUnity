@@ -32,6 +32,7 @@ public class PlayerAccountData
     [Header("Competitive Stats - Online Play")]
     public int eloRating = 1200;
     public int peakEloRating = 1200;
+    public string lastRankedSeasonID = "";
     public CompetitiveRank currentRank = CompetitiveRank.Bronze;
     public int rankedMatchesPlayed = 0;
     public int rankedMatchesWon = 0;
@@ -89,6 +90,9 @@ public class PlayerAccountData
     public List<MatchResultData> recentMatches = new List<MatchResultData>();
     public List<QuestProgressData> activeQuests = new List<QuestProgressData>();
     public List<string> completedQuests = new List<string>();
+
+    [Header("Daily Engagement")]
+    public string lastFirstWinDate = "";   // "yyyy-MM-dd" of the last first-win-of-the-day bonus
 
     [Header("Statistics")]
     public int totalMatchesPlayed = 0;
@@ -317,15 +321,50 @@ public class PlayerAccountData
     }
 
     /// <summary>
-    /// Adds XP to a specific ship loadout
+    /// Adds XP to a specific ship loadout.
+    /// Mastery milestones (ship level 10/20) unlock prestige skins visible to opponents.
     /// </summary>
     public void AddShipXP(CustomShipLoadout loadout, int amount)
     {
         var progression = GetShipProgression(loadout);
-        if (progression != null)
+        if (progression == null) return;
+
+        int levelBefore = progression.shipLevel;
+        progression.AddXP(amount);
+
+        // Mastery prestige unlocks on crossing milestone levels
+        if (levelBefore < 10 && progression.shipLevel >= 10)
+            UnlockMasterySkin(loadout, "gold");
+        if (levelBefore < 20 && progression.shipLevel >= 20)
+            UnlockMasterySkin(loadout, "legend");
+    }
+
+    private void UnlockMasterySkin(CustomShipLoadout loadout, string masteryTier)
+    {
+        string skinId = $"skin_mastery_{masteryTier}_{loadout.shipBodyName}";
+        if (!unlockedSkinIDs.Contains(skinId))
         {
-            progression.AddXP(amount);
+            unlockedSkinIDs.Add(skinId);
+            Debug.Log($"[PlayerAccountData] 🏆 Mastery skin unlocked: {skinId}");
         }
+    }
+
+    /// <summary>
+    /// Head-to-head record against a specific opponent, computed from recent
+    /// match history. Used for the rivalry ("Nemesis") display.
+    /// </summary>
+    public (int wins, int losses) GetHeadToHeadRecord(string opponentUsername)
+    {
+        int wins = 0, losses = 0;
+        if (string.IsNullOrEmpty(opponentUsername)) return (0, 0);
+
+        foreach (var match in recentMatches)
+        {
+            if (match.opponentUsername != opponentUsername) continue;
+            if (match.won) wins++;
+            else losses++;
+        }
+        return (wins, losses);
     }
 
     /// <summary>
@@ -515,6 +554,18 @@ public class ShipProgressionEntry
         int xpNeededForLevel = nextLevelXP - currentLevelXP;
 
         return Mathf.Clamp01((float)xpIntoLevel / xpNeededForLevel);
+    }
+
+    /// <summary>
+    /// Prestige title for this ship's mastery level (shown in lobby/results).
+    /// </summary>
+    public string GetMasteryTitle()
+    {
+        if (shipLevel >= 20) return "Legend";
+        if (shipLevel >= 15) return "Master";
+        if (shipLevel >= 10) return "Ace";
+        if (shipLevel >= 5) return "Veteran";
+        return "";
     }
 }
 

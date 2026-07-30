@@ -180,6 +180,10 @@ public class BattlePassSystem : MonoBehaviour
             profile.claimedFreeBattlePassTiers.Clear();
             profile.claimedPremiumBattlePassTiers.Clear();
             Debug.Log($"[BattlePass] New season started: {seasonName}");
+
+            // Ranked ladder rolls over together with the battle pass season:
+            // peak-rank rewards + soft ELO reset
+            RankedSeasonSystem.ApplySeasonRollover(profile, seasonId);
         }
 
         _currentLevel = Mathf.Clamp(profile.battlePassTier, 0, maxLevel);
