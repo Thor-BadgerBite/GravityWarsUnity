@@ -109,3 +109,15 @@ This document tracks the code-level implementation of the remaining stages from
    remaining compile errors inside the previously-dormant guarded code.
 4. **Prefabs/visuals:** ship models for the generated bodies (`visualPrefab`),
    icons, VFX (Phase 5) — art tasks per `IMPLEMENTATION_PLAN.md`.
+
+---
+
+## 💡 Design backlog (agreed ideas, not yet implemented)
+
+- **Tournament / normalized mode:** ship leveling grants real stat scaling
+  (health/armor/damage per level), so long-time players field stronger ships —
+  intended (Brawl Stars-style power levels), but matchmaking should pair
+  similar ship levels alongside ELO. For fully skill-based play, add a
+  "tournament mode" flag that applies all ships at a fixed reference level
+  (normalize in `ShipPresetSO.ApplyToShip` / leveling formula application —
+  no data model changes needed, just skip the level scaling when the flag is set).
