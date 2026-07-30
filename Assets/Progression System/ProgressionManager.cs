@@ -518,46 +518,57 @@ public class ProgressionManager : MonoBehaviour
     #region CUSTOM LOADOUTS
 
     /// <summary>
-    /// Creates and saves a custom ship loadout
+    /// CANONICAL ship building entry point (single source of truth).
+    ///
+    /// Design rules enforced here:
+    /// - Ship body + move type: REQUIRED, unlocked, archetype-compatible
+    /// - 3 active perks: REQUIRED, exactly one from each tier (1/2/3),
+    ///   unlocked and archetype-compatible
+    /// - Exactly 1 passive: REQUIRED, unlocked and archetype-compatible
+    /// - Missile: OPTIONAL - missiles are retrofits selected before each match
+    ///   (MissileSelectionUI); if provided here it becomes the initial equip
+    /// - Custom slot limit by account level (1/2/3 at levels 1/20/40)
+    ///
+    /// The id-based CustomShipBuilder (online API) delegates to this method.
     /// </summary>
     public CustomShipLoadout CreateCustomLoadout(
         string loadoutName,
         ShipBodySO body,
         MoveTypeSO moveType,
-        MissilePresetSO missile,
+        MissilePresetSO missile = null,
         ActivePerkSO tier1Perk = null,
         ActivePerkSO tier2Perk = null,
         ActivePerkSO tier3Perk = null,
         List<PassiveAbilitySO> passives = null)
     {
         // Validate all components
-        if (!ValidateLoadout(body, moveType, missile, tier1Perk, tier2Perk, tier3Perk, passives))
+        var validation = ValidateLoadoutBuild(loadoutName, body, moveType, missile,
+            tier1Perk, tier2Perk, tier3Perk, passives);
+
+        if (!validation.isValid)
         {
-            Debug.LogError("[ProgressionManager] Invalid loadout configuration!");
+            Debug.LogError($"[ProgressionManager] Invalid loadout configuration:\n- {string.Join("\n- ", validation.errors)}");
             return null;
         }
 
-        // Create loadout
+        // Create loadout (missile may be empty - selected pre-match)
         CustomShipLoadout loadout = new CustomShipLoadout
         {
             loadoutID = CustomShipLoadout.GenerateLoadoutID(),
             loadoutName = loadoutName,
             shipBodyName = body.name,
             moveTypeName = moveType.name,
-            equippedMissileName = missile.name,
-            tier1PerkName = tier1Perk?.name ?? "",
-            tier2PerkName = tier2Perk?.name ?? "",
-            tier3PerkName = tier3Perk?.name ?? "",
+            equippedMissileName = missile != null ? missile.name : "",
+            tier1PerkName = tier1Perk.name,
+            tier2PerkName = tier2Perk.name,
+            tier3PerkName = tier3Perk.name,
             passiveNames = new List<string>()
         };
 
-        if (passives != null)
+        foreach (var passive in passives)
         {
-            foreach (var passive in passives)
-            {
-                if (passive != null)
-                    loadout.passiveNames.Add(passive.name);
-            }
+            if (passive != null)
+                loadout.passiveNames.Add(passive.name);
         }
 
         // Add to player's loadouts
@@ -572,9 +583,12 @@ public class ProgressionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Validates a loadout configuration
+    /// Full build validation with per-error messages (for UI display).
+    /// This is THE rule set for ship building - both the SO-based UI path and
+    /// the id-based online path (CustomShipBuilder) run through it.
     /// </summary>
-    private bool ValidateLoadout(
+    public ShipBuildValidation ValidateLoadoutBuild(
+        string loadoutName,
         ShipBodySO body,
         MoveTypeSO moveType,
         MissilePresetSO missile,
@@ -583,53 +597,92 @@ public class ProgressionManager : MonoBehaviour
         ActivePerkSO tier3Perk,
         List<PassiveAbilitySO> passives)
     {
-        if (body == null || moveType == null || missile == null)
-        {
-            Debug.LogError("[ProgressionManager] Body, move type, and missile are required!");
-            return false;
-        }
+        var v = new ShipBuildValidation();
 
-        // Check if unlocked
-        if (!IsUnlocked(body) || !IsUnlocked(moveType) || !IsUnlocked(missile))
-        {
-            Debug.LogError("[ProgressionManager] Some components are locked!");
-            return false;
-        }
+        // --- Name ---
+        if (string.IsNullOrWhiteSpace(loadoutName))
+            v.Fail("Ship name cannot be empty");
+        else if (loadoutName.Length > 30)
+            v.Fail("Ship name too long (max 30 characters)");
 
-        // Check archetype compatibility
+        // --- Body (defines the archetype everything else must match) ---
+        if (body == null)
+        {
+            v.Fail("Ship body is required");
+            return v; // nothing else can be checked without an archetype
+        }
+        if (!IsUnlocked(body))
+            v.Fail($"Ship body '{body.bodyName}' is not unlocked");
+
         ShipArchetype archetype = body.archetype;
 
-        if (!moveType.CanBeUsedBy(archetype))
+        // --- Move type ---
+        if (moveType == null)
+            v.Fail("Move type is required");
+        else
         {
-            Debug.LogError($"[ProgressionManager] {moveType.name} cannot be used by {archetype}!");
-            return false;
+            if (!IsUnlocked(moveType))
+                v.Fail($"Move type '{moveType.moveTypeName}' is not unlocked");
+            if (!moveType.CanBeUsedBy(archetype))
+                v.Fail($"Move type '{moveType.moveTypeName}' cannot be used by {archetype}");
         }
 
-        if (!body.CanUseMissileType(missile.missileType))
+        // --- Missile (OPTIONAL - retrofitted before each match) ---
+        if (missile != null)
         {
-            Debug.LogError($"[ProgressionManager] {body.name} cannot use {missile.missileType} missiles!");
-            return false;
+            if (!IsUnlocked(missile))
+                v.Fail($"Missile '{missile.missileName}' is not unlocked");
+            if (!body.CanUseMissileType(missile.missileType))
+                v.Fail($"'{body.bodyName}' cannot use {missile.missileType} missiles");
         }
 
-        // Check perks
-        if (tier1Perk != null && (!tier1Perk.CanBeUsedBy(archetype) || !IsUnlocked(tier1Perk)))
-            return false;
-        if (tier2Perk != null && (!tier2Perk.CanBeUsedBy(archetype) || !IsUnlocked(tier2Perk)))
-            return false;
-        if (tier3Perk != null && (!tier3Perk.CanBeUsedBy(archetype) || !IsUnlocked(tier3Perk)))
-            return false;
+        // --- Active perks: one from EACH tier, all required ---
+        ValidatePerkSlot(v, tier1Perk, 1, archetype);
+        ValidatePerkSlot(v, tier2Perk, 2, archetype);
+        ValidatePerkSlot(v, tier3Perk, 3, archetype);
 
-        // Check passives
+        // --- Passive: exactly one ---
+        int passiveCount = 0;
         if (passives != null)
         {
             foreach (var passive in passives)
             {
-                if (passive != null && (!passive.CanBeUsedBy(archetype) || !IsUnlocked(passive)))
-                    return false;
+                if (passive == null) continue;
+                passiveCount++;
+
+                if (!IsUnlocked(passive))
+                    v.Fail($"Passive '{passive.passiveName}' is not unlocked");
+                if (!passive.CanBeUsedBy(archetype))
+                    v.Fail($"Passive '{passive.passiveName}' is not compatible with {archetype}");
             }
         }
+        if (passiveCount == 0)
+            v.Fail("A passive ability is required");
+        else if (passiveCount > 1)
+            v.Fail("Only one passive ability is allowed");
 
-        return true;
+        // --- Custom slot limit by account level ---
+        int maxSlots = ProgressionSystem.GetUnlockedCustomSlots(currentPlayerData.level);
+        if (currentPlayerData.customShipLoadouts.Count >= maxSlots)
+            v.Fail($"No available custom slots (max: {maxSlots}). Delete a ship to free a slot.");
+
+        return v;
+    }
+
+    private void ValidatePerkSlot(ShipBuildValidation v, ActivePerkSO perk, int expectedTier, ShipArchetype archetype)
+    {
+        if (perk == null)
+        {
+            v.Fail($"A Tier {expectedTier} active perk is required");
+            return;
+        }
+
+        if (perk.tier != expectedTier)
+            v.Fail($"'{perk.perkName}' is Tier {perk.tier}, but the Tier {expectedTier} slot requires a Tier {expectedTier} perk");
+        if (!IsUnlocked(perk))
+            v.Fail($"Perk '{perk.perkName}' is not unlocked");
+        if (!perk.CanBeUsedBy(archetype))
+            v.Fail($"Perk '{perk.perkName}' cannot be used by {archetype}");
     }
 
     /// <summary>

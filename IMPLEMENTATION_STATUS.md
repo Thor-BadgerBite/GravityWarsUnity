@@ -161,6 +161,18 @@ This document tracks the code-level implementation of the remaining stages from
 - **Tournament mode** (`TournamentMode.cs`): normalizes every ship to a fixed
   reference level (default 10) for skill-only matches; ship XP still accrues.
 
+### Ship building — unified (single rule set)
+- `ProgressionManager.ValidateLoadoutBuild` / `CreateCustomLoadout` is now the
+  **canonical** ship building path: body + move type required, exactly 1
+  passive, 3 perks (one per tier) required, **missile optional** (retrofitted
+  pre-match via MissileSelectionUI), custom-slot limit by level, per-error
+  validation messages.
+- `CustomShipBuilder` (id-based online API) is now a thin wrapper that resolves
+  ids to the ScriptableObjects and delegates — no duplicated rules; also
+  resolves a default move type (fixes the old TODO).
+- `ShipBuilderUI` dropped its own third rule set and now displays the canonical
+  validation errors; missile selection is optional in the builder.
+
 ### Extra editor wiring for the new features
 - Results screen: assign the new banner objects (first win, streak, close
   match, trickshot, rivalry) + requeue/replay buttons on `MatchResultsUI`.
