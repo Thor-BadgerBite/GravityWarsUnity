@@ -283,6 +283,14 @@ public class GameManager : MonoBehaviour
     var pm2 = player2Ship.GetComponent<PerkManager>();
     pm2.SetIconSlots(player2PerkIcons);
 
+        // ===== MATCH TRACKING & INTEGRATIONS =====
+        MatchStatsTracker.GetOrCreate().ResetMatch();
+        GetComponent<GameManagerQuestIntegration>()?.OnMatchStart();
+        GetComponent<GameManagerAchievementIntegration>()?.OnMatchStart();
+        GetComponent<GameManagerLeaderboardIntegration>()?.OnMatchStart();
+        GetComponent<GameManagerAnalytics>()?.TrackMatchStart();
+        // =========================================
+
         StartCoroutine(StartGamePhase());
     }
 
@@ -1080,6 +1088,14 @@ public class GameManager : MonoBehaviour
             storedScore1++;
             winningShip.score = storedScore1;
         }
+
+        // ===== ROUND TRACKING & INTEGRATIONS =====
+        bool roundWonByPlayer1 = (winningShip == player1Ship);
+        MatchStatsTracker.Instance?.RecordRoundWon(winningShip);
+        GetComponent<GameManagerQuestIntegration>()?.OnRoundEnd(winningShip, roundWonByPlayer1);
+        GetComponent<GameManagerAchievementIntegration>()?.OnRoundEnd(winningShip, roundWonByPlayer1);
+        // =========================================
+
         UpdateScoreDisplay();
         StartCoroutine(HandleShipDestruction(destroyedShip, winningShip));
     }
@@ -1140,10 +1156,24 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Game Over. {winner.playerName} wins!");
         yield return StartCoroutine(FadeOverlay(true, $"Game Over!\n{winner.playerName} wins the game!"));
 
-        // ===== PROGRESSION SYSTEM: Award match XP =====
-        AwardMatchProgression(winner);
-        // ==============================================
+        // ===== PROGRESSION SYSTEM: Award match XP + integrations =====
+        MatchResultsSummary summary = AwardMatchProgression(winner);
+        // =============================================================
 
+        // Show the post-match results screen if one exists in the scene.
+        // The results screen takes over the flow (Play Again / Main Menu buttons).
+        var resultsUI = MatchResultsUI.Instance != null
+            ? MatchResultsUI.Instance
+            : FindObjectOfType<MatchResultsUI>(true);
+        if (resultsUI != null)
+        {
+            ResetScores();
+            currentRound = 1;
+            resultsUI.Show(summary);
+            yield break;
+        }
+
+        // Fallback: no results screen - restart match after delay (legacy behavior)
         yield return new WaitForSeconds(gameOverDuration);
         ResetScores();
         currentRound = 1;
@@ -1151,55 +1181,113 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Awards XP and progression after a match ends
+    /// Awards XP and progression after a match ends, updates quests/achievements/
+    /// leaderboards and returns a summary for the results screen.
     /// </summary>
-    private void AwardMatchProgression(PlayerShip winner)
+    private MatchResultsSummary AwardMatchProgression(PlayerShip winner)
     {
-        // Check if progression system is active
+        bool player1Won = (winner == player1Ship);
+        PlayerShip loser = player1Won ? player2Ship : player1Ship;
+
+        var tracker = MatchStatsTracker.Instance;
+        var winnerStats = tracker != null ? tracker.GetStats(winner) : new MatchStatsTracker.PlayerStats();
+        var loserStats = tracker != null ? tracker.GetStats(loser) : new MatchStatsTracker.PlayerStats();
+
+        // Build the results summary up-front (also used when progression is unavailable)
+        var summary = new MatchResultsSummary
+        {
+            winnerName = winner.playerName,
+            loserName = loser.playerName,
+            player1Won = player1Won,
+            winnerScore = winner.score,
+            loserScore = loser.score,
+            winnerStats = winnerStats,
+            loserStats = loserStats,
+            matchDurationSeconds = tracker != null ? tracker.MatchDurationSeconds : 0f
+        };
+
+        // ===== INTEGRATIONS (quests, achievements, leaderboards, analytics) =====
+        GetComponent<GameManagerQuestIntegration>()?.OnMatchEnd(winner, player1Won);
+        GetComponent<GameManagerAchievementIntegration>()?.OnMatchEnd(winner, player1Won);
+        GetComponent<GameManagerLeaderboardIntegration>()?.OnMatchEnd(winner, player1Won);
+        GetComponent<GameManagerAnalytics>()?.TrackMatchEnd(winner);
+        // ========================================================================
+
         if (ProgressionManager.Instance == null)
         {
             Debug.LogWarning("[GameManager] ProgressionManager not found, skipping XP award");
-            return;
+            return summary;
         }
 
-        // Determine winner and loser
-        PlayerShip player1 = player1Ship;
-        PlayerShip player2 = player2Ship;
+        var playerData = ProgressionManager.Instance.currentPlayerData;
 
-        bool player1Won = (winner == player1);
-        int winnerRoundsWon = winner.score;
-        int loserRoundsWon = player1Won ? player2.score : player1.score;
+        // Snapshot before awarding so the results screen can show gains
+        int xpBefore = playerData.currentXP;
+        int levelBefore = playerData.level;
+        int creditsBefore = playerData.credits;
+        int bpTierBefore = playerData.battlePassTier;
 
-        // Calculate damage dealt (TODO: Track this during match)
-        // For now, use a placeholder based on rounds won
-        int winnerDamage = winnerRoundsWon * 5000; // Rough estimate
-        int loserDamage = loserRoundsWon * 5000;
-
-        // Get ship loadouts (if custom ships are being used)
-        // For now, we'll pass null and XP will be awarded to account only
-        CustomShipLoadout winnerLoadout = null;  // TODO: Get from ship selection
-        CustomShipLoadout loserLoadout = null;
+        // Resolve the loadout used by the local player (ship XP tracking)
+        CustomShipLoadout equippedLoadout = ResolveEquippedLoadout(playerData);
 
         // Award XP to winner
         Debug.Log($"[GameManager] Awarding XP to winner: {winner.playerName}");
         ProgressionManager.Instance.AwardMatchXP(
             won: true,
-            roundsWon: winnerRoundsWon,
-            damageDealt: winnerDamage,
-            usedLoadout: winnerLoadout
+            roundsWon: winner.score,
+            damageDealt: winnerStats.damageDealt,
+            usedLoadout: player1Won ? equippedLoadout : null
         );
 
         // Award XP to loser (reduced, but still something)
-        PlayerShip loser = player1Won ? player2 : player1;
         Debug.Log($"[GameManager] Awarding participation XP to: {loser.playerName}");
         ProgressionManager.Instance.AwardMatchXP(
             won: false,
-            roundsWon: loserRoundsWon,
-            damageDealt: loserDamage,
-            usedLoadout: loserLoadout
+            roundsWon: loser.score,
+            damageDealt: loserStats.damageDealt,
+            usedLoadout: player1Won ? null : equippedLoadout
         );
 
+        // Fill reward info for the results screen
+        summary.xpGained = (playerData.currentXP - xpBefore) +
+                           SumLevelUpXP(levelBefore, playerData.level);
+        summary.creditsGained = playerData.credits - creditsBefore;
+        summary.leveledUp = playerData.level > levelBefore;
+        summary.newLevel = playerData.level;
+        summary.battlePassTiersGained = playerData.battlePassTier - bpTierBefore;
+
         Debug.Log("[GameManager] Match progression awarded!");
+        return summary;
+    }
+
+    /// <summary>
+    /// Finds the loadout the local player has equipped (for ship XP).
+    /// Falls back to the first custom loadout if nothing is selected.
+    /// </summary>
+    private CustomShipLoadout ResolveEquippedLoadout(PlayerAccountData playerData)
+    {
+        if (playerData == null || playerData.customShipLoadouts.Count == 0)
+            return null;
+
+        var equipped = playerData.customShipLoadouts.Find(l =>
+            l.loadoutID == playerData.currentEquippedShipId ||
+            l.loadoutID == playerData.selectedCasualLoadoutId);
+
+        return equipped ?? playerData.customShipLoadouts[0];
+    }
+
+    /// <summary>
+    /// XP consumed by level-ups between two levels (XP counter resets per level),
+    /// so the results screen can show total XP earned this match.
+    /// </summary>
+    private int SumLevelUpXP(int fromLevel, int toLevel)
+    {
+        int total = 0;
+        for (int lvl = fromLevel; lvl < toLevel; lvl++)
+        {
+            total += 1000 + (lvl * 500); // Matches ProgressionManager level formula
+        }
+        return total;
     }
 
     void ResetScores()

@@ -647,13 +647,28 @@ namespace GravityWars.Multiplayer
         {
             Debug.Log($"[NetworkGameManager] Rewards: {softCurrency}c, {hardCurrency}g, {xp}xp (Win: {isWinner})");
 
-            // Update local economy
-            // EconomyService.Instance.AddSoftCurrency(softCurrency);
-            // EconomyService.Instance.AddHardCurrency(hardCurrency);
-            // ProgressionManager.Instance.AddXP(xp);
+            // Apply rewards to the local player account
+            if (ProgressionManager.Instance != null)
+            {
+                var data = ProgressionManager.Instance.currentPlayerData;
+                data.AddCurrency(softCurrency, hardCurrency);
+                data.currentXP += xp;
+                ProgressionManager.Instance.CheckAccountLevelUp();
 
-            // Update save
-            // SaveManager.Instance.SaveGameAsync();
+                // Battle pass XP for online matches
+                int battlePassXP = isWinner ? 100 : 50;
+                data.battlePassXP += battlePassXP;
+                if (BattlePassSystem.Instance != null)
+                {
+                    BattlePassSystem.Instance.AddBattlePassXP(battlePassXP);
+                }
+
+                // Match statistics
+                data.totalMatchesPlayed++;
+                if (isWinner) data.totalMatchesWon++;
+
+                ProgressionManager.Instance.Save();
+            }
         }
 
         #endregion

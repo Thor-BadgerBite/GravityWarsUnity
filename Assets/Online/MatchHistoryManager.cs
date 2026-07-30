@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-// TODO: Install Unity Gaming Services packages and uncomment
-// using GravityWars.Multiplayer;
-// using GravityWars.Networking;
 
 #if UNITY_NETCODE_GAMEOBJECTS
+using GravityWars.Networking; // CloudSaveService
 /// <summary>
 /// Manages match history tracking and statistics updates.
 /// Records match results, updates player profiles, and calculates ELO changes.
@@ -136,7 +134,7 @@ public class MatchHistoryManager : MonoBehaviour
 
         // Update playtime
         profile.totalPlaytimeSeconds += (long)result.matchDurationSeconds;
-        profile.lastLoginTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        profile.UpdateLastLogin();
 
         Debug.Log($"[MatchHistory] Updated stats for {profile.username} - Matches: {profile.rankedMatchesPlayed + profile.casualMatchesPlayed}, Win Rate: {profile.GetOverallWinRate():F1}%");
     }
@@ -198,22 +196,23 @@ public class MatchHistoryManager : MonoBehaviour
 
         var matchData = new MatchResultData
         {
-            matchId = result.matchId,
+            matchID = result.matchId,
+            matchDate = DateTime.UtcNow,
             timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
             isRanked = result.isRanked,
-            didWin = isWinner,
+            won = isWinner,
             roundsWon = playerStats.roundsWon,
             roundsLost = playerStats.roundsLost,
             damageDealt = playerStats.damageDealt,
             damageReceived = playerStats.damageReceived,
-            missileFired = playerStats.missilesFired,
-            missileHits = playerStats.missilesHit,
+            missilesFired = playerStats.missilesFired,
+            missilesHit = playerStats.missilesHit,
             opponentUsername = opponentProfile?.username ?? "Unknown",
-            opponentEloRating = opponentProfile?.eloRating ?? 1200,
+            opponentELO = opponentProfile?.eloRating ?? 1200,
             eloChange = playerStats.eloChange,
             xpGained = playerStats.xpGained,
             creditsGained = playerStats.creditsGained,
-            shipModelUsed = playerStats.shipModelUsed
+            shipUsed = playerStats.shipModelUsed
         };
 
         // Add to beginning of list
@@ -288,10 +287,28 @@ public class MatchHistoryManager : MonoBehaviour
         playerStats.xpGained = totalXP;
         playerStats.creditsGained = totalCredits;
 
+        // Battle pass XP: flat per match, bonus for winning.
+        // Runs through profile fields so it persists via cloud save.
+        int battlePassXP = isWinner ? 100 : 50;
+        profile.battlePassXP += battlePassXP;
+        if (BattlePassSystem.Instance != null)
+        {
+            BattlePassSystem.Instance.AddBattlePassXP(battlePassXP);
+        }
+
+        // Ship XP: the loadout used this match gains the same XP as the account
+        var usedLoadout = profile.customShipLoadouts.Find(l =>
+            l.loadoutID == profile.currentEquippedShipId ||
+            l.shipBodyName == playerStats.shipModelUsed);
+        if (usedLoadout != null)
+        {
+            profile.AddShipXP(usedLoadout, totalXP);
+        }
+
         // Check for level up
         CheckLevelUp(profile);
 
-        Debug.Log($"[MatchHistory] Rewards for {profile.username} - XP: +{totalXP}, Credits: +{totalCredits}");
+        Debug.Log($"[MatchHistory] Rewards for {profile.username} - XP: +{totalXP}, Credits: +{totalCredits}, BP XP: +{battlePassXP}");
     }
 
     /// <summary>
@@ -325,7 +342,7 @@ public class MatchHistoryManager : MonoBehaviour
                 Debug.Log($"[MatchHistory]   🔓 New unlocks:");
                 foreach (var unlock in reward.unlocks)
                 {
-                    Debug.Log($"[MatchHistory]      - {unlock.username}: {unlock.description}");
+                    Debug.Log($"[MatchHistory]      - {unlock.displayName}: {unlock.description}");
 
                     // Add unlock to player profile based on type
                     ApplyUnlock(profile, unlock);
@@ -336,94 +353,21 @@ public class MatchHistoryManager : MonoBehaviour
 
     /// <summary>
     /// Apply an unlock to the player profile.
+    /// Routing to the correct unlock list (including perk tiers) is handled
+    /// by PlayerAccountData.UnlockById.
     /// </summary>
     private void ApplyUnlock(PlayerAccountData profile, UnlockData unlock)
     {
-        switch (unlock.type)
+        bool stored = profile.UnlockById(unlock.type, unlock.id);
+        if (stored)
         {
-            case UnlockType.ShipClass:
-                // Ship class unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Ship class unlocked: {unlock.username}");
-                break;
-
-            case UnlockType.CustomSlot:
-                // Custom slot unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Custom slot unlocked: {unlock.username}");
-                break;
-
-            case UnlockType.Ship:
-                // Legacy ship unlock (kept for backwards compatibility)
-                if (!profile.unlockedShipModels.Contains(unlock.id))
-                {
-                    profile.unlockedShipModels.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] Ship unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.PrebuildShip:
-                // Add prebuild ship to unlocked ships
-                if (!profile.unlockedShipModels.Contains(unlock.id))
-                {
-                    profile.unlockedShipModels.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🚀 Prebuild ship unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.ShipBody:
-                // Add ship body to unlocked bodies (for custom building)
-                if (!profile.unlockedShipBodies.Contains(unlock.id))
-                {
-                    profile.unlockedShipBodies.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🔧 Ship body unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.Passive:
-                // Add passive ability to unlocked passives
-                if (!profile.unlockedPassives.Contains(unlock.id))
-                {
-                    profile.unlockedPassives.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] ⚡ Passive ability unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.Active:
-                // Add active ability to unlocked actives
-                if (!profile.unlockedActives.Contains(unlock.id))
-                {
-                    profile.unlockedActives.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 💫 Active ability unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.Missile:
-                // Add missile to unlocked missiles (retrofit system)
-                if (!profile.unlockedMissiles.Contains(unlock.id))
-                {
-                    profile.unlockedMissiles.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🚀 Missile unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.Skin:
-                // Add skin to unlocked skins
-                if (!profile.unlockedSkins.Contains(unlock.id))
-                {
-                    profile.unlockedSkins.Add(unlock.id);
-                    Debug.Log($"[MatchHistory] 🎨 Skin unlocked: {unlock.username}");
-                }
-                break;
-
-            case UnlockType.Feature:
-            case UnlockType.GameMode:
-                // Feature unlocks are level-based, no need to store
-                Debug.Log($"[MatchHistory] Feature unlocked: {unlock.username}");
-                break;
-
-            case UnlockType.Cosmetic:
-                // Legacy cosmetic (kept for backwards compatibility)
-                Debug.Log($"[MatchHistory] Cosmetic unlocked: {unlock.username}");
-                break;
+            Debug.Log($"[MatchHistory] 🔓 {unlock.type} unlocked: {unlock.displayName}");
+        }
+        else
+        {
+            // Level-derived unlocks (GameMode, Feature, ShipClass, CustomSlot)
+            // or already-owned items - nothing to store.
+            Debug.Log($"[MatchHistory] {unlock.type} unlocked (level-based): {unlock.displayName}");
         }
     }
 

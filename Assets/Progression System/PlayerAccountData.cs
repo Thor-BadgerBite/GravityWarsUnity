@@ -45,6 +45,8 @@ public class PlayerAccountData
     public int battlePassXP = 0;
     public bool hasPremiumBattlePass = false;
     public string currentSeasonID = "";
+    public List<int> claimedFreeBattlePassTiers = new List<int>();
+    public List<int> claimedPremiumBattlePassTiers = new List<int>();
 
     [Header("Unlocked Content - Ship Bodies")]
     public List<string> unlockedShipBodyIDs = new List<string>();
@@ -139,15 +141,86 @@ public class PlayerAccountData
     }
 
     /// <summary>
-    /// Unlocks default content for new accounts
+    /// Unlocks default content for new accounts.
+    /// Every new player starts with:
+    /// - The starter prebuilt ship
+    /// - The standard All-Around ship body (custom building)
+    /// - The Standard Mk-I missile
+    /// - The standard move type
+    /// - Custom loadout slot #1 (level-based, nothing to store)
     /// </summary>
     private void InitializeDefaultUnlocks()
     {
-        // Starter content - minimal unlocks
-        // (In production, you'd only unlock 1-2 ships, 1 perk, etc.)
+        // Starter prebuilt ship (ready to play immediately)
+        AddUnique(unlockedShipModels, "starter_ship");
 
-        // For development, we'll unlock common items
-        // Customize this based on your game design
+        // Starter ship body for the custom ship builder (All-Around frame).
+        // "Standard" matches the existing ShipBodySO asset name;
+        // "body_allaround_standard" matches the progression-schedule id.
+        AddUnique(unlockedShipBodyIDs, "Standard");
+        AddUnique(unlockedShipBodyIDs, "body_allaround_standard");
+
+        // Starter missile (retrofit system id + existing MissilePresetSO asset name)
+        AddUnique(unlockedMissileIDs, "standard_mk1");
+        AddUnique(unlockedMissileIDs, "Standard");
+
+        // Standard movement is always available
+        AddUnique(unlockedMoveTypeIDs, "Standard Move");
+    }
+
+    private static void AddUnique(List<string> list, string id)
+    {
+        if (!string.IsNullOrEmpty(id) && !list.Contains(id))
+            list.Add(id);
+    }
+
+    /// <summary>
+    /// Unlocks an item by string id, routed to the right list by unlock type.
+    /// Used by progression / battle pass rewards where only ids are known
+    /// (no ScriptableObject reference available).
+    /// Returns true if the item was newly unlocked.
+    /// </summary>
+    public bool UnlockById(UnlockType type, string id)
+    {
+        if (string.IsNullOrEmpty(id)) return false;
+
+        List<string> target = null;
+        switch (type)
+        {
+            case UnlockType.Ship:
+            case UnlockType.PrebuildShip:
+                target = unlockedShipModels;
+                break;
+            case UnlockType.ShipBody:
+                target = unlockedShipBodyIDs;
+                break;
+            case UnlockType.Passive:
+                target = unlockedPassiveIDs;
+                break;
+            case UnlockType.Active:
+                switch (ExtendedProgressionData.GetActiveTier(id))
+                {
+                    case 2: target = unlockedTier2PerkIDs; break;
+                    case 3: target = unlockedTier3PerkIDs; break;
+                    default: target = unlockedTier1PerkIDs; break;
+                }
+                break;
+            case UnlockType.Missile:
+                target = unlockedMissileIDs;
+                break;
+            case UnlockType.Skin:
+            case UnlockType.Cosmetic:
+                target = unlockedSkinIDs;
+                break;
+            default:
+                // GameMode / Feature / ShipClass / CustomSlot are level-derived,
+                // nothing needs to be stored.
+                return false;
+        }
+
+        if (target.Contains(id)) return false;
+        target.Add(id);
+        return true;
     }
 
     /// <summary>
@@ -468,6 +541,7 @@ public class MatchResultData
 {
     public string matchID;
     public DateTime matchDate;
+    public long timestamp;          // Unix timestamp (cloud-save friendly)
     public bool isRanked;
     public bool won;
     public string opponentUsername;
@@ -477,6 +551,10 @@ public class MatchResultData
     public int roundsLost;
     public int damageDealt;
     public int damageReceived;
+    public int missilesFired;
+    public int missilesHit;
+    public int xpGained;
+    public int creditsGained;
     public string shipUsed;
 }
 

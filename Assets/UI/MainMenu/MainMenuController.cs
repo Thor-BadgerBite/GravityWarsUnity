@@ -304,6 +304,14 @@ public class MainMenuController : MonoBehaviour
     private void HandleSettingsClicked()
     {
         Debug.Log("[MainMenuController] Settings selected");
+
+        // Prefer an in-scene settings panel; fall back to a dedicated scene
+        if (SettingsUI.Instance != null)
+        {
+            SettingsUI.Instance.Show();
+            return;
+        }
+
         LoadScene(settingsScene);
     }
 

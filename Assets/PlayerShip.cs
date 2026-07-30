@@ -862,6 +862,9 @@ void Update()
 {
     lastFireTime = Time.time;
 
+    // Report to match stats (fired missiles / accuracy tracking)
+    MatchStatsTracker.Instance?.RecordMissileFired(this);
+
     // ===== BUG FIX: Activate toggled perk BEFORE spawning missiles! =====
     // This sets the flags (nextMultiEnabled, nextExplosiveEnabled, etc.) BEFORE we check them.
     // Previously this was called at the END, causing perks to activate for the NEXT shot!
@@ -1731,6 +1734,9 @@ private IEnumerator ShakeAnimation(float shakeDuration, float maxAngle)
         }
         currentHealth -= effectiveDamage;
         Debug.Log($"{playerName} took {effectiveDamage} damage! Remaining health = {currentHealth}");
+
+        // Report to match stats (damage dealt is attributed to the opponent)
+        MatchStatsTracker.Instance?.RecordDamageTaken(this, effectiveDamage);
 
         UpdateHealthUI();
 

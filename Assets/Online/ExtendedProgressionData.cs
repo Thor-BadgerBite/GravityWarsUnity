@@ -87,13 +87,13 @@ public static class ExtendedProgressionData
         { 71, new ShipBodyUnlock("body_allaround_apex", "Apex Frame", ShipClass.AllAround, "Ultimate versatile chassis") },
 
         // ========== TANK BODIES (4 bodies) ==========
-        { 21, new ShipBodyUnlock("body_tank_reinforced", "Reinforced Hull", ShipClass.Tank, "Heavy armor chassis") },
+        { 25, new ShipBodyUnlock("body_tank_reinforced", "Reinforced Hull", ShipClass.Tank, "Heavy armor chassis") },
         { 39, new ShipBodyUnlock("body_tank_fortress", "Fortress Hull", ShipClass.Tank, "Fortified defensive chassis") },
         { 57, new ShipBodyUnlock("body_tank_colossus", "Colossus Hull", ShipClass.Tank, "Massive tank chassis") },
         { 73, new ShipBodyUnlock("body_tank_invincible", "Invincible Hull", ShipClass.Tank, "Ultimate tank chassis") },
 
         // ========== DAMAGE DEALER BODIES (4 bodies) ==========
-        { 21, new ShipBodyUnlock("body_dd_striker", "Striker Chassis", ShipClass.DamageDealer, "Agile assault frame") },
+        { 31, new ShipBodyUnlock("body_dd_striker", "Striker Chassis", ShipClass.DamageDealer, "Agile assault frame") },
         { 41, new ShipBodyUnlock("body_dd_reaper", "Reaper Chassis", ShipClass.DamageDealer, "High-damage glass cannon") },
         { 59, new ShipBodyUnlock("body_dd_devastator", "Devastator Chassis", ShipClass.DamageDealer, "Maximum firepower frame") },
         { 77, new ShipBodyUnlock("body_dd_annihilator", "Annihilator Chassis", ShipClass.DamageDealer, "Ultimate DD chassis") },
@@ -254,6 +254,33 @@ public static class ExtendedProgressionData
     public static List<ActiveUnlock> GetAllActives()
     {
         return ACTIVE_UNLOCKS.Values.ToList();
+    }
+
+    /// <summary>
+    /// Look up an active ability by its id (e.g. "active_cloak").
+    /// Returns null if unknown.
+    /// </summary>
+    public static ActiveUnlock GetActiveById(string activeId)
+    {
+        return ACTIVE_UNLOCKS.Values.FirstOrDefault(a => a.activeId == activeId);
+    }
+
+    /// <summary>
+    /// Look up a passive ability by its id (e.g. "passive_lifesteal").
+    /// Returns null if unknown.
+    /// </summary>
+    public static PassiveUnlock GetPassiveById(string passiveId)
+    {
+        return PASSIVE_UNLOCKS.Values.FirstOrDefault(p => p.passiveId == passiveId);
+    }
+
+    /// <summary>
+    /// Get the tier (1-3) for an active ability id. Defaults to tier 1 for unknown ids.
+    /// </summary>
+    public static int GetActiveTier(string activeId)
+    {
+        var active = GetActiveById(activeId);
+        return active != null ? active.tier : 1;
     }
 
     #endregion
