@@ -59,6 +59,14 @@ public class GameManager : MonoBehaviour
     [Tooltip("Bot accuracy: 0 = wild shots, 1 = deadly precise")]
     [Range(0f, 1f)] public float botDifficulty = 0.6f;
 
+    [Header("Ship Loadouts (applied to spawned ships)")]
+    [Tooltip("Prebuilt ship preset for Player 1 (optional - overrides prefab defaults)")]
+    public ShipPresetSO player1Preset;
+    [Tooltip("Prebuilt ship preset for Player 2 (optional - overrides prefab defaults)")]
+    public ShipPresetSO player2Preset;
+    [Tooltip("When no preset is set, apply the local player's equipped custom loadout to Player 1")]
+    public bool applyEquippedLoadoutToPlayer1 = true;
+
     [Header("Engagement Features")]
     [Tooltip("Apply the rotating weekly mutator (low gravity, giant planets, ...)")]
     public bool enableWeeklyMutators = false;
@@ -771,6 +779,19 @@ public class GameManager : MonoBehaviour
         pm2.SetIconSlots(player2PerkIcons);
         Debug.Log($"icon set for player2");
 
+        // ===== LOADOUT → MATCH BRIDGE =====
+        // Apply the selected ships to the spawned instances. Without this the
+        // ships always play with the prefab's Inspector defaults and every
+        // loadout / missile selection is ignored in-game.
+        if (player1Preset != null)
+            MatchLoadoutBridge.ApplyPreset(player1Ship, player1Preset);
+        else if (applyEquippedLoadoutToPlayer1)
+            MatchLoadoutBridge.ApplyEquippedLoadout(player1Ship);
+
+        if (player2Preset != null)
+            MatchLoadoutBridge.ApplyPreset(player2Ship, player2Preset);
+        // ==================================
+
         // ===== BOT OPPONENT (practice mode / offline play) =====
         if (player2IsBot && player2Ship.GetComponent<BotController>() == null)
         {
@@ -1019,9 +1040,21 @@ public class GameManager : MonoBehaviour
 
     IEnumerator MissileFlightPhase()
     {
-        // 1) Grab a reference to the active missile
-        //    (We expect one just fired. If not found, we bail out.)
-        Missile3D activeMissile = FindObjectOfType<Missile3D>();
+        // 1) Grab a reference to the active missile fired by the CURRENT player.
+        //    (With multi/cluster/barrage several missiles exist - any of the
+        //    current player's works for the fuel display; previously this
+        //    grabbed an arbitrary missile which could belong to nobody.)
+        Missile3D activeMissile = null;
+        foreach (var m in FindObjectsOfType<Missile3D>())
+        {
+            if (m.isDestroyed) continue;
+            if (currentPlayer != null && m.FiredByShip == currentPlayer.gameObject)
+            {
+                activeMissile = m;
+                break;
+            }
+            if (activeMissile == null) activeMissile = m; // fallback: any live missile
+        }
         if (activeMissile == null)
         {
             yield break; // no missile => just end
@@ -1191,6 +1224,7 @@ public class GameManager : MonoBehaviour
     public void ResetForNewRound()
     {
         ClearAllMissileTrails();
+        KillshotRecorder.Instance?.ResetRound();
         InitializeGame();
 
         // destroy leftover UI
@@ -1466,6 +1500,10 @@ public class GameManager : MonoBehaviour
     {
         if (ship == null) return;
 
+        // Re-sync after the preset (may have changed movesAllowedPerTurn,
+        // e.g. Controller bodies grant 4 AP while the prefab default is 3)
+        ship.movesRemainingThisRound = ship.movesAllowedPerTurn;
+
         int bonus = 0;
 
         if (enableWeeklyMutators)
@@ -1477,6 +1515,9 @@ public class GameManager : MonoBehaviour
             bonus += 1;
             Debug.Log($"[GameManager] Comeback bonus: {ship.playerName} gets +1 action point this round");
         }
+
+        // Cap the combined bonus so mutator + comeback can't stack runaway AP
+        bonus = Mathf.Min(bonus, 2);
 
         if (bonus > 0)
         {

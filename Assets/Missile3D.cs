@@ -81,6 +81,9 @@ public class Missile3D : MonoBehaviour
     private GameObject trailObject;
     private LineRenderer trajectoryLine;
     private GameObject firedByShip;
+
+    /// <summary>The ship that fired this missile (read-only, for GameManager/bot/stats).</summary>
+    public GameObject FiredByShip => firedByShip;
     private GameObject firedUponShip;
     private MeshRenderer meshRenderer;
     private Material missileMaterial;
@@ -328,7 +331,7 @@ void SetupHeatShieldEffect()
                 // kill missile
                 DestroyMissile();
             }
-            if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.sqrMagnitude > 0.1f)
+            if (Input.GetKeyDown(KeyCode.Space) && rb.velocity.sqrMagnitude > 0.1f && CanManuallyDetonate())
             {
                 if (isCluster)
                     SplitCluster();
@@ -337,12 +340,32 @@ void SetupHeatShieldEffect()
             }
         }
     }
+
+    /// <summary>
+    /// Manual detonation (Space mid-flight) is the SHOOTER's tool.
+    /// Blocks the exploit where the defending player (hotseat shares the
+    /// keyboard) detonates the incoming missile early to avoid damage,
+    /// and blocks humans from neutering the bot's shots in practice mode.
+    /// </summary>
+    private bool CanManuallyDetonate()
+    {
+        if (firedByShip == null) return true; // no owner info - keep legacy behavior
+
+        var shooter = firedByShip.GetComponent<PlayerShip>();
+        if (shooter == null) return true;
+
+        // Bot shots can never be manually detonated (the human would be pressing)
+        if (firedByShip.GetComponent<BotController>() != null) return false;
+
+        // Only while the shooter is still the acting player
+        return GameManager.Instance == null || GameManager.Instance.CurrentPlayer == shooter;
+    }
     private void SelfDestruct()
     {
         Vector3 center = transform.position;
         Collider[] hits = Physics.OverlapSphere(center, detRadius);
         var damaged = new HashSet<PlayerShip>();
-        var shooter = firedByShip.GetComponent<PlayerShip>();
+        var shooter = firedByShip != null ? firedByShip.GetComponent<PlayerShip>() : null;
         foreach (var col in hits)
         {
             // try to find a PlayerShip on this collider
@@ -469,7 +492,7 @@ private void AvoidPlanetsPredictively()
 {
     if (firedByShip == null) return;
     var shooter = firedByShip.GetComponent<PlayerShip>();
-    if (!shooter.isPassiveUnlocked || !shooter.collisionAvoidancePassive) return;
+    if (shooter == null || !shooter.isPassiveUnlocked || !shooter.collisionAvoidancePassive) return;
 
     Vector3 p = transform.position;
     Vector3 v = rb.velocity;
@@ -978,7 +1001,8 @@ void HandleCollision(Collider collider, Vector3 collisionPoint)
         }
 
         ship.IncreaseAdaptiveArmor(); // (Make sure this method exists in PlayerShip)
-        attacker.IncreaseAdaptiveDamage(); // If the missile hit a ship, increase the attacker's adaptive damage:
+        if (attacker != null)
+            attacker.IncreaseAdaptiveDamage(); // If the missile hit a ship, increase the attacker's adaptive damage
        
         // 6) Destroy the missile
         DestroyMissile(collisionPoint, true, true);

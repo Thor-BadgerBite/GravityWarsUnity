@@ -1943,9 +1943,12 @@ private IEnumerator StabilizeRotationOverTime(float totalDuration, float delayBe
     }
     private IEnumerator RegenerationCoroutine()
     {
+        // NOTE: ticks 20x per second, i.e. effective regen = regenRate * 20 HP/sec.
+        // (e.g. regenRate 1.5 => 30 HP/sec => ~450 HP over a 15s enemy turn.)
+        // This is the play-tested rate - change regenRate, not the tick interval.
         while (true)
         {
-            yield return new WaitForSeconds(0.05f);  // Regenerate every 1 second.
+            yield return new WaitForSeconds(0.05f);
             if (currentHealth < maxHealth)
             {
                 currentHealth += regenRate;
@@ -1960,17 +1963,19 @@ private IEnumerator StabilizeRotationOverTime(float totalDuration, float delayBe
     private IEnumerator DamageBoostCoroutine()
     {
         float elapsed = 0f;
-        // Choose k so that at 120 seconds, the boost approaches 2.0.
-        // For example, using: multiplier = 1 + (damageBoostCap - 1)*(1 - exp(-k*t))
-        // If we want damageBoostCap = 2, then when t=120, (1 - exp(-k*120)) should be near 1.
-        // One option: k = 4.60517/120 (since 1 - exp(-4.60517) ≈ 0.99)
+        // Exponential ramp toward the cap over ~120 seconds:
+        // multiplier = base + (cap - base) * (1 - exp(-k*t)), k tuned so the
+        // curve is ~99% complete at t=120s.
         float k = 4.60517f / 120f;
-        float damageBoostCap = 2f;
+
+        // Cap is PROPORTIONAL to the ship's base multiplier (+100%), so every
+        // archetype gains the same relative benefit. (The old absolute cap of
+        // 2.0 gave a 0.75x tank +167% but a 1.45x damage dealer only +38%.)
+        float damageBoostCap = baseDamageMultiplier * 2f;
 
         while (elapsed < 120f)
         {
             elapsed += Time.deltaTime;
-            // Increase damageMultiplier from 1 to damageBoostCap exponentially.
             damageMultiplier = baseDamageMultiplier + (damageBoostCap - baseDamageMultiplier) * (1f - Mathf.Exp(-k * elapsed));
             yield return null;
         }

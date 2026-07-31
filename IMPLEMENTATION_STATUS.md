@@ -173,6 +173,34 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Gameplay audit fixes (third pass)
+- **Loadout → match bridge** (`MatchLoadoutBridge.cs`): the selected ship
+  actually reaches the match now. `GameManager.PlaceShips` applies either an
+  explicit `ShipPresetSO` per player (`player1Preset`/`player2Preset`) or the
+  local player's equipped custom loadout (resolved to SOs, applied via a
+  runtime preset incl. ship XP and retrofitted missile). `PerkManager` gained
+  `ReloadSlotsFromPreset()` because its Awake runs before the bridge.
+- **HotSeatSetup sliders fixed**: winning score / turn duration / prep time now
+  actually write back to GameManager (previously only the label text changed).
+- **Perk tier limits enforced**: `_usedThisTurn` was written but never read.
+  Now: Tier 1 unlimited, Tier 2 once per turn, Tier 3 once per round.
+- **Manual detonation exploit closed**: Space mid-flight only works for the
+  acting shooter and never on bot missiles (hotseat shared-keyboard case is
+  inherently unattributable and stays social-contract).
+- **NRE guards** in `Missile3D` (attacker/shooter null checks in collision,
+  SelfDestruct, AvoidPlanetsPredictively).
+- **MissileFlightPhase** now tracks a missile fired by the current player
+  (was `FindObjectOfType` grabbing an arbitrary one).
+- **AP sync + cap**: `ApplyTurnBonuses` re-syncs `movesRemainingThisRound`
+  after presets change AP (Controller = 4), and caps stacked bonuses at +2.
+- **DamageBoost cap proportional**: cap = base ×2 (+100% for every archetype)
+  instead of absolute 2.0 (which gave tanks +167% but DDs only +38%).
+- **Regen comment corrected** (20 ticks/sec is the play-tested behavior).
+- **Bot think time clamped** to 30% of the turn duration; killshot recorder
+  resets per round.
+- Deferred intentionally: GameManager's nested `PassiveType` enum duplicate
+  (removing it would shift the passive icon array indices wired in the scene).
+
 ### Extra editor wiring for the new features
 - Results screen: assign the new banner objects (first win, streak, close
   match, trickshot, rivalry) + requeue/replay buttons on `MatchResultsUI`.

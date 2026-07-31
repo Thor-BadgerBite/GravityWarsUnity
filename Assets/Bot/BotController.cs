@@ -70,8 +70,13 @@ public class BotController : MonoBehaviour
 
     private IEnumerator PlayTurn()
     {
-        // "Think" for a moment so the bot feels human
-        yield return new WaitForSeconds(Random.Range(minThinkTime, maxThinkTime));
+        // "Think" for a moment so the bot feels human.
+        // Clamped to a fraction of the turn duration so short custom turn
+        // timers never cause the bot to time out.
+        float turnBudget = GameManager.Instance != null ? GameManager.Instance.turnDuration : 15f;
+        float maxThink = Mathf.Min(maxThinkTime, turnBudget * 0.3f);
+        float minThink = Mathf.Min(minThinkTime, maxThink);
+        yield return new WaitForSeconds(Random.Range(minThink, maxThink));
 
         if (_ship == null || _ship.isDestroyed) yield break;
 

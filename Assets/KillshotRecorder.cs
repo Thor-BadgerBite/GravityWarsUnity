@@ -91,6 +91,18 @@ public class KillshotRecorder : MonoBehaviour
         LastKillshot = null;
     }
 
+    /// <summary>
+    /// Call when a new round starts: clears in-flight tracking and the
+    /// last-hit fallback so a stale shot from the previous round can never be
+    /// credited for a hit in this one. The killshot of the final round is
+    /// kept for the results-screen replay.
+    /// </summary>
+    public void ResetRound()
+    {
+        _tracked.Clear();
+        _lastHitShot = null;
+    }
+
     /// <summary>Called by Missile3D.Launch - starts recording this missile's path.</summary>
     public void BeginTrack(Missile3D missile, GameObject firingShip)
     {
