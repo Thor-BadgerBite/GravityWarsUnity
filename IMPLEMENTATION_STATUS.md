@@ -173,6 +173,63 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Full rebalance around Star Sparrow (measured, not guessed)
+
+**The problem, in numbers.** The generated content was tuned in a vacuum and
+never calibrated against the one hand-tuned ship in the project. Worst
+matchup (Tank Colossus vs DD Reaper at L20) was **2.3 hits vs 14.7 hits =
+6.5x**. Root causes:
+1. Armor is multiplicative (`eHP = HP*(armor+400)/400`), so a wide armor
+   spread (50-260) multiplied an already-wide HP spread.
+2. Missile payload spread (1600-5000 = 3.1x) swamped the ship damage
+   multiplier spread (2x), so *missile access* decided damage - and tanks had
+   the big missiles. The "glass cannon" dealt **26% LESS** damage per hit than
+   the tank while having 4.8x less effective HP. The archetype was inverted.
+3. The leveling formulas diverged (Tank +4% HP/+4 armor vs DD +2%/+1), so the
+   gap *widened* with level: 5x at L1 -> 6.5x at L20.
+4. Generated missiles left `maxLaunchVelocity` at the class default (10) while
+   the hand-tuned Standard uses 20, and `maxVelocity` at 6.5-14 vs its 50 -
+   every generated missile launched at half power and flew 4-7x slower.
+
+**The reference.** Star Sparrow: 15000 HP / 80 armor / 1.20 damage, firing the
+Standard missile (2500 payload, launch 0-20, maxVel 50). Mirror match = **6.0
+hits to kill**, which is now the target feel for every matchup.
+
+**The method.** Each body is tuned so `POWER = effectiveHP x damagePerHit`
+lands near Star Sparrow's 5.40e7. Equal power => equal time-to-kill, while
+archetypes still differ in *how* they win.
+
+**Constraint discovered:** `ShipBodySO.OnValidate` hard-clamps
+`baseHealth` (Tank >= 11000, DD <= 10000, Controller <= 10000) and forces
+`actionPointsPerTurn` + warns on `rotationSpeed`. Values outside those get
+silently auto-corrected by Unity, so every generated body now stays inside
+them (and sets the recommended rotation speed, silencing those warnings).
+
+**Result** (verified against the real formulas, L1 and L20):
+
+| | before | after |
+|---|---|---|
+| Worst matchup asymmetry | **6.5x** | **1.18x** (L1) / **1.17x** (L20) |
+| Power spread across bodies | ~3x | ~1.18x |
+| Missile payload spread | 3.1x | 1.32x |
+
+Archetype feel is preserved and now emergent rather than accidental:
+Tank mirror = 10-12 hits (attrition), AllAround mirror = 6-7 (the benchmark),
+DD mirror = 2.2-3.1 (fast, swingy trades).
+
+Missiles now differentiate on **feel, not raw damage**: light = low mass so it
+bends hard through gravity wells (high skill ceiling, can arc around planets),
+fast, long fuel; heavy = flies straight, slow, big knockback, short fuel.
+
+**Open item - Star Sparrow's own leveling formula.** Its body is
+`Tank.asset` (archetype Tank), so it uses `TankLevelingMain` - i.e. tank
+damage growth (+0.018/level) on an all-rounder stat line. It is exactly on
+reference at L1 but drifts ~8% under an equivalent all-rounder by L20.
+Optional one-line fix: point its `levelingFormula` at
+`AllAroundLevelingMain` (guid `6efa3446e5e318c45bfa1f731b5dfdf0`). Left
+untouched pending a decision, since the body's Tank archetype also gates
+which perks/passives it may equip - a separate concern from leveling.
+
 ### Round-transition race conditions (found during live hotseat playtesting - full round to a kill)
 Confirmed live: two `MissingReferenceException`s right after a ship-killing
 hit ("PlayerShip has been destroyed", "Planet has been destroyed"). Both stem

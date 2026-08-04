@@ -164,45 +164,69 @@ public class GameContentGenerator : EditorWindow
 
     #region Ship Bodies
 
+    // ==================================================================
+    // BALANCE REFERENCE: the hand-tuned "Star Sparrow" ship
+    //   15000 HP | 80 armor | 1.20 damage | Standard missile (2500 payload)
+    //
+    // Armor formula (PlayerShip.TakeDamage):
+    //   damageTaken = raw * 400 / (armor + 400)
+    //   => effectiveHP = HP * (armor + 400) / 400
+    //
+    // Every body is tuned so that
+    //   POWER = effectiveHP x damagePerHit
+    // lands near Star Sparrow's 5.40e7. That keeps time-to-kill within ~5%
+    // across every matchup, while archetypes still differ in HOW they win
+    // (tanks grind, damage dealers race).
+    //
+    // HARD CONSTRAINTS from ShipBodySO.OnValidate - exceeding these gets
+    // silently auto-corrected by Unity, so all values stay inside them:
+    //   Tank baseHealth >= 11000 | DamageDealer <= 10000
+    //   Controller <= 10000 (+ forced 4 action points) | AllAround free
+    //   rotationSpeed: Tank 30 / AllAround 50 / Controller 60 / DD 70
+    // ==================================================================
     private void GenerateShipBodies()
     {
+        // ---- ALL-AROUND: the reference profile (exact Star Sparrow clone) ----
         CreateBody("body_allaround_standard", "Standard Frame", ShipArchetype.AllAround,
-            10000f, 100f, 1.0f, 3, 0, true, true, true,
-            "Basic all-around chassis. Balanced in every way.");
+            15000f, 80f, 1.20f, 3, 50f, 0, true, true, true,
+            "Basic all-around chassis. The balance benchmark every other hull is measured against.");
         CreateBody("body_allaround_tactical", "Tactical Frame", ShipArchetype.AllAround,
-            11000f, 110f, 1.05f, 3, 37, true, true, true,
+            15400f, 85f, 1.22f, 3, 50f, 37, true, true, true,
             "Advanced balanced chassis with improved plating.");
         CreateBody("body_allaround_elite", "Elite Frame", ShipArchetype.AllAround,
-            12000f, 120f, 1.1f, 3, 53, true, true, true,
+            15800f, 88f, 1.24f, 3, 50f, 53, true, true, true,
             "Superior all-around chassis for veteran pilots.");
 
+        // ---- TANK: ~1.3x effective HP, ~0.75x damage. Wins slugfests. ----
         CreateBody("body_tank_reinforced", "Reinforced Hull", ShipArchetype.Tank,
-            14000f, 180f, 0.85f, 2, 25, false, true, true,
+            16500f, 115f, 0.86f, 3, 30f, 25, false, true, true,
             "Heavy armor chassis. Cannot mount light missiles.");
         CreateBody("body_tank_fortress", "Fortress Hull", ShipArchetype.Tank,
-            16000f, 220f, 0.8f, 2, 39, false, true, true,
+            17000f, 125f, 0.83f, 3, 30f, 39, false, true, true,
             "Fortified defensive chassis built to outlast anything.");
         CreateBody("body_tank_colossus", "Colossus Hull", ShipArchetype.Tank,
-            18000f, 260f, 0.75f, 2, 57, false, false, true,
+            17500f, 130f, 0.80f, 3, 30f, 57, false, false, true,
             "Massive tank chassis. Heavy missiles only.");
 
+        // ---- DAMAGE DEALER: ~0.63x effective HP, ~1.5x damage. Wins races. ----
         CreateBody("body_dd_striker", "Striker Chassis", ShipArchetype.DamageDealer,
-            8000f, 60f, 1.3f, 3, 31, true, true, false,
-            "Agile assault frame. Trades armor for firepower.");
+            10000f, 60f, 2.05f, 3, 70f, 31, true, true, false,
+            "Agile assault frame. Trades armor for raw firepower.");
         CreateBody("body_dd_reaper", "Reaper Chassis", ShipArchetype.DamageDealer,
-            7500f, 50f, 1.45f, 3, 41, true, true, false,
-            "High-damage glass cannon frame.");
+            9500f, 52f, 2.20f, 3, 70f, 41, true, true, false,
+            "High-damage glass cannon frame. Hits hardest, dies fastest.");
 
+        // ---- CONTROLLER: slightly under on raw power, compensated by the 4th action point ----
         CreateBody("body_ctrl_tactician", "Tactician Frame", ShipArchetype.Controller,
-            9500f, 90f, 1.0f, 4, 27, true, true, false,
+            10000f, 78f, 1.70f, 4, 60f, 27, true, true, false,
             "Tactical control chassis with an extra action point.");
         CreateBody("body_ctrl_phantom", "Phantom Frame", ShipArchetype.Controller,
-            9000f, 80f, 1.05f, 4, 43, true, true, false,
+            9700f, 72f, 1.78f, 4, 60f, 43, true, true, false,
             "Stealth specialist chassis for precise play.");
     }
 
     private void CreateBody(string id, string displayName, ShipArchetype archetype,
-        float health, float armor, float dmgMult, int actionPoints, int reqLevel,
+        float health, float armor, float dmgMult, int actionPoints, float rotationSpeed, int reqLevel,
         bool light, bool medium, bool heavy, string description)
     {
         var body = GetOrCreate<ShipBodySO>(BODIES_PATH, id);
@@ -212,6 +236,9 @@ public class GameContentGenerator : EditorWindow
         body.baseArmor = armor;
         body.baseDamageMultiplier = dmgMult;
         body.actionPointsPerTurn = actionPoints;
+        // Matches ShipBodySO.ValidateRotationSettings' per-archetype
+        // recommendation, so generated bodies stop emitting warnings.
+        body.rotationSpeed = rotationSpeed;
         body.requiredAccountLevel = reqLevel;
         body.canUseLightMissiles = light;
         body.canUseMediumMissiles = medium;
@@ -376,40 +403,59 @@ public class GameContentGenerator : EditorWindow
 
     #region Missiles
 
+    // ==================================================================
+    // BALANCE REFERENCE: the hand-tuned "Standard" missile asset
+    //   payload 2500 | physicsMass 1.5 | maxVelocity 50
+    //   launch 0.1-20 | drag 0.01 | fuel 100 @ 2/sec | push 2
+    //
+    // Payload spread is deliberately narrow (2200 / 2500 / 2900 = 1.32x).
+    // Previously it was 1600-5000 (3.1x), which swamped the ship damage
+    // multipliers (2x spread) and made "which missile can I mount" decide
+    // the fight instead of the ship archetype.
+    //
+    // The classes differentiate on FEEL, not raw damage:
+    //   Light : low mass  -> curves hard in gravity, fast, long fuel.
+    //           High skill ceiling, can arc around planets.
+    //   Medium: the reference. Predictable middle ground.
+    //   Heavy : high mass -> flies straight, slow, big knockback,
+    //           short fuel. Simple to aim but blocked by terrain.
+    // (Per Planet.CalculateGravitationalPull: force is mass-independent, so
+    //  acceleration = F/mass -> lighter missiles bend more.)
+    // ==================================================================
     private void GenerateMissiles()
     {
-        // Medium (Standard) - balanced, usable by every body
+        // Medium (Standard) - the calibration reference, usable by every body
         CreateMissile("standard_mk1", "Standard Mk-I", MissileType.Medium, 1,
             physicsMass: 1.5f, displayMass: 500f, payload: 2500f, fuel: 100f,
-            maxVelocity: 10f, push: 2f);
+            maxVelocity: 50f, push: 2f);
         CreateMissile("standard_mk2", "Standard Mk-II", MissileType.Medium, 4,
-            physicsMass: 1.5f, displayMass: 520f, payload: 2750f, fuel: 110f,
-            maxVelocity: 10.5f, push: 2.2f);
+            physicsMass: 1.5f, displayMass: 510f, payload: 2600f, fuel: 105f,
+            maxVelocity: 51f, push: 2.1f);
         CreateMissile("standard_mk3", "Standard Mk-III", MissileType.Medium, 11,
-            physicsMass: 1.5f, displayMass: 540f, payload: 3000f, fuel: 120f,
-            maxVelocity: 11f, push: 2.4f);
+            physicsMass: 1.5f, displayMass: 520f, payload: 2700f, fuel: 110f,
+            maxVelocity: 52f, push: 2.2f);
 
-        // Light - fast, low damage
+        // Light - fast and long-legged, but bends hard through gravity wells
         CreateMissile("light_swarm", "Swarm Light", MissileType.Light, 8,
-            physicsMass: 0.9f, displayMass: 280f, payload: 1600f, fuel: 90f,
-            maxVelocity: 13f, push: 1.2f);
+            physicsMass: 1.0f, displayMass: 300f, payload: 2200f, fuel: 110f,
+            maxVelocity: 60f, push: 1.4f);
         CreateMissile("light_vortex", "Vortex Light", MissileType.Light, 14,
-            physicsMass: 0.9f, displayMass: 300f, payload: 1800f, fuel: 100f,
-            maxVelocity: 13.5f, push: 1.3f);
+            physicsMass: 1.0f, displayMass: 310f, payload: 2280f, fuel: 115f,
+            maxVelocity: 61f, push: 1.5f);
         CreateMissile("light_phantom", "Phantom Light", MissileType.Light, 22,
-            physicsMass: 0.85f, displayMass: 310f, payload: 2000f, fuel: 110f,
-            maxVelocity: 14f, push: 1.4f);
+            physicsMass: 0.95f, displayMass: 320f, payload: 2350f, fuel: 120f,
+            maxVelocity: 62f, push: 1.6f);
 
-        // Heavy - slow, devastating
+        // Heavy - slow and straight-flying with heavy knockback, short fuel
         CreateMissile("heavy_titan", "Titan Heavy", MissileType.Heavy, 9,
-            physicsMass: 2.6f, displayMass: 900f, payload: 4000f, fuel: 120f,
-            maxVelocity: 7.5f, push: 3.5f);
+            physicsMass: 2.2f, displayMass: 850f, payload: 2900f, fuel: 90f,
+            maxVelocity: 40f, push: 3.2f);
         CreateMissile("heavy_crusher", "Crusher Heavy", MissileType.Heavy, 17,
-            physicsMass: 2.8f, displayMass: 980f, payload: 4500f, fuel: 130f,
-            maxVelocity: 7f, push: 4f);
+            physicsMass: 2.3f, displayMass: 880f, payload: 3000f, fuel: 92f,
+            maxVelocity: 39f, push: 3.4f);
         CreateMissile("heavy_apocalypse", "Apocalypse Heavy", MissileType.Heavy, 27,
-            physicsMass: 3.0f, displayMass: 1100f, payload: 5000f, fuel: 140f,
-            maxVelocity: 6.5f, push: 4.5f);
+            physicsMass: 2.4f, displayMass: 910f, payload: 3100f, fuel: 94f,
+            maxVelocity: 38f, push: 3.6f);
     }
 
     private void CreateMissile(string id, string displayName, MissileType type, int reqLevel,
@@ -426,6 +472,17 @@ public class GameContentGenerator : EditorWindow
         m.fuel = fuel;
         m.maxVelocity = maxVelocity;
         m.pushStrength = push;
+
+        // Shared handling values, taken straight from the reference missile.
+        // The launch range especially: these were previously left at the
+        // class default (max 10) while the hand-tuned missile uses 20, so
+        // every generated missile launched at half power and felt sluggish.
+        m.minLaunchVelocity = 0.1f;
+        m.maxLaunchVelocity = 20f;
+        m.drag = 0.01f;
+        m.velocityApproachRate = 0.1f;
+        m.fuelConsumptionRate = 2f;
+        m.damageVariation = 0.1f;
     }
 
     #endregion

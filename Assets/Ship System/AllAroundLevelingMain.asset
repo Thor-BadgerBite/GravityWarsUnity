@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   archetype: 2
   healthScalingPerLevel: 0.03
-  armorScalingPerLevel: 3
-  damageScalingPerLevel: 0.03
+  armorScalingPerLevel: 2.5
+  damageScalingPerLevel: 0.025
   previewLevel: 10
   previewStats: '=== AllAround at Level 10 ===
 
