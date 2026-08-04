@@ -91,6 +91,11 @@ public class ProgressionManager : MonoBehaviour
         // Initialize content databases if empty (auto-populate from Resources)
         if (allShipBodies.Count == 0)
             PopulateContentDatabases();
+
+        // Start the quest system now that player data is ready.
+        // NOTE: QuestService.InitializeQuests() was previously never called
+        // anywhere in the codebase - quests could never generate or progress.
+        _ = GravityWars.Networking.QuestService.Instance?.InitializeQuests();
     }
 
     /// <summary>

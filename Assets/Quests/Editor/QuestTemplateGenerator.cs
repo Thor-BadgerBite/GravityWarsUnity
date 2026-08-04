@@ -8,11 +8,14 @@ using System.Collections.Generic;
 /// Usage:
 ///   In Unity Editor: Tools → Gravity Wars → Generate Quest Templates
 ///
-/// This will create 20+ quest ScriptableObjects in Assets/Quests/Templates/
+/// This will create 20+ quest ScriptableObjects in Assets/Resources/Quests/Templates/
+///
+/// IMPORTANT: Must live under a Resources folder - QuestService auto-loads
+/// templates via Resources.LoadAll("Quests/Templates") at runtime.
 /// </summary>
 public class QuestTemplateGenerator : EditorWindow
 {
-    private const string TEMPLATE_PATH = "Assets/Quests/Templates/";
+    private const string TEMPLATE_PATH = "Assets/Resources/Quests/Templates/";
 
     [MenuItem("Tools/Gravity Wars/Generate Quest Templates")]
     public static void ShowWindow()

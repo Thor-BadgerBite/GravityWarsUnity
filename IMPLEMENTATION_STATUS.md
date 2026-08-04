@@ -173,6 +173,26 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Quest/Achievement pipeline fixes (found during live hotseat playtesting)
+- **Templates were never reaching the runtime services.** `AchievementService`
+  and `QuestService` are created lazily at runtime via `AddComponent` (no
+  scene GameObject, so nothing to drag assets onto in the Inspector) - their
+  `achievementTemplates` / `questTemplates` lists stayed empty forever, so
+  achievements/quests could never unlock even though the generators reported
+  success (confirmed live: "Created 0 achievements from templates").
+  Fix: both template generators now save under a `Resources/` subfolder
+  (`Assets/Resources/Achievements/Templates/`, `Assets/Resources/Quests/Templates/`)
+  and both services auto-populate via `Resources.LoadAll` when the list is empty.
+  **Action needed:** re-run "Generate Achievement Templates" and "Generate
+  Quest Templates" (old assets at the previous paths are inert and can be deleted).
+- **`QuestService.InitializeQuests()` was never called anywhere** in the
+  codebase - the quest system could never start, regardless of templates.
+  Now called from `ProgressionManager.Initialize()` once player data is ready
+  (matches the method's own "will be called by ProgressionManager" comment).
+- Misleading log fixed: `LoadAchievementsFromCloud()` always returns false
+  (cloud path is a stub) but logged "loaded from cloud" - now logs that cloud
+  loading isn't implemented yet, to avoid confusing future debugging.
+
 ### Gameplay audit fixes (third pass)
 - **Loadout → match bridge** (`MatchLoadoutBridge.cs`): the selected ship
   actually reaches the match now. `GameManager.PlaceShips` applies either an

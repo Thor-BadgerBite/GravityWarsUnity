@@ -125,6 +125,15 @@ namespace GravityWars.Networking
         {
             Log("Initializing quests...");
 
+            // Auto-load generated templates from Resources if none were
+            // manually assigned (this service is created at runtime via
+            // AddComponent, so there is no Inspector to drag assets into).
+            if (questTemplates == null || questTemplates.Count == 0)
+            {
+                questTemplates = new List<QuestDataSO>(Resources.LoadAll<QuestDataSO>("Quests/Templates"));
+                Log($"Auto-loaded {questTemplates.Count} quest templates from Resources");
+            }
+
             // Load active quests from cloud save
             await LoadQuestsFromCloud();
 

@@ -164,6 +164,16 @@ namespace GravityWars.Networking
         /// </summary>
         private void CreateAchievementsFromTemplates()
         {
+            // Auto-load generated templates from Resources if none were
+            // manually assigned (this service is created at runtime via
+            // AddComponent, so there is no Inspector to drag assets into).
+            if (achievementTemplates == null || achievementTemplates.Count == 0)
+            {
+                achievementTemplates = new List<AchievementDataSO>(
+                    Resources.LoadAll<AchievementDataSO>("Achievements/Templates"));
+                Log($"Auto-loaded {achievementTemplates.Count} achievement templates from Resources");
+            }
+
             _achievements.Clear();
 
             foreach (var template in achievementTemplates)
@@ -555,7 +565,7 @@ namespace GravityWars.Networking
                 // Deserialize
                 // DeserializeAchievements(saveData);
 
-                Log("Achievements loaded from cloud");
+                Log("Cloud achievement load not implemented yet - falling back to templates");
                 return false; // Disabled for now
             }
             catch (Exception ex)
