@@ -173,6 +173,17 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Console log flood fix (found during live hotseat playtesting)
+- The trajectory-prediction log in `PlayerShip.PredictMissileTrajectory`
+  fires every ~60 frames while a player is aiming (holding Fire mode) -
+  over an extended playtest session this floods the Console and buries real
+  findings. Gated behind a new `DebugSettings.verboseTrajectoryLogging`
+  switch (`Assets/DebugSettings.cs`), OFF by default. Flip it on only when
+  actually debugging missile trajectory physics.
+- Audited the rest of `PlayerShip.cs`/`Missile3D.cs` for similar per-frame
+  logging - everything else is event-driven (fires once per shot/hit/mode
+  switch), not a flood source.
+
 ### Scene data fix (found during live hotseat playtesting)
 - Confirmed live: `"Player 1 Name: Player 1, Player 2 Name: Player 1"` -
   both players showed as "Player 1" even with nothing typed. Not a script

@@ -842,8 +842,10 @@ void Update()
             sourceInfo = "Fallback Defaults";
         }
 
-        // Debug log to verify correct stats are being used (only log occasionally to avoid spam)
-        if (Time.frameCount % 60 == 0)
+        // Debug log to verify correct stats are being used - OFF by default,
+        // see DebugSettings.verboseTrajectoryLogging (this fires every ~60
+        // frames while aiming, which floods the Console during normal play).
+        if (DebugSettings.verboseTrajectoryLogging && Time.frameCount % 60 == 0)
         {
             Debug.Log($"[{playerName}] Trajectory Prediction Stats from {sourceInfo}: Mass={missileMass:F2}, Drag={missileDragCoef:F3}, MaxVel={maxVel:F1}, LaunchVel={launchVelocity:F2}");
         }
