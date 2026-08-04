@@ -173,6 +173,37 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Round-transition race conditions (found during live hotseat playtesting - full round to a kill)
+Confirmed live: two `MissingReferenceException`s right after a ship-killing
+hit ("PlayerShip has been destroyed", "Planet has been destroyed"). Both stem
+from the SAME root cause: a lethal missile hit fires two independent
+turn-advance flows that race each other.
+
+- **Duplicate turn-advance flow:** `PlayerShip.TakeDamage` → `ShipDestroyed`
+  starts the AUTHORITATIVE round-reset sequence (`destructionDelay` + fade +
+  `StartNextRound` → all-new ships/planets + a further 4s wait before its own
+  `StartPreparationPhase`). But the SAME hit's `Missile3D.DestroyMissile` also
+  fires `OnMissileDestroyed` → `EndTurn("Missile destroyed!")` → the NORMAL
+  (non-lethal-hit) `DelayedNextTurn` → `StartPreparationPhase`, gated only by
+  the much shorter `infoFadeDuration`. That shorter delay fires first, reads
+  `player1Ship`/`player2Ship` before the round-reset sequence has replaced
+  them, and ends up calling `StartPlayerTurn()` on a ship that the round-reset
+  sequence destroys moments later - crash.
+  Fixed with a `roundEndPending` flag: set the instant `ShipDestroyed` runs
+  (synchronously, before the missile-destroy event even fires), checked by
+  `OnMissileDestroyed` before it starts the normal turn-advance flow, cleared
+  when `PlaceShips()` spawns the next round's ships. Added defensive
+  null-guards in `StartPreparationPhase`/`StartPlayerTurn` as a second layer.
+- **Planet cache poisoned by deferred `Destroy()`:** `ClearExistingPlanetsAndShips`
+  destroys the old planets, then `SpawnPlanets` calls `FindObjectsOfType<Planet>()`
+  in the same frame to rebuild the cache - since `Destroy()` doesn't remove
+  objects until end-of-frame, the rebuilt cache could still contain the
+  about-to-be-gone old planets for one frame, crashing trajectory prediction
+  and the bot's shot simulation on the next frame.
+  Fixed `GameManager.GetCachedPlanets()` to self-heal: strip null (destroyed)
+  entries in place before returning, so both consumers never see a stale
+  reference regardless of exactly when the race lands.
+
 ### Console log flood fix (found during live hotseat playtesting)
 - The trajectory-prediction log in `PlayerShip.PredictMissileTrajectory`
   fires every ~60 frames while a player is aiming (holding Fire mode) -

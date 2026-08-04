@@ -76,6 +76,13 @@ public class GameManager : MonoBehaviour
     // Which side lost the previous round (null on the first round of a match)
     private bool? lastRoundLoserIsLeft = null;
 
+    // Set the instant a ship is destroyed and cleared when the next round's
+    // ships are actually spawned. Blocks the normal "missile destroyed ->
+    // advance to next turn" flow from also firing on the SAME lethal hit,
+    // which otherwise races the round-reset flow using stale ship references
+    // (see ShipDestroyed / OnMissileDestroyed).
+    private bool roundEndPending = false;
+
     // ----------------------------------
     // OLD UI references
     // ----------------------------------
@@ -191,6 +198,22 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Planet cache is empty! Updating cache now...");
             UpdatePlanetCache();
         }
+
+        // Defensive: a round reset destroys the old planets, but Destroy()
+        // is deferred to end-of-frame, so FindObjectsOfType (called by
+        // UpdatePlanetCache right after) can still capture them for one
+        // frame. Strip any stale entries here so trajectory prediction and
+        // bot AI never hit a MissingReferenceException. Self-heals the
+        // cache in place so this only allocates when actually needed.
+        for (int i = 0; i < cachedPlanets.Length; i++)
+        {
+            if (cachedPlanets[i] == null)
+            {
+                cachedPlanets = System.Array.FindAll(cachedPlanets, p => p != null);
+                break;
+            }
+        }
+
         return cachedPlanets;
     }
 
@@ -750,6 +773,11 @@ public class GameManager : MonoBehaviour
 
     void PlaceShips()
     {
+        // Fresh ships are being spawned now - any pending round-end sequence
+        // has finished its job, and the normal per-turn flow (EndTurn on
+        // missile destroy) is safe to run again for the new round.
+        roundEndPending = false;
+
         Vector3 player1Position = GetValidShipPosition(true);
         GameObject player1 = Instantiate(playerShipPrefab, player1Position, Quaternion.Euler(0, 90, -90));
         player1.name = "Player1Ship";
@@ -910,6 +938,16 @@ public class GameManager : MonoBehaviour
 
     void StartPreparationPhase(PlayerShip nextPlayer)
     {
+        // Defensive second layer: catches a stale/destroyed ship reference
+        // from any turn-advance path we haven't anticipated, instead of
+        // crashing (the roundEndPending guard in OnMissileDestroyed is the
+        // primary fix for the known race - this is just insurance).
+        if (nextPlayer == null)
+        {
+            Debug.LogWarning("[GameManager] StartPreparationPhase called with a null/destroyed ship - ignoring stale turn-advance.");
+            return;
+        }
+
         nextPlayer.StopOverTimeEffects();
 
         // Determine the enemy ship
@@ -940,6 +978,13 @@ public class GameManager : MonoBehaviour
 
     void StartPlayerTurn()
     {
+        // Defensive second layer, same reasoning as StartPreparationPhase.
+        if (currentPlayer == null)
+        {
+            Debug.LogWarning("[GameManager] StartPlayerTurn called with a null/destroyed currentPlayer - ignoring stale turn-advance.");
+            return;
+        }
+
         Debug.Log($"Starting Player Turn for {currentPlayer.playerName}");
         currentPlayer.OnStartOfTurn();
         isTurnActive = true;
@@ -1107,7 +1152,16 @@ public class GameManager : MonoBehaviour
             missileFlightCoroutine = null;
         }
         Debug.Log("Missile Destroyed event");
-        if (!isTurnActive && missileFired && currentPlayer.currentMode == PlayerShip.PlayerActionMode.Fire)
+
+        // Skip the normal turn-advance if this hit already killed a ship -
+        // ShipDestroyed()'s own round-reset sequence owns advancing the game
+        // now. Without this guard, both flows fire from the same lethal hit
+        // and race each other using stale ship references (the shorter
+        // infoFadeDuration delay here can fire mid-way through the longer
+        // round-reset sequence, calling StartPlayerTurn on an already-
+        // destroyed ship - see roundEndPending's declaration for details).
+        if (!roundEndPending && !isTurnActive && missileFired &&
+            currentPlayer != null && currentPlayer.currentMode == PlayerShip.PlayerActionMode.Fire)
         {
             if (timerCoroutine != null) StopCoroutine(timerCoroutine);
 
@@ -1152,6 +1206,12 @@ public class GameManager : MonoBehaviour
     // ---------------------------------------------------------
     public void ShipDestroyed(PlayerShip destroyedShip)
     {
+        // Set FIRST, synchronously, before anything else - this must be true
+        // before Missile3D finishes destroying the missile and fires
+        // OnMissileDestroyed, so that handler knows a round-ending sequence
+        // already owns the "advance to next turn" responsibility.
+        roundEndPending = true;
+
         Debug.Log($"{destroyedShip.playerName}'s ship destroyed");
 
         if (destroyedShip.playerUI != null)
