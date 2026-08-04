@@ -173,6 +173,15 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Scene data fix (found during live hotseat playtesting)
+- Confirmed live: `"Player 1 Name: Player 1, Player 2 Name: Player 1"` -
+  both players showed as "Player 1" even with nothing typed. Not a script
+  bug: the Player 2 name `TMP_InputField`'s default `m_Text` was saved as
+  `"Player 1"` in both `HotSeat.unity` and `HotSeat 1.unity` (copy-paste
+  authoring mistake when the field was duplicated from Player 1's). Field
+  wiring on `HotSeatSetup` was correct (two distinct objects) - only the
+  default text value was wrong. Fixed directly in both scene files.
+
 ### Bot ghost-clone fix (found during live hotseat playtesting)
 - Confirmed live: `"Can't remove PlayerShip (Script) because BotController
   (Script) depends on it"`. `PlayerShip.Start()` clones the whole ship
