@@ -226,7 +226,13 @@ public class PlayerShip : MonoBehaviour
                 ghostPS.isGhost = true;
             }
 
-            // Strip off the PlayerShip script (if you want NO ship logic)
+            // Strip off the PlayerShip script (if you want NO ship logic).
+            // BotController has [RequireComponent(typeof(PlayerShip))], so if
+            // the source ship is bot-controlled, the cloned ghost carries a
+            // BotController too and Unity refuses to destroy PlayerShip while
+            // it's still required - remove that first.
+            BotController ghostBot = ghostShipInstance.GetComponent<BotController>();
+            if (ghostBot != null) Destroy(ghostBot);
             Destroy(ghostPS);
 
             // Remove collisions, rigidbodies, line renderers, etc.

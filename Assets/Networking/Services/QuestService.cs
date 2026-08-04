@@ -123,6 +123,16 @@ namespace GravityWars.Networking
         /// </summary>
         public async Task InitializeQuests()
         {
+            // Guards against double-initialization: this can now be triggered
+            // both by ProgressionManager (normal flow, MainMenu boot) and by
+            // GameManagerQuestIntegration (testing flow, jumping straight
+            // into a match scene without a ProgressionManager present).
+            if (_isInitialized)
+            {
+                Log("Already initialized");
+                return;
+            }
+
             Log("Initializing quests...");
 
             // Auto-load generated templates from Resources if none were

@@ -173,6 +173,21 @@ This document tracks the code-level implementation of the remaining stages from
 - `ShipBuilderUI` dropped its own third rule set and now displays the canonical
   validation errors; missile selection is optional in the builder.
 
+### Bot ghost-clone fix (found during live hotseat playtesting)
+- Confirmed live: `"Can't remove PlayerShip (Script) because BotController
+  (Script) depends on it"`. `PlayerShip.Start()` clones the whole ship
+  GameObject to make a movement-preview "ghost", then tries to strip the
+  `PlayerShip` script off the clone. Since `BotController` has
+  `[RequireComponent(typeof(PlayerShip))]`, when the source ship is
+  bot-controlled the clone also carries a `BotController`, and Unity refuses
+  to destroy `PlayerShip` while something still requires it - so the ghost
+  kept a live (if `isGhost`-guarded, inert) `PlayerShip` + `BotController`
+  pair instead of being a stripped-down visual-only clone. Fixed by
+  destroying the cloned `BotController` first.
+- Practical impact was low (the ghost's `BotController.Update()` already
+  early-outs on `isGhost`), but it left stray components and doubled the
+  ship-preset-applied console logs during ship spawn - both gone now.
+
 ### Quest/Achievement pipeline fixes (found during live hotseat playtesting)
 - **Templates were never reaching the runtime services.** `AchievementService`
   and `QuestService` are created lazily at runtime via `AddComponent` (no
@@ -188,7 +203,11 @@ This document tracks the code-level implementation of the remaining stages from
 - **`QuestService.InitializeQuests()` was never called anywhere** in the
   codebase - the quest system could never start, regardless of templates.
   Now called from `ProgressionManager.Initialize()` once player data is ready
-  (matches the method's own "will be called by ProgressionManager" comment).
+  (matches the method's own "will be called by ProgressionManager" comment),
+  AND from `GameManagerQuestIntegration.Start()` (now idempotent-guarded) so
+  quests also work when testing a match scene directly without going through
+  MainMenu/ProgressionManager first - the same self-bootstrapping pattern
+  Achievement/Leaderboard/Analytics integrations already used.
 - Misleading log fixed: `LoadAchievementsFromCloud()` always returns false
   (cloud path is a stub) but logged "loaded from cloud" - now logs that cloud
   loading isn't implemented yet, to avoid confusing future debugging.
