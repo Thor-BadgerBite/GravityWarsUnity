@@ -570,6 +570,12 @@ public class GameContentGenerator : EditorWindow
         // name. This is its training-range twin, kept because the id
         // "starter_ship" is what PlayerAccountData.InitializeDefaultUnlocks
         // and AccountSystem grant to brand-new accounts.
+        // The one deliberately incomplete ship: brand-new players get a
+        // single active perk (Tier 1 only) so the very first ship has fewer
+        // buttons to learn. Every other prebuilt ship below carries a full
+        // three-tier loadout, matching the rule custom-built ships are held
+        // to (ProgressionManager.ValidateLoadoutBuild requires one perk per
+        // tier) - there is no such thing as a "T3-less" ship by design.
         CreateShip("starter_ship", "Sparrow Trainer", 0, false,
             "Your first ship. The Star Sparrow frame in training colours - reliable, balanced, ready for anything.",
             body: Load<ShipBodySO>(BODIES_PATH, "body_allaround_standard"),
@@ -585,7 +591,8 @@ public class GameContentGenerator : EditorWindow
             Load<MissilePresetSO>(MISSILES_PATH, "standard_mk1"),
             Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_shield_regen"),
             Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1"),
-            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"), null);
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"),
+            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t3"));
 
         CreateShip("titan_defender", "Titan Defender", 6, false,
             "Heavy armor plating, built to withstand punishment.",
@@ -593,7 +600,8 @@ public class GameContentGenerator : EditorWindow
             Load<MissilePresetSO>(MISSILES_PATH, "heavy_titan"),
             Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_armor_boost_1"),
             Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t1"),
-            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"), null);
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"),
+            Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t3"));
 
         CreateShip("phoenix_mk1", "Phoenix Mk-I", 7, false,
             "Enhanced maneuverability with improved firepower.",
@@ -601,7 +609,8 @@ public class GameContentGenerator : EditorWindow
             Load<MissilePresetSO>(MISSILES_PATH, "standard_mk2"),
             Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_damage_boost_1"),
             Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1"),
-            Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t2"), null);
+            Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t2"),
+            Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t3"));
 
         CreateShip("eclipse_striker", "Eclipse Striker", 10, false,
             "A gift for reaching competitive play!",
@@ -618,7 +627,8 @@ public class GameContentGenerator : EditorWindow
             Load<MissilePresetSO>(MISSILES_PATH, "heavy_titan"),
             Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_fortified"),
             Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t1"),
-            Load<MissileBarrageSO>(PERKS_PATH, "missile_barrage_t2"), null);
+            Load<MissileBarrageSO>(PERKS_PATH, "missile_barrage_t2"),
+            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t3"));
 
         CreateShip("viper_assault", "Viper Assault", 16, false,
             "Lightning-fast attacks with devastating firepower.",
@@ -626,7 +636,8 @@ public class GameContentGenerator : EditorWindow
             Load<MissilePresetSO>(MISSILES_PATH, "light_swarm"),
             Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_lifesteal"),
             Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1"),
-            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t2"), null);
+            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t2"),
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t3"));
 
         CreateShip("juggernaut", "Juggernaut", 18, false,
             "Massive firepower with unbreakable defenses.",

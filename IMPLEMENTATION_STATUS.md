@@ -398,3 +398,25 @@ turn-advance flows that race each other.
 - Replay: add a world-space LineRenderer + optional marker to `KillshotReplayUI`.
 - Main menu: place `NextUnlockWidget` and (optionally) `ShipMasteryBadgeUI`.
 - Practice mode: expose `player2IsBot`/`botDifficulty` in the setup screen UI.
+
+### Prebuilt ships missing a Tier 3 perk (not intentional, fixed)
+Found while reviewing `Viper_assault`'s preset in the Inspector: 6 of the 10
+generated prebuilt ships had `t3: null` in `GeneratePrebuiltShips()`, with no
+level-based pattern explaining which ones (e.g. Eclipse Striker at level 10
+had a full 3-tier loadout, but Bastion Class at 12 and Viper Assault at 16
+didn't) - just gaps left over from earlier generator passes.
+- **`starter_ship` ("Sparrow Trainer", level 0) is the one ship that stays
+  Tier-1-only, now on purpose and documented in code**: it's the account's
+  very first ship, so fewer buttons to learn beats a full loadout. This is
+  a deliberate exception, not a gap - custom-built ships are still required
+  to have exactly one perk per tier (`ProgressionManager.ValidateLoadoutBuild`).
+- **The other 5 now have a real Tier 3 perk each**, chosen from a perk family
+  not already used in that ship's own Tier 1/2 (same pattern the already-complete
+  ships like Eclipse Striker/Juggernaut/Reaper Class/Nexus Command follow):
+  - `nova_class` -> `overcharged_cannon_t3`
+  - `titan_defender` -> `explosive_missile_t3`
+  - `phoenix_mk1` -> `pusher_missile_t3`
+  - `bastion_class` -> `overcharged_cannon_t3`
+  - `viper_assault` -> `cluster_missile_t3`
+- **Action needed:** re-run Tools -> Gravity Wars -> Generate Game Content to
+  apply the new Tier 3 assignments to the existing `ShipPresetSO` assets.
