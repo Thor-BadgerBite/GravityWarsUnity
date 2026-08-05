@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94f58358a51dc6041bbc22cff3942f7b, type: 3}
-  m_Name: Tank
+  m_Name: Star Sparrow Frame
   m_EditorClassIdentifier: 
-  bodyName: Tank
-  archetype: 0
+  bodyName: Star Sparrow Frame
+  archetype: 2
   visualPrefab: {fileID: 2288132525519809735, guid: ddc8ceeb2cef97843ac9c43f9fb42855, type: 3}
   icon: {fileID: 0}
   baseHealth: 15000
@@ -25,7 +25,7 @@ MonoBehaviour:
   tiltSpeed: 5
   fineRotationMultiplier: 0.2
   fineTiltMultiplier: 0.2
-  canUseLightMissiles: 0
+  canUseLightMissiles: 1
   canUseMediumMissiles: 1
   canUseHeavyMissiles: 1
-  description: A heavily armored chassis designed for frontline combat.
+  description: 'The all-around reference chassis. Balanced HP, armor and damage, and it can mount every missile class - every other hull is tuned relative to this one.'

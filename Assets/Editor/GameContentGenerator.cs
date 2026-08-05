@@ -186,10 +186,13 @@ public class GameContentGenerator : EditorWindow
     // ==================================================================
     private void GenerateShipBodies()
     {
-        // ---- ALL-AROUND: the reference profile (exact Star Sparrow clone) ----
+        // ---- ALL-AROUND: the reference profile ----
+        // Deliberately identical to the hand-made "Star Sparrow Frame" asset:
+        // that one is welded into the Star Sparrow prebuilt ship, this is the
+        // unlockable equivalent players can drop into a custom build.
         CreateBody("body_allaround_standard", "Standard Frame", ShipArchetype.AllAround,
             15000f, 80f, 1.20f, 3, 50f, 0, true, true, true,
-            "Basic all-around chassis. The balance benchmark every other hull is measured against.");
+            "Basic all-around chassis - the same frame the Star Sparrow flies. The balance benchmark every other hull is measured against.");
         CreateBody("body_allaround_tactical", "Tactical Frame", ShipArchetype.AllAround,
             15400f, 85f, 1.22f, 3, 50f, 37, true, true, true,
             "Advanced balanced chassis with improved plating.");
@@ -252,8 +255,13 @@ public class GameContentGenerator : EditorWindow
 
     private void GeneratePassives()
     {
+        // NOTE on sustain values: the regen coroutine ticks every 0.05s (20/sec)
+        // while it is the OPPONENT's turn, so the per-turn value is
+        // regenRate x 20 x turnLength. At 1.5 that was ~540 HP recovered every
+        // exchange - roughly a free extra hit of health per turn. 0.5 gives a
+        // still-useful ~180 HP.
         CreatePassive("passive_shield_regen", "Shield Regeneration", PassiveType.EnhancedRegeneration,
-            ShipArchetype.AllAround, 8, 1.5f, "Slowly regenerates hull integrity every turn.");
+            ShipArchetype.AllAround, 8, 0.5f, "Slowly regenerates hull integrity every turn.");
         CreatePassive("passive_armor_boost_1", "Armor Boost I", PassiveType.DamageResistance,
             ShipArchetype.Tank, 5, 0.10f, "Reduces incoming damage by 10%.");
         CreatePassive("passive_armor_boost_2", "Armor Boost II", PassiveType.DamageResistance,
@@ -266,8 +274,13 @@ public class GameContentGenerator : EditorWindow
             ShipArchetype.DamageDealer, 29, 0f, "Improved chance to land devastating critical hits.");
         CreatePassive("passive_critical_immunity", "Critical Immunity", PassiveType.CriticalImmunity,
             ShipArchetype.Tank, 46, 0f, "Immune to critical hits.");
+        // Lifesteal heals off RAW damage (Missile3D applies it before armor
+        // reduction), so 20% was healing ~1280 HP per hit on a 15700 HP hull -
+        // worth roughly +50% effective health, and it made the lifesteal ship
+        // beat every other ship in the lineup. 8% brings it in line while
+        // keeping the sustain identity.
         CreatePassive("passive_lifesteal", "Lifesteal", PassiveType.Lifesteal,
-            ShipArchetype.DamageDealer, 33, 0.2f, "Heal for 20% of the damage you deal.");
+            ShipArchetype.DamageDealer, 33, 0.08f, "Heal for 8% of the damage you deal.");
         CreatePassive("passive_sniper_mode", "Sniper Mode", PassiveType.SniperMode,
             ShipArchetype.Controller, 17, 0f, "Enhanced aiming for long-range precision.");
         CreatePassive("passive_unmovable", "Unmovable", PassiveType.Unmovable,
@@ -551,9 +564,14 @@ public class GameContentGenerator : EditorWindow
         var lvlDD = AssetDatabase.LoadAssetAtPath<ShipLevelingFormulaSO>(LEVELING_DD);
         var lvlCtrl = AssetDatabase.LoadAssetAtPath<ShipLevelingFormulaSO>(LEVELING_CTRL);
 
-        // Starter ship - free for everyone
-        CreateShip("starter_ship", "Star Sparrow", 0, false,
-            "Your first ship. Reliable, balanced, and ready for anything.",
+        // Starter ship - free for everyone.
+        // NOTE: named "Sparrow Trainer", not "Star Sparrow" - the hand-made
+        // Star Sparrow.asset is the canonical reference ship and owns that
+        // name. This is its training-range twin, kept because the id
+        // "starter_ship" is what PlayerAccountData.InitializeDefaultUnlocks
+        // and AccountSystem grant to brand-new accounts.
+        CreateShip("starter_ship", "Sparrow Trainer", 0, false,
+            "Your first ship. The Star Sparrow frame in training colours - reliable, balanced, ready for anything.",
             body: Load<ShipBodySO>(BODIES_PATH, "body_allaround_standard"),
             formula: lvlAll, move: standardMove,
             missile: Load<MissilePresetSO>(MISSILES_PATH, "standard_mk1"),

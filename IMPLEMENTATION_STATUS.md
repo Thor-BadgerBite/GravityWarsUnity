@@ -230,6 +230,50 @@ Optional one-line fix: point its `levelingFormula` at
 untouched pending a decision, since the body's Tank archetype also gates
 which perks/passives it may equip - a separate concern from leveling.
 
+### Star Sparrow re-archetyped to All-Around + sustain passives cut (balance session continued)
+
+Two follow-ups from building the interactive balance sheet, both changing
+actual game behavior (not just the generator - hand-authored assets edited
+directly):
+
+- **Star Sparrow is now genuinely All-Around.** Its body asset was
+  `Tank.asset` (archetype Tank) despite carrying pure all-rounder numbers
+  (15000 HP / 80 armor / ×1.20 / rotation 50 - literally the All-Around
+  recommendation). Renamed to `Star Sparrow Frame.asset` (via `git mv`, so the
+  `.meta`/guid travelled with it - no reference breaks), archetype flipped to
+  `AllAround`, `canUseLightMissiles` enabled (All-Around can mount every
+  class), and `Star Sparrow.asset`'s `levelingFormula` repointed from
+  `TankLevelingMain` to `AllAroundLevelingMain`. It had been ~8% under an
+  equivalent all-rounder by level 20 before this; now it sits exactly on the
+  reference line at every level. Verified every attached component (passive,
+  move type, all 3 perks) already allows All-Around, so nothing else needed
+  to change. The generated starter ship was renamed `starter_ship` →
+  "Sparrow Trainer" to free up the "Star Sparrow" name for this canonical
+  reference ship (id unchanged, so existing unlock logic is unaffected).
+
+- **Lifesteal and Regeneration were the real imbalance, not chassis stats.**
+  Building a sustain-aware duel model (net damage per exchange = raw × armor
+  factor − healing − regen, run across all 10 prebuilt ships) found a 1.69×
+  worst-case asymmetry driven almost entirely by two passives:
+  - `Lifesteal` healed off **raw** damage (applied before armor reduction in
+    `Missile3D`), so 20% returned ~1280 HP per hit on a 15700 HP hull -
+    roughly +50% effective health. That one passive won it 9 duels out of 9
+    against the full roster.
+  - `Shield Regeneration`'s tick rate is 20/sec (every 0.05s) while it's the
+    opponent's turn, so 1.5/tick was ~540 HP recovered per exchange - a free
+    extra hit of health every turn.
+  Cut to 8% and 0.5 respectively (both in `GameContentGenerator.cs`); worst-
+  case asymmetry with sustain included drops to 1.31×. Also tested
+  re-pairing passives onto different chassis (strong hull + neutral passive,
+  weak hull + sustain passive) - it reshuffles who wins but doesn't change
+  the 1.31× worst case, so passive assignments were left as-is rather than
+  reshuffling ship identities for no measurable gain.
+
+**Action needed:** re-run Tools → Gravity Wars → Generate Game Content
+(regenerates the starter ship name/passive values); the Star Sparrow/Star
+Sparrow Frame asset edits are already live since they were hand-edited
+directly.
+
 ### Round-transition race conditions (found during live hotseat playtesting - full round to a kill)
 Confirmed live: two `MissingReferenceException`s right after a ship-killing
 hit ("PlayerShip has been destroyed", "Planet has been destroyed"). Both stem

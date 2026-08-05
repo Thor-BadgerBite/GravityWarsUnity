@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   shipName: Star Sparrow
   shipIcon: {fileID: 0}
-  description: Describe this ship's playstyle and strengths.
+  description: The balance reference. A dependable all-rounder - solid hull, moderate armor, and it can mount any missile class.
   shipBody: {fileID: 11400000, guid: f0613290875850c42a63dfafa05f4be1, type: 2}
-  levelingFormula: {fileID: 11400000, guid: ed40d41359a208748ac1fdf74e6dcd98, type: 2}
+  levelingFormula: {fileID: 11400000, guid: 6efa3446e5e318c45bfa1f731b5dfdf0, type: 2}
   passives:
   - {fileID: 11400000, guid: 5f05a661f697e5544a20c609007c3d7b, type: 2}
   tier1Perk: {fileID: 11400000, guid: 6138185ac1367c4499d7140d6ba61cd9, type: 2}
@@ -26,6 +26,4 @@ MonoBehaviour:
   defaultMissile: {fileID: 11400000, guid: 9fb4504da9015d84a8ca49989f7f3b9b, type: 2}
   requiredAccountLevel: 0
   isPremiumShip: 0
-  validationStatus: 'ERROR: Move type ''Normal Move'' cannot be used by Tank!
-
-'
+  validationStatus: 
