@@ -226,6 +226,16 @@ public class GameContentGenerator : EditorWindow
         CreateBody("body_ctrl_phantom", "Phantom Frame", ShipArchetype.Controller,
             9700f, 72f, 1.78f, 4, 60f, 43, true, true, false,
             "Stealth specialist chassis for precise play.");
+
+        // ---- SEASONAL / BATTLE PASS: same power envelope as the AllAround
+        // family above, sat between "tactical" and "elite" - reward flavor,
+        // not reward power. Referenced by BattlePassSystem's reward tables. ----
+        CreateBody("body_seasonal_standard", "Seasonal Frame", ShipArchetype.AllAround,
+            15600f, 86f, 1.23f, 3, 50f, 25, true, true, true,
+            "Limited seasonal chassis. Same balance profile as the Standard Frame, dressed for the season.");
+        CreateBody("body_premium_elite", "Premium Elite Frame", ShipArchetype.AllAround,
+            15900f, 89f, 1.25f, 3, 50f, 23, true, true, true,
+            "Battle pass premium chassis. Sits right alongside the Elite Frame in power - the difference is cosmetic, not competitive.");
     }
 
     private void CreateBody(string id, string displayName, ShipArchetype archetype,
@@ -349,6 +359,16 @@ public class GameContentGenerator : EditorWindow
         CreateBarrage("missile_barrage_t1", "Missile Barrage I", 1, 1, 30, 0.3f, 5f, 1f);
         CreateBarrage("missile_barrage_t2", "Missile Barrage II", 2, 2, 67, 0.4f, 5f, 0.8f);
         CreateBarrage("missile_barrage_t3", "Missile Barrage III", 3, 3, 95, 0.5f, 6f, 0.6f);
+
+        // ---- Battle pass premium exclusives ----
+        // Same families/math as above (already balanced, already play-tested),
+        // just a different stat allocation within the same tier's power
+        // budget - a sidegrade, not a stat upgrade. Only ever handed out by
+        // BattlePassSystem's premium track, never placed in the normal
+        // per-level unlock progression, so they stay genuinely exclusive
+        // without being stronger than what every player can already reach.
+        CreateCluster("cluster_missile_exclusive_t1", "Cluster Missile: Focused Salvo", 1, 1, 0, 0.75f, 3f);
+        CreateExplosive("explosive_missile_exclusive_t3", "Explosive Missile: Void Bomb", 3, 3, 0, 22f, 3f, 60f);
     }
 
     private void SetPerkCommon(ActivePerkSO perk, string displayName, int tier, int cost, int reqLevel)
@@ -458,6 +478,12 @@ public class GameContentGenerator : EditorWindow
         CreateMissile("light_phantom", "Phantom Light", MissileType.Light, 22,
             physicsMass: 0.95f, displayMass: 320f, payload: 2350f, fuel: 120f,
             maxVelocity: 62f, push: 1.6f);
+        // Battle pass premium reward - same Light-class envelope, just a
+        // different flavor slotted between Swarm and Vortex. "EMP" is flavor
+        // text only, not a disable/status mechanic.
+        CreateMissile("tactical_emp", "Tactical EMP", MissileType.Light, 0,
+            physicsMass: 1.0f, displayMass: 305f, payload: 2240f, fuel: 112f,
+            maxVelocity: 60.5f, push: 1.45f);
 
         // Heavy - slow and straight-flying with heavy knockback, short fuel
         CreateMissile("heavy_titan", "Titan Heavy", MissileType.Heavy, 9,
@@ -664,6 +690,78 @@ public class GameContentGenerator : EditorWindow
             Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_sniper_mode"),
             Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t1"),
             Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t2"),
+            Load<MissileBarrageSO>(PERKS_PATH, "missile_barrage_t3"));
+
+        // ==============================================================
+        // BATTLE PASS reward ships - referenced by BattlePassSystem's
+        // FREE_TRACK_REWARDS / PREMIUM_TRACK_REWARDS by these exact ids.
+        // Every component below is one already generated and balanced
+        // above - these ships carry no new power, only new identity.
+        // ==============================================================
+
+        // -- Free track --
+        CreateShip("seasonal_scout_free", "Seasonal Scout", 10, false,
+            "Free seasonal battle pass reward - agile scout build on the Seasonal Frame.",
+            Load<ShipBodySO>(BODIES_PATH, "body_seasonal_standard"), lvlAll, standardMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "standard_mk1"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_momentum"),
+            Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1"),
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"),
+            Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t3"));
+
+        CreateShip("seasonal_defender_free", "Seasonal Defender", 20, false,
+            "Free seasonal battle pass reward - reinforced defensive build.",
+            Load<ShipBodySO>(BODIES_PATH, "body_tank_reinforced"), lvlTank, heavyMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "heavy_crusher"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_adaptive_armor"),
+            Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t1"),
+            Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t2"),
+            Load<MissileBarrageSO>(PERKS_PATH, "missile_barrage_t3"));
+
+        // -- Premium track (require the paid battle pass) --
+        CreateShip("premium_nebula_hunter", "Nebula Hunter", 5, true,
+            "Premium battle pass ship - hunts key targets with a focused-salvo cluster round exclusive to the premium track.",
+            Load<ShipBodySO>(BODIES_PATH, "body_dd_striker"), lvlDD, standardMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "light_swarm"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_adaptive_damage"),
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_exclusive_t1"),
+            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t2"),
+            Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t3"));
+
+        CreateShip("exclusive_stellar_dom", "Stellar Dominator", 10, true,
+            "Premium battle pass flagship - the Elite Frame's showcase build, armed with an exclusive void-bomb warhead.",
+            Load<ShipBodySO>(BODIES_PATH, "body_premium_elite"), lvlAll, standardMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "standard_mk3"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_precision_engineering"),
+            Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1"),
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"),
+            Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_exclusive_t3"));
+
+        CreateShip("premium_quantum_fortress", "Quantum Fortress", 15, true,
+            "Premium battle pass ship - an immovable fortress build for players who never blink first.",
+            Load<ShipBodySO>(BODIES_PATH, "body_tank_fortress"), lvlTank, heavyMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "heavy_titan"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_unmovable"),
+            Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t1"),
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2"),
+            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t3"));
+
+        CreateShip("premium_ethereal_phantom", "Ethereal Phantom", 20, true,
+            "Premium battle pass ship - the Phantom Frame's precision-control specialist build.",
+            Load<ShipBodySO>(BODIES_PATH, "body_ctrl_phantom"), lvlCtrl, precisionMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "light_vortex"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_collision_avoidance"),
+            Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t1"),
+            Load<PusherMissileSO>(PERKS_PATH, "pusher_missile_t2"),
+            Load<MissileBarrageSO>(PERKS_PATH, "missile_barrage_t3"));
+
+        CreateShip("ultimate_season_monarch", "Season Monarch", 25, true,
+            "Ultimate exclusive battle pass reward - the season's flagship command ship, only earned by completing the full premium track.",
+            Load<ShipBodySO>(BODIES_PATH, "body_ctrl_tactician"), lvlCtrl, precisionMove,
+            Load<MissilePresetSO>(MISSILES_PATH, "standard_mk3"),
+            Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_last_stand"),
+            Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1"),
+            Load<OverchargedCannonSO>(PERKS_PATH, "overcharged_cannon_t2"),
             Load<MissileBarrageSO>(PERKS_PATH, "missile_barrage_t3"));
     }
 

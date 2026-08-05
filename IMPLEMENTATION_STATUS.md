@@ -420,3 +420,79 @@ didn't) - just gaps left over from earlier generator passes.
   - `viper_assault` -> `cluster_missile_t3`
 - **Action needed:** re-run Tools -> Gravity Wars -> Generate Game Content to
   apply the new Tier 3 assignments to the existing `ShipPresetSO` assets.
+
+### Premium/battle pass design decision + broken battle pass reward table (fixed)
+Follow-up discussion: should premium/battle-pass ships get better stats or
+perks than free ones? Decided **no** - that's textbook pay-to-win on a ranked
+ELO ladder (Brawl Stars' own model locks Star Powers/Gadgets behind free
+Power Level progression for exactly this reason; only cosmetics are sold).
+Agreed model: **premium content is power-neutral** - same stat budget as
+free content, differentiated only by identity (perk flavor, cosmetics,
+unlock speed), plus a few perks that are genuinely **exclusive** to the
+premium track (never earnable for free) but still power-neutral sidegrades,
+not upgrades.
+
+While wiring this up, found `BattlePassSystem.cs`'s reward tables (both free
+and premium, 25 levels each) referenced **~20 assets that were never
+generated anywhere** - `active_repair`, `active_emp_pulse`, `active_cloak`,
+`active_time_dilation`, `tactical_emp`, `passive_speed_boost_1`,
+`premium_nebula_hunter`, `exclusive_stellar_dom`, `premium_quantum_fortress`,
+`premium_ethereal_phantom`, `ultimate_season_monarch`, `seasonal_scout_free`,
+`seasonal_defender_free`, `body_seasonal_standard`, `body_premium_elite`.
+A player claiming these rewards would "unlock" a string ID that matched
+nothing - no error, just nothing gained. Also found a second, unrelated,
+**entirely unimplemented "ultimate ability" data table**
+(`ExtendedProgressionData.ACTIVE_UNLOCKS`, 20 abilities like "Ultima",
+"Ragnarok", "Ascension", "Omega Strike" spanning account level 9-98) with
+zero backing `ActivePerkSO` or gameplay code anywhere - a much bigger,
+separate aspirational system, left untouched/out of scope here.
+
+Fixed by building real, power-neutral content for every referenced id:
+- **2 new ship bodies** (`GenerateShipBodies`): `body_seasonal_standard`
+  (15600 HP/86 armor/1.23 dmg) and `body_premium_elite` (15900/89/1.25) -
+  both sit inside the already-validated AllAround envelope
+  (15000-15800 HP established this session), so they add zero new power.
+- **1 new missile** (`GenerateMissiles`): `tactical_emp`, a Light-class
+  variant inside the audited 2200-3100 payload band. "EMP" is flavor text
+  only - no disable/status mechanic was added.
+- **2 new exclusive perks** (`GeneratePerks`): `cluster_missile_exclusive_t1`
+  and `explosive_missile_exclusive_t3` - reuse the already-implemented,
+  already-tested Cluster/Explosive perk classes with a different stat
+  allocation than their public T1/T3 counterparts (same tier power budget,
+  different tradeoff) - true sidegrades, never placed in the normal
+  per-level unlock pool, so they stay exclusive without being stronger.
+  (Considered wiring up `BoostJetsSO`/`BoostJetsPerk`, a real but never-
+  generated mobility perk - rejected: its `CanActivate` requires Move mode,
+  but `PerkManager`'s toggle pipeline only calls `Activate()` from
+  `PlayerShip.FireMissile()`, so a Move-mode perk can never actually fire
+  through the current architecture. Wiring it up would have shipped
+  content that looks equippable but does nothing in a real match - the
+  same class of bug as the achievement/quest pipeline gap found earlier.
+  Left `BoostJetsSO` as-is; flagging here in case it's worth a dedicated
+  pass later.)
+- **7 new prebuilt ships** (`GeneratePrebuiltShips`): Seasonal Scout
+  (free, AllAround), Seasonal Defender (free, Tank), Nebula Hunter
+  (premium, DamageDealer, carries the new Cluster exclusive), Stellar
+  Dominator (premium, AllAround, carries the new Explosive exclusive +
+  the new Elite Frame body), Quantum Fortress (premium, Tank), Ethereal
+  Phantom (premium, Controller), Season Monarch (premium, Controller,
+  flagship). Every component is one already generated and balanced above -
+  these ships add new identity, not new power.
+- **`BattlePassSystem.cs`**: retargeted the ghost ids that had no honest
+  real-content match to already-balanced existing perks instead of
+  inventing more content (`passive_speed_boost_1` -> `passive_shield_regen`,
+  `active_repair` -> `pusher_missile_t1`, `active_emp_pulse` ->
+  `missile_barrage_t1`), and pointed the two premium "Active" rewards at
+  the new exclusive sidegrades. All ship/body ids kept their original
+  names - just built the matching real assets.
+- **Latent tier-filing bug fixed**: `PlayerAccountData.UnlockById(Active, id)`
+  resolves an id's tier via `ExtendedProgressionData.GetActiveTier()`, which
+  silently defaults to Tier 1 for any id not in that (unrelated, 20-entry)
+  table - meaning a real Tier 3 perk reward would get filed into
+  `unlockedTier1PerkIDs` and never show up as unlocked for a Tier 3 slot.
+  Added one bridging entry for `explosive_missile_exclusive_t3` (tier 3) to
+  `ExtendedProgressionData.ACTIVE_UNLOCKS` so it resolves correctly. (The
+  three new Tier 1 ids didn't need one - Tier 1 is also the fallback
+  default, so they happened to resolve correctly either way.)
+- **Action needed:** re-run Tools -> Gravity Wars -> Generate Game Content
+  (ships, perks, missiles, ship bodies) to create the new assets.

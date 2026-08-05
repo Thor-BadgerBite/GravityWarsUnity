@@ -89,14 +89,14 @@ public class BattlePassSystem : MonoBehaviour
         // Early Levels (1-5)
         { 1, new BattlePassReward(RewardType.Credits, 500, "Credits x500") },
         { 2, new BattlePassReward(RewardType.Skin, 0, "Starter Skin: Blue Wave", "skin_starter_blue") },
-        { 3, new BattlePassReward(RewardType.Passive, 0, "Passive: Speed Boost I", "passive_speed_boost_1") },
+        { 3, new BattlePassReward(RewardType.Passive, 0, "Passive: Shield Regeneration", "passive_shield_regen") },
         { 4, new BattlePassReward(RewardType.Credits, 750, "Credits x750") },
         { 5, new BattlePassReward(RewardType.Missile, 0, "Missile: Standard Mk-II", "standard_mk2") },
 
         // Mid Levels (6-15)
         { 6, new BattlePassReward(RewardType.Credits, 1000, "Credits x1000") },
         { 7, new BattlePassReward(RewardType.Skin, 0, "Tank Skin: Iron Fortress", "skin_tank_iron") },
-        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Emergency Repair", "active_repair") },
+        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Pusher Missile I", "pusher_missile_t1") },
         { 9, new BattlePassReward(RewardType.Credits, 1250, "Credits x1250") },
         { 10, new BattlePassReward(RewardType.PrebuildShip, 0, "Ship: Seasonal Scout", "seasonal_scout_free", ShipClass.AllAround) },
         { 11, new BattlePassReward(RewardType.Credits, 1500, "Credits x1500") },
@@ -108,7 +108,7 @@ public class BattlePassSystem : MonoBehaviour
         // Late Levels (16-25)
         { 16, new BattlePassReward(RewardType.Credits, 2000, "Credits x2000") },
         { 17, new BattlePassReward(RewardType.Skin, 0, "Controller Skin: Shadow Ops", "skin_ctrl_shadow") },
-        { 18, new BattlePassReward(RewardType.Active, 0, "Active: EMP Pulse", "active_emp_pulse") },
+        { 18, new BattlePassReward(RewardType.Active, 0, "Active: Missile Barrage I", "missile_barrage_t1") },
         { 19, new BattlePassReward(RewardType.Credits, 2500, "Credits x2500") },
         { 20, new BattlePassReward(RewardType.PrebuildShip, 0, "Ship: Seasonal Defender", "seasonal_defender_free", ShipClass.Tank) },
         { 21, new BattlePassReward(RewardType.Credits, 3000, "Credits x3000") },
@@ -134,7 +134,7 @@ public class BattlePassSystem : MonoBehaviour
         // Mid Levels (6-15)
         { 6, new BattlePassReward(RewardType.Gems, 30, "Gems x30") },
         { 7, new BattlePassReward(RewardType.Skin, 0, "PREMIUM Skin: Cosmic Void", "skin_premium_cosmic") },
-        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Stealth Cloak", "active_cloak") },
+        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Cluster Missile - Focused Salvo (Exclusive)", "cluster_missile_exclusive_t1") },
         { 9, new BattlePassReward(RewardType.Gems, 35, "Gems x35") },
         { 10, new BattlePassReward(RewardType.PrebuildShip, 0, "EXCLUSIVE Ship: Stellar Dominator", "exclusive_stellar_dom", ShipClass.AllAround) },
         { 11, new BattlePassReward(RewardType.Gems, 40, "Gems x40") },
@@ -146,7 +146,7 @@ public class BattlePassSystem : MonoBehaviour
         // Late Levels (16-25)
         { 16, new BattlePassReward(RewardType.Gems, 50, "Gems x50") },
         { 17, new BattlePassReward(RewardType.Skin, 0, "PREMIUM Skin: Royal Prestige", "skin_premium_royal") },
-        { 18, new BattlePassReward(RewardType.Active, 0, "Active: Time Dilation", "active_time_dilation") },
+        { 18, new BattlePassReward(RewardType.Active, 0, "Active: Explosive Missile - Void Bomb (Exclusive)", "explosive_missile_exclusive_t3") },
         { 19, new BattlePassReward(RewardType.Gems, 60, "Gems x60") },
         { 20, new BattlePassReward(RewardType.PrebuildShip, 0, "PREMIUM Ship: Ethereal Phantom", "premium_ethereal_phantom", ShipClass.Controller) },
         { 21, new BattlePassReward(RewardType.Gems, 75, "Gems x75") },

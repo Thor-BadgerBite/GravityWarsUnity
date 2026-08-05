@@ -193,7 +193,19 @@ public static class ExtendedProgressionData
         { 83, new ActiveUnlock("active_phoenix_burst", "Phoenix Burst", 3, 180f, "Death-defying resurrection") },
         { 88, new ActiveUnlock("active_ragnarok", "Ragnarok", 3, 150f, "Apocalyptic destruction") },
         { 93, new ActiveUnlock("active_ascension", "Ascension", 3, 200f, "Become god-like temporarily") },
-        { 98, new ActiveUnlock("active_omega_strike", "Omega Strike", 3, 300f, "Ultimate one-shot kill ability") }
+        { 98, new ActiveUnlock("active_omega_strike", "Omega Strike", 3, 300f, "Ultimate one-shot kill ability") },
+
+        // NOTE: everything above this line is aspirational/unimplemented -
+        // none of these 20 ids have a backing ActivePerkSO or gameplay
+        // mechanic anywhere in the codebase. The entry below is different:
+        // it exists purely so PlayerAccountData.UnlockById(UnlockType.Active,
+        // ...) files this REAL, generated Tier 3 perk into
+        // unlockedTier3PerkIDs instead of silently defaulting to Tier 1
+        // (GetActiveTier() falls back to tier 1 for any id it doesn't
+        // recognize). Tier 1 exclusive/reused ids don't need an entry here
+        // since the tier-1 fallback happens to already be correct for them.
+        { 76, new ActiveUnlock("explosive_missile_exclusive_t3", "Explosive Missile: Void Bomb", 3, 0f,
+            "Battle pass premium exclusive - see PERKS_PATH/explosive_missile_exclusive_t3 for the real perk") }
     };
 
     #endregion
