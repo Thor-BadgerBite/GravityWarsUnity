@@ -729,3 +729,51 @@ unfairly ending a match): the planet spawner's own "no valid position
 found -> skip this planet" fallback in `SpawnPlanetsWithSeed`. Worth
 revisiting later if crowded playfields turn out to be common, but out of
 scope for this pass.
+
+### Recovered and merged the lost MainMenu work from a separate branch
+User had built a real MainMenu screen in an earlier session but couldn't
+find it - it wasn't in `Assets/Scenes/MainMenu.unity` (the near-empty
+skeleton) or anywhere in this branch's history. Found it via
+`git log --all`: an entire separate, long-diverged branch,
+`claude/build-main-menu-hub-01TBDuLSESv92hB7tQotMBQS`, containing:
+- `Assets/Scenes/MainMenuScene.unity` (note the name - not `MainMenu.unity`)
+  with a "Scene Final" commit alone changing 5867 lines
+- A full Ships Garage system (`ShipsGarageController.cs`/`ShipsGarageUI.cs`/
+  `ShipInventoryCard.cs`)
+- A complete "Sci-Fi UI Collection" art asset pack (27k+ files) for
+  styling every screen
+- A reworked 16-tier military rank system (Cadet -> Grand Admiral)
+  replacing the old 7-tier Bronze -> Grandmaster, with matching custom
+  fonts (Orbitron, Roboto)
+- Extensive supporting docs (Main Menu Hub Build Guide, Screen Catalog,
+  full game design doc)
+
+Merged that branch into this one. Only one real conflict
+(`PlayerAccountData.cs` - this session's new fields vs. their rank enum
+rework; combined both). Fixed the resulting compile breakage in
+`RankedSeasonSystem.cs` (built this session, still used the old 7-tier
+rank names) by rewriting its reward table against the new 16-tier scale.
+
+**Found and reverted two real regressions the merge would otherwise have
+introduced** against this session's live-tested state:
+- `Assets/Gravity1.prefab` - confirmed via `HotSeat.unity`'s
+  `playerShipPrefab` guid that this file (despite the misleading name) is
+  the actual ship prefab every hotseat match spawns. The incoming
+  branch's copy was serialized against an older `PlayerShip.cs`, missing
+  configured references like `missilePrefab`/`equippedMissile` entirely -
+  would have broken missile firing. Reverted to our tested version.
+- `Assets/Ship System/Standard.asset` (the starter missile, unlocked by
+  every new account) had a different, unbalanced mass than the rebalance
+  reference value. Reverted.
+- `Assets/PlayerUIPrefab.prefab` had its root GameObject's active state
+  flipped off - reverted that one field.
+
+Also fixed a related pre-existing inconsistency while in the area:
+`PlayerAccountData.eloRating`/`peakEloRating` defaults were hardcoded
+`1200`, independent of `ELORatingSystem.STARTING_ELO` (now `800` after
+the rank rework) - changed to reference the constant directly.
+
+**Action needed:** open the project in Unity, let it re-resolve packages
+(a few versions bumped - TextMeshPro, TimelineEditor, IDE packages - to
+support the new fonts), then open `Assets/Scenes/MainMenuScene.unity`
+(not `MainMenu.unity`) to pick the build back up.
