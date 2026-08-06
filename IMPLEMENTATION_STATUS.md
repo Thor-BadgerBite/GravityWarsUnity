@@ -590,3 +590,44 @@ roster - out of scope here.
 premium battle pass ships. **Action needed:** re-run Tools -> Gravity Wars
 -> Generate Game Content (no BattlePassData asset is created anymore, so
 nothing to clean up there).
+
+### ProgressionManager itself was never bootstrapped (found live, root cause of everything above)
+First real playtest after all the progression fixes above. Console showed:
+```
+[GameManager] ProgressionManager not found, skipping XP award
+```
+at Game Over. Checked `ProgressionManager.Instance` and found the exact same
+bug class as Achievement/Quest/BattlePass before their fixes: a plain
+`{ get; private set; }` singleton, set only in `Awake()`, with **no**
+lazy-create fallback - and nothing in the HotSeat scene places a
+`ProgressionManager` GameObject. So `Instance` was null for the entire
+match, not just at Game Over: every earlier call site
+(`MatchLoadoutBridge` applying the selected loadout in `PlaceShips()`, all
+the `ServiceIntegrationHelper` guards, everything this whole session's
+progression work depends on) was silently no-op'ing on the same null
+check the whole time. This is the reason none of the battle pass / ship
+unlock fixes above could have been observed yet - the manager holding all
+of it never existed in the running scene.
+
+Fixed with the same lazy-singleton bootstrap as AchievementService/
+QuestService/BattlePassSystem (`FindObjectOfType` -> `AddComponent` on
+first access, `Awake()` still runs `Initialize()` synchronously since
+`AddComponent` calls it immediately). No scene setup needed - self-heals
+the moment anything asks for `ProgressionManager.Instance`.
+
+Also fixed a second warning from the same log:
+```
+DontDestroyOnLoad only works for root GameObjects or components on root GameObjects.
+GameManager:Awake ()
+```
+`GameManager`'s GameObject is nested under something else in the HotSeat
+scene hierarchy, so its `DontDestroyOnLoad` call was silently failing -
+meaning `GameManager.Instance` would not have survived a scene reload
+(breaks "Play Again"/requeue). Fixed by un-parenting (`transform.
+SetParent(null)`) before `DontDestroyOnLoad` in `GameManager.Awake()`.
+
+**Action needed:** play another full hotseat match and check the Console
+for `[ProgressionManager] Loaded account...`, `[ProgressionManager]
+Unlocked ship at level X`, and `[BattlePass] Free reward granted` - these
+confirm the whole chain (account load -> match XP -> battle pass -> ship
+unlocks) is actually running now, not just wired in theory.

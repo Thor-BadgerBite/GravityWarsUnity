@@ -268,6 +268,13 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            // DontDestroyOnLoad only works on a root GameObject - if this
+            // one is nested under something else in the scene hierarchy
+            // (confirmed live: "DontDestroyOnLoad only works for root
+            // GameObjects..." warning), un-parent it first so it actually
+            // survives scene loads (needed for requeue/rematch flows).
+            if (transform.parent != null)
+                transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
         else

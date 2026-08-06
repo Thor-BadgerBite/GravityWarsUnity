@@ -21,7 +21,33 @@ public class MatchXPResult
 /// </summary>
 public class ProgressionManager : MonoBehaviour
 {
-    public static ProgressionManager Instance { get; private set; }
+    private static ProgressionManager _instance;
+
+    /// <summary>
+    /// Lazily creates the singleton the first time anything asks for it -
+    /// the HotSeat scene doesn't place one, so without this Instance was
+    /// always null and GameManager's "if (ProgressionManager.Instance ==
+    /// null) skip XP award" guard fired on every match (confirmed live:
+    /// "[GameManager] ProgressionManager not found, skipping XP award").
+    /// Same lazy-singleton pattern as AchievementService/QuestService/
+    /// BattlePassSystem.
+    /// </summary>
+    public static ProgressionManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<ProgressionManager>();
+                if (_instance == null)
+                {
+                    var go = new GameObject("[ProgressionManager]");
+                    _instance = go.AddComponent<ProgressionManager>();
+                }
+            }
+            return _instance;
+        }
+    }
 
     [Header("Player Data")]
     public PlayerAccountData currentPlayerData;
@@ -62,13 +88,13 @@ public class ProgressionManager : MonoBehaviour
     void Awake()
     {
         // Singleton pattern
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             DontDestroyOnLoad(gameObject);
             Initialize();
         }
-        else
+        else if (_instance != this)
         {
             Destroy(gameObject);
         }
