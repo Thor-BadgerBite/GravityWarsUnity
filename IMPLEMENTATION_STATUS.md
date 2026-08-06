@@ -699,3 +699,33 @@ later: the fix pattern would be identical (assign `.icon`/`.shipIcon` in
 
 **Action needed:** re-run Tools -> Gravity Wars -> Generate Game Content
 to apply the icon assignments to the existing perk assets.
+
+### Ships could spawn directly on top of a planet and die instantly (found live, recurring bug)
+Reported as a recurring issue, and reproduced in the same session's log:
+`Player 2 collided with Uranus -> destroyed`, immediately after spawn,
+before Player 1 even got a turn. The same log also showed `Could not
+spawn planet 'Saturn': No valid position found` - a sign the playfield
+was already crowded that round.
+
+Root cause in `GameManager.GetValidShipPosition`: it tries up to
+`maxShipPlacementAttempts` (10) random positions, checking each against
+every planet via `ShipOverlapsWithPlanet`. **If all 10 attempts overlap a
+planet, it didn't fail safe - it generated one more, completely
+unvalidated random position and used that regardless.** In a crowded
+playfield (exactly the condition the Saturn warning flags), that
+fallback could - and did - land a ship on top of a planet.
+
+Fixed by tracking the least-overlapping candidate across all attempts
+(via a new `ClearanceFromPlanets` helper - distance to the nearest
+planet's surface, negative means overlapping) and returning that instead
+of a fresh unchecked position if none of the attempts came back fully
+clear. Worst case is now "best of 10 tries," never "whatever RNG gives
+next." `ShipOverlapsWithPlanet` now delegates to the same helper instead
+of duplicating the SphereCollider/distance logic, so the two checks can't
+drift out of sync again.
+
+Not changed (lower severity, degrades gracefully rather than crashing/
+unfairly ending a match): the planet spawner's own "no valid position
+found -> skip this planet" fallback in `SpawnPlanetsWithSeed`. Worth
+revisiting later if crowded playfields turn out to be common, but out of
+scope for this pass.

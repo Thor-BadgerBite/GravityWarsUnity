@@ -838,30 +838,47 @@ public class GameManager : MonoBehaviour
 
     Vector3 GetValidShipPosition(bool isLeftSide)
     {
+        // Track the least-overlapping candidate seen so far. Previously,
+        // running out of attempts fell back to ANOTHER fresh random
+        // position with zero validation - which could (and did, confirmed
+        // live: "Player 2 collided with Uranus -> destroyed" the instant
+        // the round started) place a ship directly on top of a planet.
+        // Now the worst case is "the best of maxShipPlacementAttempts
+        // tries", never an unchecked coin flip.
+        Vector3 bestPosition = GetRandomShipPosition(isLeftSide);
+        float bestClearance = float.NegativeInfinity;
+
         for (int attempt = 0; attempt < maxShipPlacementAttempts; attempt++)
         {
             Vector3 position = GetRandomShipPosition(isLeftSide);
-            if (!ShipOverlapsWithPlanet(position) && IsWithinValidVerticalRange(position.y))
+            if (!IsWithinValidVerticalRange(position.y)) continue;
+
+            float clearance = ClearanceFromPlanets(position);
+            if (clearance > bestClearance)
             {
-                return position;
+                bestClearance = clearance;
+                bestPosition = position;
             }
+
+            if (clearance >= 0f)
+                return position; // fully clear of every planet
         }
 
-        Debug.LogWarning("Could not find a valid position for the ship. Placing at default position.");
-        return GetRandomShipPosition(isLeftSide);
+        Debug.LogWarning($"[GameManager] No fully clear ship spawn position found after " +
+            $"{maxShipPlacementAttempts} attempts - using the least-overlapping candidate " +
+            $"(clearance {bestClearance:F2}) instead of an unvalidated random position.");
+        return bestPosition;
     }
 
-    Vector3 GetRandomShipPosition(bool isLeftSide)
+    /// <summary>
+    /// Distance from the nearest planet's surface, in the same
+    /// margin-adjusted terms ShipOverlapsWithPlanet uses. Negative =
+    /// overlapping that planet. float.PositiveInfinity if there are no
+    /// planets at all.
+    /// </summary>
+    private float ClearanceFromPlanets(Vector3 position)
     {
-        float horizontalPosition = Random.Range(minDistanceFromCenter, maxDistanceFromCenter);
-        if (isLeftSide) horizontalPosition = -horizontalPosition;
-
-        float verticalPosition = Random.Range(-height / 2f + topBottomOffset, height / 2f - topBottomOffset);
-        return new Vector3(horizontalPosition, verticalPosition, 0);
-    }
-
-    private bool ShipOverlapsWithPlanet(Vector3 position)
-    {
+        float minClearance = float.PositiveInfinity;
         foreach (Planet planet in planetComponents)
         {
             SphereCollider planetCollider = planet.GetComponent<SphereCollider>();
@@ -877,12 +894,25 @@ public class GameManager : MonoBehaviour
 
             float distance = Vector3.Distance(position, planet.transform.position);
             float minDist = shipCollisionRadius + planetCollider.radius * planet.transform.localScale.x;
-            if (distance < minDist)
-            {
-                return true;
-            }
+            float clearance = distance - minDist;
+            if (clearance < minClearance)
+                minClearance = clearance;
         }
-        return false;
+        return minClearance;
+    }
+
+    Vector3 GetRandomShipPosition(bool isLeftSide)
+    {
+        float horizontalPosition = Random.Range(minDistanceFromCenter, maxDistanceFromCenter);
+        if (isLeftSide) horizontalPosition = -horizontalPosition;
+
+        float verticalPosition = Random.Range(-height / 2f + topBottomOffset, height / 2f - topBottomOffset);
+        return new Vector3(horizontalPosition, verticalPosition, 0);
+    }
+
+    private bool ShipOverlapsWithPlanet(Vector3 position)
+    {
+        return ClearanceFromPlanets(position) < 0f;
     }
 
     bool IsWithinValidVerticalRange(float yPosition)
