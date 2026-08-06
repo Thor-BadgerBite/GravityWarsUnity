@@ -1249,6 +1249,17 @@ public class GameManager : MonoBehaviour
         // already owns the "advance to next turn" responsibility.
         roundEndPending = true;
 
+        // A kill ends the round through this path, not through the normal
+        // EndTurn() (which is what stops these). Left running, the timer
+        // for the turn that just ended fires later against a match that's
+        // already over - confirmed live: "Ending Turn: No action taken in
+        // time!" followed by "StartPreparationPhase called with a
+        // null/destroyed ship" well after Game Over was already logged.
+        // The null-guard in StartPreparationPhase caught it safely, but
+        // stopping the timer here means it never fires at all.
+        if (activeCoroutine != null) StopCoroutine(activeCoroutine);
+        if (timerCoroutine != null) StopCoroutine(timerCoroutine);
+
         Debug.Log($"{destroyedShip.playerName}'s ship destroyed");
 
         if (destroyedShip.playerUI != null)

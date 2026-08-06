@@ -777,3 +777,27 @@ the rank rework) - changed to reference the constant directly.
 (a few versions bumped - TextMeshPro, TimelineEditor, IDE packages - to
 support the new fonts), then open `Assets/Scenes/MainMenuScene.unity`
 (not `MainMenu.unity`) to pick the build back up.
+
+### Stray turn timer firing after Game Over (found live, no crash - safety net worked)
+Console showed, well after "Game Over. Player 2 wins!" and match
+progression had already been awarded:
+```
+Ending Turn: No action taken in time!
+[GameManager] StartPreparationPhase called with a null/destroyed ship - ignoring stale turn-advance.
+```
+Root cause: the normal `EndTurn()` stops `activeCoroutine`/`timerCoroutine`,
+but a kill ends the round through `ShipDestroyed()` -> `GameOver()`
+instead, which never did. The `TurnTimer` for whatever turn was in
+progress when the kill landed kept running in the background and fired
+its timeout later, calling `EndTurn()` against a match that had already
+fully ended. The null-guard added earlier this session (round-transition
+race condition fix) caught it and logged a warning instead of throwing -
+exactly what it was built for - but the stray timer shouldn't have been
+running at all. Fixed by stopping both coroutines in `ShipDestroyed()`,
+same as `EndTurn()` already does.
+
+(Separately, in the same log: "Player 1 collided with Uranus -> destroyed"
+mid-match, not at spawn. This looks like the knockback-impulse-into-a-
+planet scenario, not the spawn-overlap bug fixed earlier - the ship had
+just taken a hit with a visible physics impulse the turn before. Left
+as-is; flag it if it turns out to happen without a preceding hit.)
