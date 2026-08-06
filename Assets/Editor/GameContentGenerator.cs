@@ -40,6 +40,20 @@ public class GameContentGenerator : EditorWindow
     private const string LEVELING_DD = "Assets/Ship System/DDLevelingMain.asset";
     private const string LEVELING_CTRL = "Assets/Ship System/ControllerLevelingMain.asset";
 
+    // Hand-made perk icon sprites - the generator never assigned these, so
+    // every generated ActivePerkSO had icon = null (confirmed live: perk
+    // slots showed as empty black squares in the match HUD). No dedicated
+    // Missile Barrage art exists; the hand-made "MissileBarrage SO.asset"
+    // reference reuses Cluster_Missile.png as a placeholder, so the
+    // generated barrage perks do the same for visual consistency.
+    private const string ICON_FOLDER = "Assets/+Active Perks+/";
+    private const string ICON_MULTI = ICON_FOLDER + "Multi_Missile.png";
+    private const string ICON_CLUSTER = ICON_FOLDER + "Cluster_Missile.png";
+    private const string ICON_EXPLOSIVE = ICON_FOLDER + "Explosive_Missile.png";
+    private const string ICON_PUSHER = ICON_FOLDER + "PusherMissile.png";
+    private const string ICON_OVERCHARGED = ICON_FOLDER + "Overload Cannon.png";
+    private const string ICON_BARRAGE = ICON_CLUSTER; // no dedicated art yet
+
     private int _created;
     private int _updated;
 
@@ -144,6 +158,11 @@ public class GameContentGenerator : EditorWindow
     private T Load<T>(string folder, string assetName) where T : ScriptableObject
     {
         return AssetDatabase.LoadAssetAtPath<T>(folder + assetName + ".asset");
+    }
+
+    private static Sprite LoadIcon(string pngPath)
+    {
+        return AssetDatabase.LoadAssetAtPath<Sprite>(pngPath);
     }
 
     private static void SetArchetypeFlags(PassiveAbilitySO p, ShipArchetype archetype)
@@ -386,6 +405,7 @@ public class GameContentGenerator : EditorWindow
         SetPerkCommon(p, name, tier, cost, reqLevel);
         p.damageFactor = dmg;
         p.spreadAngle = spread;
+        p.icon = LoadIcon(ICON_MULTI);
     }
 
     private void CreateCluster(string id, string name, int tier, int cost, int reqLevel, float dmg, float spread)
@@ -394,6 +414,7 @@ public class GameContentGenerator : EditorWindow
         SetPerkCommon(p, name, tier, cost, reqLevel);
         p.damageFactor = dmg;
         p.spreadAngle = spread;
+        p.icon = LoadIcon(ICON_CLUSTER);
     }
 
     private void CreateExplosive(string id, string name, int tier, int cost, int reqLevel,
@@ -404,6 +425,7 @@ public class GameContentGenerator : EditorWindow
         p.blastRadius = blastRadius;
         p.damageFactor = damageFactor;
         p.pushStrength = pushStrength;
+        p.icon = LoadIcon(ICON_EXPLOSIVE);
     }
 
     private void CreatePusher(string id, string name, int tier, int cost, int reqLevel,
@@ -413,6 +435,7 @@ public class GameContentGenerator : EditorWindow
         SetPerkCommon(p, name, tier, cost, reqLevel);
         p.knockbackMultiplier = knockback;
         p.damageFactor = damageFactor;
+        p.icon = LoadIcon(ICON_PUSHER);
     }
 
     private void CreateOvercharged(string id, string name, int tier, int cost, int reqLevel, float dmgMult)
@@ -420,6 +443,7 @@ public class GameContentGenerator : EditorWindow
         var p = GetOrCreate<OverchargedCannonSO>(PERKS_PATH, id);
         SetPerkCommon(p, name, tier, cost, reqLevel);
         p.damageMultiplier = dmgMult;
+        p.icon = LoadIcon(ICON_OVERCHARGED);
     }
 
     private void CreateBarrage(string id, string name, int tier, int cost, int reqLevel,
@@ -430,6 +454,7 @@ public class GameContentGenerator : EditorWindow
         p.damageFactor = dmg;
         p.spread = spread;
         p.interval = interval;
+        p.icon = LoadIcon(ICON_BARRAGE);
     }
 
     #endregion

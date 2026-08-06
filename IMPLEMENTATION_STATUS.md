@@ -661,3 +661,41 @@ content load (e.g. "Tank health scaling seems low, recommended 0.035+")
 that are now stale against our deliberate rebalance values - and a Unity
 `ParticleSystem` "duration while playing" warning in the ship explosion
 VFX. Neither affects gameplay or progression; low-priority polish only.
+
+### Active perk icons were never assigned (found live, screenshot)
+Screenshot from the same playtest showed all 3 perk slots in the match
+HUD as empty black squares, on both players' prebuilt ships (only the
+Move action icon rendered). Root cause: `GameContentGenerator`'s perk
+creators (`CreateMulti`/`CreateCluster`/`CreateExplosive`/`CreatePusher`/
+`CreateOvercharged`/`CreateBarrage`) set every field except `.icon` - so
+every generated `ActivePerkSO` had `icon = null`, and `PerkManager.
+RefreshUI()` just left the UI Image on its default (blank) sprite.
+
+Real icon art already exists by hand at `Assets/+Active Perks+/*.png` and
+was already wired into the hand-made reference assets (Multi/Cluster/
+Explosive/Pusher/Overcharged/Boost Jets `...SO.asset` files each have a
+real icon set) - it just never made it into the generator. Fixed by
+loading and assigning the matching sprite in each `CreateXXX` helper:
+- Multi Missile -> `Multi_Missile.png`
+- Cluster Missile -> `Cluster_Missile.png` (also covers the new
+  `cluster_missile_exclusive_t1`, which goes through the same helper)
+- Explosive Missile -> `Explosive_Missile.png` (also covers
+  `explosive_missile_exclusive_t3`)
+- Pusher Missile -> `PusherMissile.png`
+- Overcharged Cannon -> `Overload Cannon.png`
+- Missile Barrage -> `Cluster_Missile.png` (no dedicated art exists yet;
+  the hand-made `MissileBarrage SO.asset` reference already reuses this
+  same icon as a placeholder, so the generated barrage perks now match
+  that existing convention instead of introducing a new inconsistency)
+
+Passives and prebuilt ships have the same `icon`/`shipIcon` gap (no
+`.icon =` assignment anywhere in the generator for those either), but no
+hand-made art exists for them the way it does for perks - checked and
+confirmed there's no `passive_*.png`/ship icon art anywhere in the
+project. That's a real content/art gap, not a code bug - can't be fixed
+without new art assets, so left as-is. Flagging in case art gets made
+later: the fix pattern would be identical (assign `.icon`/`.shipIcon` in
+`CreatePassive`/`CreateShip`).
+
+**Action needed:** re-run Tools -> Gravity Wars -> Generate Game Content
+to apply the icon assignments to the existing perk assets.
