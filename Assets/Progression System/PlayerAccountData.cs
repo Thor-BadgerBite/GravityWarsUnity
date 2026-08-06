@@ -30,10 +30,10 @@ public class PlayerAccountData
     public int gems = 0;         // Renamed from hardCurrency - Premium currency
 
     [Header("Competitive Stats - Online Play")]
-    public int eloRating = 1200;
-    public int peakEloRating = 1200;
+    public int eloRating = ELORatingSystem.STARTING_ELO;
+    public int peakEloRating = ELORatingSystem.STARTING_ELO;
     public string lastRankedSeasonID = "";
-    public CompetitiveRank currentRank = CompetitiveRank.Bronze;
+    public CompetitiveRank currentRank = CompetitiveRank.Ensign;
     public int rankedMatchesPlayed = 0;
     public int rankedMatchesWon = 0;
     public int casualMatchesPlayed = 0;
@@ -428,13 +428,22 @@ public class PlayerAccountData
     /// </summary>
     public void UpdateRankFromELO()
     {
-        if (eloRating < 1000) currentRank = CompetitiveRank.Bronze;
-        else if (eloRating < 1200) currentRank = CompetitiveRank.Silver;
-        else if (eloRating < 1400) currentRank = CompetitiveRank.Gold;
-        else if (eloRating < 1600) currentRank = CompetitiveRank.Platinum;
-        else if (eloRating < 1800) currentRank = CompetitiveRank.Diamond;
-        else if (eloRating < 2000) currentRank = CompetitiveRank.Master;
-        else currentRank = CompetitiveRank.Grandmaster;
+        if (eloRating < 700) currentRank = CompetitiveRank.Cadet;
+        else if (eloRating < 1050) currentRank = CompetitiveRank.Ensign;
+        else if (eloRating < 1200) currentRank = CompetitiveRank.Lieutenant;
+        else if (eloRating < 1350) currentRank = CompetitiveRank.LieutenantCommander;
+        else if (eloRating < 1500) currentRank = CompetitiveRank.Commander;
+        else if (eloRating < 1650) currentRank = CompetitiveRank.Captain;
+        else if (eloRating < 1800) currentRank = CompetitiveRank.SeniorCaptain;
+        else if (eloRating < 1950) currentRank = CompetitiveRank.Commodore;
+        else if (eloRating < 2100) currentRank = CompetitiveRank.RearAdmiral;
+        else if (eloRating < 2250) currentRank = CompetitiveRank.RearAdmiralUpperHalf;
+        else if (eloRating < 2400) currentRank = CompetitiveRank.ViceAdmiral;
+        else if (eloRating < 2550) currentRank = CompetitiveRank.Admiral;
+        else if (eloRating < 2700) currentRank = CompetitiveRank.HighAdmiral;
+        else if (eloRating < 2850) currentRank = CompetitiveRank.FleetAdmiral;
+        else if (eloRating < 3000) currentRank = CompetitiveRank.SupremeAdmiral;
+        else currentRank = CompetitiveRank.GrandAdmiral;
     }
 }
 
@@ -570,18 +579,29 @@ public class ShipProgressionEntry
 }
 
 /// <summary>
-/// Competitive ranking tiers for matchmaking
+/// Competitive ranking tiers for matchmaking.
+/// Military/Naval-themed ranks progressing from Cadet to Grand Admiral.
+/// 16 ranks total - Starting rank: Ensign (800 ELO)
 /// </summary>
 [System.Serializable]
 public enum CompetitiveRank
 {
-    Bronze,
-    Silver,
-    Gold,
-    Platinum,
-    Diamond,
-    Master,
-    Grandmaster
+    Cadet,                  // Rank 16 (Lowest): 0-699 ELO
+    Ensign,                 // Rank 15 (Starting): 700-1049 ELO ⭐ STARTING RANK (800)
+    Lieutenant,             // Rank 14: 1050-1199 ELO
+    LieutenantCommander,    // Rank 13: 1200-1349 ELO
+    Commander,              // Rank 12: 1350-1499 ELO
+    Captain,                // Rank 11: 1500-1649 ELO
+    SeniorCaptain,          // Rank 10: 1650-1799 ELO
+    Commodore,              // Rank 9: 1800-1949 ELO
+    RearAdmiral,            // Rank 8: 1950-2099 ELO
+    RearAdmiralUpperHalf,   // Rank 7: 2100-2249 ELO
+    ViceAdmiral,            // Rank 6: 2250-2399 ELO
+    Admiral,                // Rank 5: 2400-2549 ELO
+    HighAdmiral,            // Rank 4: 2550-2699 ELO
+    FleetAdmiral,           // Rank 3: 2700-2849 ELO
+    SupremeAdmiral,         // Rank 2: 2850-2999 ELO
+    GrandAdmiral            // Rank 1 (Highest): 3000+ ELO
 }
 
 /// <summary>
