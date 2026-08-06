@@ -631,3 +631,33 @@ for `[ProgressionManager] Loaded account...`, `[ProgressionManager]
 Unlocked ship at level X`, and `[BattlePass] Free reward granted` - these
 confirm the whole chain (account load -> match XP -> battle pass -> ship
 unlocks) is actually running now, not just wired in theory.
+
+### Verified live: the whole progression chain actually runs now
+Played a full hotseat match after the fixes above. Confirmed from the
+Console, in order: `ProgressionManager` self-bootstrapped
+(`AddComponent<ProgressionManager>`), created a new account (no save file
+existed), granted starter content, `PopulateContentDatabases` loaded
+**12 bodies, 17 ships, 20 perks, 17 passives** (all 17 - the earlier
+unreachable-ships fix is reflected here), `QuestService` auto-initialized
+with 11 active quests, `AwardMatchProgression` fired for both the winner
+and the bot/participant, `BattlePassSystem.EnsureLoaded()` correctly
+synced before the first XP mutation (`[BattlePass] New season started`
+-> `Restored progress - Level 0, XP 0`), first-win-of-the-day 2x bonus
+applied correctly to the winner only (698 BP XP vs 146 for the loser),
+local save wrote successfully, cloud save gracefully queued for later
+(client is offline - expected, not a bug). No `ProgressionManager not
+found` warning and no `DontDestroyOnLoad` warning this run - both
+confirmed fixed.
+
+No level-up happened yet in this single match (844 total battle pass XP
+accumulated, needs 1000 for tier 1; similarly for account level) - so
+`[BattlePass] Level up!` / `[ProgressionManager] Unlocked ship at level X`
+haven't been exercised yet. That needs either a longer session or a
+manually-inflated XP value to actually see a level-up + auto-grant fire.
+
+Noted but not fixed (cosmetic-only, pre-existing, unrelated to this
+session's changes): a few `OnValidate()` design-linter warnings fire on
+content load (e.g. "Tank health scaling seems low, recommended 0.035+")
+that are now stale against our deliberate rebalance values - and a Unity
+`ParticleSystem` "duration while playing" warning in the ship explosion
+VFX. Neither affects gameplay or progression; low-priority polish only.
