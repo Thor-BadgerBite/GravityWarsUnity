@@ -496,3 +496,97 @@ Fixed by building real, power-neutral content for every referenced id:
   default, so they happened to resolve correctly either way.)
 - **Action needed:** re-run Tools -> Gravity Wars -> Generate Game Content
   (ships, perks, missiles, ship bodies) to create the new assets.
+
+### Two parallel battle pass systems found and merged into one
+Follow-up question: "are we balanced, do we have enough ships for Season 1?"
+Balance: yes, confirmed - every ship (old and new) draws from the same
+already-validated body/perk/missile pool, nothing added outside that range.
+Ship count led to a deeper find: **the game had two complete, independent
+battle pass implementations that never talked to each other**, both reading
+and writing the same `profile.battlePassXP`/`battlePassTier` fields:
+
+1. `BattlePassSystem.cs` - a MonoBehaviour singleton with hardcoded C#
+   reward dictionaries (the one fixed earlier this pass).
+2. `BattlePassData` (a ScriptableObject type) + `GenerateBattlePass()` in
+   the content generator - a proper Editor-generated 30-tier asset with
+   real `Load<>()` asset references, wired into `ProgressionManager.
+   freeBattlePass`/`seasonalBattlePass`, and what `BattlePassUI.cs` and
+   `ProgressionUI.cs`'s next-unlock widget actually read from.
+
+**Neither was actually live.** System 2's asset was never generated
+(`Season1_BattlePass.asset` didn't exist anywhere in the project), and even
+generated it would have needed someone to manually drag it into two
+Inspector fields - unlike every other content type (ships/perks/passives),
+which self-populate from `Resources.LoadAll`. System 1's `Instance` was
+never non-null either: nothing in any scene ever added the component, and
+its `Awake()`-based singleton (unlike Achievement/QuestService) had no
+lazy-create fallback - so `if (BattlePassSystem.Instance != null)` guards
+elsewhere silently no-op'd. Net effect: no player has ever received a
+battle pass reward through either path.
+
+**Resolution - `BattlePassSystem.cs` is now the canonical implementation:**
+- Given the same lazy-singleton bootstrap as `AchievementService`/
+  `QuestService` (`FindObjectOfType` -> `AddComponent` on first access) -
+  no scene wiring needed, matching how the other backend services in this
+  project self-heal.
+- `OnLevelUp` now auto-grants rewards (free always, premium if owned)
+  instead of just logging that they exist - no separate "claim" UI action
+  needed. `PurchasePremiumPass` retroactively sweeps and grants premium
+  rewards for every level already reached.
+- Added an `EnsureLoaded()` guard before the first XP mutation: since the
+  singleton is created on demand, `Awake()` runs synchronously but `Start()`
+  (where profile restore used to happen) does not - without this, the very
+  first `AddBattlePassXP()` call of a session could fire against a zeroed,
+  not-yet-restored state and stomp real saved progress on write-back.
+- `ProgressionManager.AwardMatchXP` (the method `GameManager` actually
+  calls after a hotseat match) now calls `BattlePassSystem.Instance.
+  AddBattlePassXP()` instead of writing `battlePassXP` directly itself -
+  one writer, no more risk of the two systems' state diverging.
+- `BattlePassUI.cs` and `ProgressionUI.cs`'s next-unlock widget rewired to
+  read from `BattlePassSystem.Instance` (icons resolved by matching
+  `rewardId` against the content databases, since `BattlePassReward` only
+  carries an id string, not a live SO reference).
+- Removed the now-dead System 2 code: `ProgressionManager.freeBattlePass`/
+  `seasonalBattlePass` fields, `GrantAccountLevelRewards`/
+  `CheckBattlePassTierUp`/`GrantBattlePassTierRewards`/`GrantReward`, and
+  `PurchasePremiumBattlePass` (which had a **live NullReferenceException**
+  waiting in it - `seasonalBattlePass.GetTier(i)` on an always-null field,
+  the moment anyone actually spent gems on premium). Also removed the
+  `GenerateBattlePass()` generator method/button - its content was
+  legitimate and could be resurrected later for designer-editable SO
+  rewards, but keeping an unreachable second content path around is
+  exactly what caused this confusion; check git history if it's ever
+  wanted back.
+- `BattlePassData.cs`'s `RewardType` enum is still used (by
+  `BattlePassSystem.BattlePassReward`) and stays; the `BattlePassData`/
+  `BattlePassTier`/`UnlockableReward` classes in that file are now unused
+  but left in place rather than deleted.
+
+**Separately, fixed why 9 of the 17 prebuilt ships were unreachable:**
+Nova Class, Titan Defender, Phoenix Mk-I, Eclipse Striker, Bastion Class,
+Viper Assault, Juggernaut, Reaper Class, and Nexus Command all have a real
+`requiredAccountLevel`, but nothing ever granted them when a player reached
+that level - `ProgressionSystem.cs` has a matching level-keyed ship table,
+but nothing calls it either (confirmed: `GetShipUnlock`/
+`GetAllUnlockedShips` have zero callers in the whole project). Rather than
+wire up yet another disconnected table, added `ProgressionManager.
+UnlockShipsForLevel(level)` driven directly from the real generated
+`ShipPresetSO.requiredAccountLevel` field (the actual canonical data,
+already populated in a new `allShipPresets` content database) - called on
+every account level-up and once at login as a catch-up sweep for existing
+saves. Premium ships (`isPremiumShip == true`) are explicitly skipped here -
+those unlock exclusively through the battle pass premium track, not free
+leveling.
+
+Found but deliberately left alone: `ProgressionSystem.cs` (17 more
+"future" ships like Spectre Hunter, Oracle Class, Celestial Monarch - none
+generated as assets) and `ExtendedProgressionData.cs` (noted in the
+previous section - 20 unimplemented "ultimate ability" actives). Both are
+bigger, separate aspirational content roadmaps, not bugs in the current
+roster - out of scope here.
+
+**Season 1 roster after this fix:** all 17 prebuilt ships are now reachable
+- the starter ship, 9 account-level ships, 2 free battle pass ships, and 5
+premium battle pass ships. **Action needed:** re-run Tools -> Gravity Wars
+-> Generate Game Content (no BattlePassData asset is created anymore, so
+nothing to clean up there).

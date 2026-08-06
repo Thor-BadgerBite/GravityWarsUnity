@@ -26,16 +26,22 @@ public class ProgressionManager : MonoBehaviour
     [Header("Player Data")]
     public PlayerAccountData currentPlayerData;
 
-    [Header("Battle Pass References")]
-    [Tooltip("The permanent free battle pass (account progression)")]
-    public BattlePassData freeBattlePass;
-
-    [Tooltip("The current seasonal premium battle pass")]
-    public BattlePassData seasonalBattlePass;
+    // NOTE: BattlePassData-based free/premium pass fields used to live here.
+    // Removed - BattlePassSystem.cs (hardcoded reward tables, real content
+    // as of this pass) is the canonical battle pass implementation; no
+    // BattlePassData asset was ever created in this project, so
+    // freeBattlePass/seasonalBattlePass were always null and every method
+    // gated on them (GrantAccountLevelRewards, CheckBattlePassTierUp,
+    // GrantBattlePassTierRewards, PurchasePremiumBattlePass) was dead code -
+    // or in PurchasePremiumBattlePass's case, a live NullReferenceException
+    // waiting to happen the first time anyone bought premium with gems.
 
     [Header("Content Databases")]
     [Tooltip("All available ship bodies in the game")]
     public List<ShipBodySO> allShipBodies = new List<ShipBodySO>();
+
+    [Tooltip("All prebuilt ships in the game")]
+    public List<ShipPresetSO> allShipPresets = new List<ShipPresetSO>();
 
     [Tooltip("All available perks (Tier 1/2/3)")]
     public List<ActivePerkSO> allPerks = new List<ActivePerkSO>();
@@ -91,6 +97,12 @@ public class ProgressionManager : MonoBehaviour
         // Initialize content databases if empty (auto-populate from Resources)
         if (allShipBodies.Count == 0)
             PopulateContentDatabases();
+
+        // Catch-up sweep: a returning save whose level already passed a
+        // ship's requiredAccountLevel (from before this unlock hook
+        // existed, or from any future desync) gets swept here too - not
+        // just fresh level-ups going forward.
+        UnlockShipsForLevel(currentPlayerData.level);
 
         // Start the quest system now that player data is ready.
         // NOTE: QuestService.InitializeQuests() was previously never called
@@ -310,8 +322,11 @@ public class ProgressionManager : MonoBehaviour
             result.firstWinOfTheDay = true;
             Debug.Log("[ProgressionManager] ⭐ First win of the day! 2x Battle Pass XP");
         }
-        currentPlayerData.battlePassXP += battlePassXP;
-        CheckBattlePassTierUp();
+        // BattlePassSystem is the single source of truth for battle pass
+        // progress now - it writes currentPlayerData.battlePassXP/Tier
+        // itself (via SaveToProfile) and auto-grants tier rewards on
+        // level-up, so this method must not also touch those fields.
+        BattlePassSystem.Instance?.AddBattlePassXP(battlePassXP);
 
         // Update stats
         currentPlayerData.totalMatchesPlayed++;
@@ -343,110 +358,43 @@ public class ProgressionManager : MonoBehaviour
             currentPlayerData.level++;
             Debug.Log($"[ProgressionManager] ACCOUNT LEVEL UP! Now Level {currentPlayerData.level}");
 
-            // Grant level-up rewards (check free battle pass)
-            GrantAccountLevelRewards(currentPlayerData.level);
+            // Unlock any prebuilt ship whose requiredAccountLevel is now met.
+            UnlockShipsForLevel(currentPlayerData.level);
 
             xpForNextLevel = 1000 + (currentPlayerData.level * 500);
         }
     }
 
     /// <summary>
-    /// Grants rewards for reaching an account level (from free battle pass)
+    /// Unlocks every prebuilt ship (ShipPresetSO) whose requiredAccountLevel
+    /// is met by the player's current level and isn't unlocked yet.
+    /// Previously nothing ever called this for the account-level axis - the
+    /// 9 non-starter prebuilt ships (Nova Class, Eclipse Striker, Viper
+    /// Assault, etc.) had requiredAccountLevel set but no live trigger ever
+    /// granted them, so they were unreachable to a real player.
     /// </summary>
-    private void GrantAccountLevelRewards(int level)
+    public void UnlockShipsForLevel(int level)
     {
-        if (freeBattlePass == null) return;
-
-        // Check if this level matches a battle pass tier
-        var tier = freeBattlePass.GetTier(level - 1); // 0-indexed
-        if (tier != null && tier.freeReward.HasReward())
+        foreach (var preset in allShipPresets)
         {
-            GrantReward(tier.freeReward);
+            if (preset == null) continue;
+            // Premium ships are earned through the battle pass (see
+            // BattlePassSystem.ApplyReward), not free account leveling -
+            // skip them here even if their requiredAccountLevel is met.
+            if (preset.isPremiumShip) continue;
+            if (preset.requiredAccountLevel > level) continue;
+            if (currentPlayerData.unlockedShipModels.Contains(preset.name)) continue;
+
+            currentPlayerData.UnlockById(UnlockType.PrebuildShip, preset.name);
+            Debug.Log($"[ProgressionManager] Unlocked ship at level {level}: {preset.shipName}");
         }
     }
 
-    /// <summary>
-    /// Checks if player unlocked new battle pass tier
-    /// </summary>
-    private void CheckBattlePassTierUp()
-    {
-        if (seasonalBattlePass == null || !seasonalBattlePass.IsActive())
-            return;
-
-        int newTier = seasonalBattlePass.GetTierFromXP(currentPlayerData.battlePassXP);
-
-        if (newTier > currentPlayerData.battlePassTier)
-        {
-            Debug.Log($"[ProgressionManager] BATTLE PASS TIER UP! Now Tier {newTier + 1}");
-
-            // Grant rewards for all tiers between old and new
-            for (int i = currentPlayerData.battlePassTier + 1; i <= newTier; i++)
-            {
-                GrantBattlePassTierRewards(i);
-            }
-
-            currentPlayerData.battlePassTier = newTier;
-        }
-    }
-
-    /// <summary>
-    /// Grants rewards for a battle pass tier
-    /// </summary>
-    private void GrantBattlePassTierRewards(int tierIndex)
-    {
-        if (seasonalBattlePass == null) return;
-
-        var tier = seasonalBattlePass.GetTier(tierIndex);
-        if (tier == null) return;
-
-        // Always grant free reward
-        if (tier.freeReward.HasReward())
-        {
-            Debug.Log($"[ProgressionManager] Battle Pass Tier {tierIndex + 1} - Free Reward");
-            GrantReward(tier.freeReward);
-        }
-
-        // Grant premium reward if player has premium pass
-        if (currentPlayerData.hasPremiumBattlePass && tier.premiumReward.HasReward())
-        {
-            Debug.Log($"[ProgressionManager] Battle Pass Tier {tierIndex + 1} - Premium Reward");
-            GrantReward(tier.premiumReward);
-        }
-    }
-
-    /// <summary>
-    /// Grants a reward to the player
-    /// </summary>
-    private void GrantReward(UnlockableReward reward)
-    {
-        // Unlock item
-        if (reward.rewardItem != null)
-        {
-            UnlockItem(reward.rewardItem);
-        }
-
-        // Grant currency
-        if (reward.softCurrencyAmount > 0 || reward.hardCurrencyAmount > 0)
-        {
-            currentPlayerData.AddCurrency(reward.softCurrencyAmount, reward.hardCurrencyAmount);
-        }
-
-        // Grant XP
-        if (reward.accountXP > 0)
-        {
-            currentPlayerData.currentXP += reward.accountXP;
-        }
-
-        // Unlock cosmetics
-        if (!string.IsNullOrEmpty(reward.skinID))
-            currentPlayerData.unlockedSkinIDs.Add(reward.skinID);
-        if (!string.IsNullOrEmpty(reward.colorSchemeID))
-            currentPlayerData.unlockedColorSchemeIDs.Add(reward.colorSchemeID);
-        if (!string.IsNullOrEmpty(reward.decalID))
-            currentPlayerData.unlockedDecalIDs.Add(reward.decalID);
-
-        Debug.Log($"[ProgressionManager] Granted reward: {reward.GetDisplayText()}");
-    }
+    // NOTE: GrantAccountLevelRewards / CheckBattlePassTierUp /
+    // GrantBattlePassTierRewards / GrantReward(UnlockableReward) used to
+    // live here - removed as dead code (see the note by the removed
+    // freeBattlePass/seasonalBattlePass fields above). Battle pass XP,
+    // leveling and reward granting now all go through BattlePassSystem.
 
     #endregion
 
@@ -483,40 +431,12 @@ public class ProgressionManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Purchases premium battle pass
-    /// </summary>
-    public bool PurchasePremiumBattlePass(int gemCost)
-    {
-        if (currentPlayerData.hasPremiumBattlePass)
-        {
-            Debug.LogWarning("[ProgressionManager] Already owns premium battle pass!");
-            return false;
-        }
-
-        if (SpendCurrency(0, gemCost))
-        {
-            currentPlayerData.hasPremiumBattlePass = true;
-            Debug.Log("[ProgressionManager] Premium Battle Pass purchased!");
-
-            // Grant all premium rewards for already-unlocked tiers
-            for (int i = 0; i <= currentPlayerData.battlePassTier; i++)
-            {
-                var tier = seasonalBattlePass.GetTier(i);
-                if (tier != null && tier.premiumReward.HasReward())
-                {
-                    GrantReward(tier.premiumReward);
-                }
-            }
-
-            if (autoSave)
-                Save();
-
-            return true;
-        }
-
-        return false;
-    }
+    // NOTE: PurchasePremiumBattlePass used to live here, gated on the dead
+    // seasonalBattlePass field (a guaranteed NullReferenceException on
+    // seasonalBattlePass.GetTier(i) the moment anyone actually bought
+    // premium with gems, since that field was never assigned). Removed -
+    // BattlePassSystem.Instance.PurchasePremiumPass() is the real one now
+    // (it also correctly sweeps and grants already-reached premium tiers).
 
     #endregion
 
@@ -736,12 +656,13 @@ public class ProgressionManager : MonoBehaviour
     {
         // Load all ScriptableObjects from Resources (or you can manually assign in Inspector)
         allShipBodies.AddRange(Resources.LoadAll<ShipBodySO>(""));
+        allShipPresets.AddRange(Resources.LoadAll<ShipPresetSO>(""));
         allPerks.AddRange(Resources.LoadAll<ActivePerkSO>(""));
         allPassives.AddRange(Resources.LoadAll<PassiveAbilitySO>(""));
         allMoveTypes.AddRange(Resources.LoadAll<MoveTypeSO>(""));
         allMissiles.AddRange(Resources.LoadAll<MissilePresetSO>(""));
 
-        Debug.Log($"[ProgressionManager] Loaded content: {allShipBodies.Count} bodies, {allPerks.Count} perks, {allPassives.Count} passives");
+        Debug.Log($"[ProgressionManager] Loaded content: {allShipBodies.Count} bodies, {allShipPresets.Count} ships, {allPerks.Count} perks, {allPassives.Count} passives");
     }
 
     #endregion

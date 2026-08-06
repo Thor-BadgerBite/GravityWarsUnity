@@ -6,12 +6,18 @@ using System.Collections.Generic;
 /// <summary>
 /// Displays the battle pass with tiers, rewards, and progress.
 /// Shows both free and premium tracks.
+///
+/// Sourced from BattlePassSystem.Instance (hardcoded, real reward tables -
+/// see IMPLEMENTATION_STATUS.md). This used to read from a BattlePassData
+/// ScriptableObject via progressionManager.seasonalBattlePass, but no such
+/// asset was ever created in the project, so that path was permanently
+/// null and this whole screen silently did nothing. BattlePassSystem is
+/// now the single canonical battle pass implementation.
 /// </summary>
 public class BattlePassUI : MonoBehaviour
 {
     [Header("References")]
     public ProgressionManager progressionManager;
-    public BattlePassData battlePass; // Set to seasonal battle pass
 
     [Header("Header")]
     public TextMeshProUGUI battlePassTitleText;
@@ -41,9 +47,6 @@ public class BattlePassUI : MonoBehaviour
         if (progressionManager == null)
             progressionManager = ProgressionManager.Instance;
 
-        if (battlePass == null && progressionManager.seasonalBattlePass != null)
-            battlePass = progressionManager.seasonalBattlePass;
-
         purchasePremiumButton.onClick.AddListener(OnPurchasePremium);
 
         RefreshUI();
@@ -54,89 +57,69 @@ public class BattlePassUI : MonoBehaviour
     /// </summary>
     public void RefreshUI()
     {
-        if (progressionManager == null || battlePass == null) return;
+        var bp = BattlePassSystem.Instance;
+        if (progressionManager == null || bp == null) return;
 
         PlayerAccountData data = progressionManager.currentPlayerData;
+        if (data == null) return;
 
-        UpdateHeader(data);
-        UpdateTiers(data);
+        UpdateHeader(bp);
+        UpdateTiers(bp);
         UpdatePurchasePanel(data);
     }
 
     /// <summary>
     /// Updates header section (title, tier, XP bar)
     /// </summary>
-    private void UpdateHeader(PlayerAccountData data)
+    private void UpdateHeader(BattlePassSystem bp)
     {
-        // Title
         if (battlePassTitleText != null)
-            battlePassTitleText.text = battlePass.displayName;
+            battlePassTitleText.text = bp.GetSeasonName();
 
-        // Current tier
         if (currentTierText != null)
         {
-            int currentTier = data.battlePassTier + 1; // Display as 1-indexed
-            int maxTier = battlePass.GetTierCount();
-            currentTierText.text = $"Tier {currentTier} / {maxTier}";
+            int currentLevel = bp.GetCurrentLevel() + 1; // Display as 1-indexed
+            currentTierText.text = $"Tier {currentLevel} / {bp.GetMaxLevel()}";
         }
 
-        // XP bar
         if (battlePassXPBar != null && battlePassXPText != null)
         {
-            int currentTierXP = 0;
-            int nextTierXP = 1000;
-
-            if (data.battlePassTier < battlePass.GetTierCount())
-            {
-                currentTierXP = battlePass.GetTier(data.battlePassTier)?.xpRequired ?? 0;
-                nextTierXP = battlePass.GetXPForNextTier(data.battlePassTier);
-            }
-
-            int xpIntoTier = data.battlePassXP - currentTierXP;
-            int xpNeeded = nextTierXP - currentTierXP;
-
-            if (data.battlePassTier >= battlePass.GetTierCount() - 1)
+            if (bp.GetCurrentLevel() >= bp.GetMaxLevel())
             {
                 battlePassXPBar.fillAmount = 1.0f;
                 battlePassXPText.text = "MAX TIER";
             }
             else
             {
-                float fillAmount = Mathf.Clamp01((float)xpIntoTier / xpNeeded);
+                int xpNeeded = bp.GetXPForNextLevel();
+                float fillAmount = Mathf.Clamp01((float)bp.GetCurrentXP() / xpNeeded);
                 battlePassXPBar.fillAmount = fillAmount;
-                battlePassXPText.text = $"{xpIntoTier} / {xpNeeded} XP";
+                battlePassXPText.text = $"{bp.GetCurrentXP()} / {xpNeeded} XP";
             }
         }
     }
 
     /// <summary>
-    /// Updates tier display (scrollable list of all tiers)
+    /// Updates tier display (scrollable list of all tiers). Levels are
+    /// 1-indexed to match BattlePassSystem's reward dictionaries.
     /// </summary>
-    private void UpdateTiers(PlayerAccountData data)
+    private void UpdateTiers(BattlePassSystem bp)
     {
-        // Clear existing
         foreach (var item in tierItems)
-        {
             Destroy(item);
-        }
         tierItems.Clear();
 
-        // Create tier items
-        for (int i = 0; i < battlePass.GetTierCount(); i++)
+        for (int level = 1; level <= bp.GetMaxLevel(); level++)
         {
-            BattlePassTier tier = battlePass.GetTier(i);
-            if (tier == null) continue;
-
             GameObject tierObj = Instantiate(tierItemPrefab, tierContainer);
             tierItems.Add(tierObj);
 
-            SetupTierItem(tierObj, tier, data, i);
+            SetupTierItem(tierObj, bp, level);
         }
 
-        // Scroll to current tier
         if (scrollRect != null)
         {
-            float scrollPos = (float)data.battlePassTier / battlePass.GetTierCount();
+            float scrollPos = (float)bp.GetCurrentLevel() / bp.GetMaxLevel();
             scrollRect.verticalNormalizedPosition = 1f - scrollPos;
         }
     }
@@ -144,29 +127,22 @@ public class BattlePassUI : MonoBehaviour
     /// <summary>
     /// Sets up a single tier item display
     /// </summary>
-    private void SetupTierItem(GameObject tierObj, BattlePassTier tier, PlayerAccountData data, int tierIndex)
+    private void SetupTierItem(GameObject tierObj, BattlePassSystem bp, int level)
     {
-        // Tier number
         TextMeshProUGUI tierNumberText = tierObj.transform.Find("TierNumber")?.GetComponent<TextMeshProUGUI>();
         if (tierNumberText != null)
-            tierNumberText.text = $"{tier.tierNumber}";
+            tierNumberText.text = $"{level}";
 
-        // Free reward
         Transform freeRewardPanel = tierObj.transform.Find("FreeReward");
         if (freeRewardPanel != null)
-        {
-            SetupRewardDisplay(freeRewardPanel, tier.freeReward, tierIndex <= data.battlePassTier);
-        }
+            SetupRewardDisplay(freeRewardPanel, bp.GetFreeReward(level), bp.IsFreeRewardClaimed(level));
 
-        // Premium reward
         Transform premiumRewardPanel = tierObj.transform.Find("PremiumReward");
         if (premiumRewardPanel != null)
         {
-            bool isPremiumUnlocked = data.hasPremiumBattlePass && tierIndex <= data.battlePassTier;
-            SetupRewardDisplay(premiumRewardPanel, tier.premiumReward, isPremiumUnlocked);
+            SetupRewardDisplay(premiumRewardPanel, bp.GetPremiumReward(level), bp.IsPremiumRewardClaimed(level));
 
-            // Grey out if player doesn't have premium pass
-            if (!data.hasPremiumBattlePass)
+            if (!bp.IsPremiumUnlocked())
             {
                 Image[] images = premiumRewardPanel.GetComponentsInChildren<Image>();
                 foreach (var img in images)
@@ -178,20 +154,20 @@ public class BattlePassUI : MonoBehaviour
             }
         }
 
-        // Highlight current tier
         Image background = tierObj.GetComponent<Image>();
-        if (background != null && tierIndex == data.battlePassTier)
+        if (background != null && level - 1 == bp.GetCurrentLevel())
         {
             background.color = new Color(1f, 1f, 0f, 0.3f); // Yellow highlight
         }
     }
 
     /// <summary>
-    /// Sets up reward display (icon, name, claimed status)
+    /// Sets up reward display (icon, name, claimed status). reward is null
+    /// for levels that don't grant anything on that track.
     /// </summary>
-    private void SetupRewardDisplay(Transform rewardPanel, UnlockableReward reward, bool isClaimed)
+    private void SetupRewardDisplay(Transform rewardPanel, BattlePassReward reward, bool isClaimed)
     {
-        if (!reward.HasReward())
+        if (reward == null)
         {
             rewardPanel.gameObject.SetActive(false);
             return;
@@ -199,32 +175,57 @@ public class BattlePassUI : MonoBehaviour
 
         rewardPanel.gameObject.SetActive(true);
 
-        // Reward icon
         Image iconImage = rewardPanel.Find("Icon")?.GetComponent<Image>();
-        if (iconImage != null && reward.rewardItem != null)
+        if (iconImage != null)
         {
-            Sprite icon = GetIconFromScriptableObject(reward.rewardItem);
+            Sprite icon = ResolveRewardIcon(reward.rewardId);
             if (icon != null)
                 iconImage.sprite = icon;
         }
 
-        // Reward name
         TextMeshProUGUI nameText = rewardPanel.Find("Name")?.GetComponent<TextMeshProUGUI>();
         if (nameText != null)
-            nameText.text = reward.GetDisplayText();
+            nameText.text = reward.displayName;
 
-        // Claimed checkmark
         GameObject claimedMark = rewardPanel.Find("ClaimedMark")?.gameObject;
         if (claimedMark != null)
             claimedMark.SetActive(isClaimed);
 
-        // Click to view details
+        // Rewards auto-grant on level-up now (BattlePassSystem.OnLevelUp) -
+        // this button just shows details, it doesn't need to claim anything.
         Button rewardButton = rewardPanel.GetComponent<Button>();
         if (rewardButton != null)
         {
             rewardButton.onClick.RemoveAllListeners();
             rewardButton.onClick.AddListener(() => ShowRewardDetails(reward));
         }
+    }
+
+    /// <summary>
+    /// Looks up a reward's icon by id across the content databases
+    /// (bodies/ships/perks/passives/missiles). Returns null for
+    /// currency/skin rewards, which have no ScriptableObject to draw from.
+    /// </summary>
+    private Sprite ResolveRewardIcon(string rewardId)
+    {
+        if (string.IsNullOrEmpty(rewardId) || progressionManager == null) return null;
+
+        var body = progressionManager.allShipBodies.Find(b => b != null && b.name == rewardId);
+        if (body != null) return body.icon;
+
+        var ship = progressionManager.allShipPresets.Find(s => s != null && s.name == rewardId);
+        if (ship != null) return ship.shipIcon;
+
+        var perk = progressionManager.allPerks.Find(p => p != null && p.name == rewardId);
+        if (perk != null) return perk.icon;
+
+        var passive = progressionManager.allPassives.Find(p => p != null && p.name == rewardId);
+        if (passive != null) return passive.icon;
+
+        var missile = progressionManager.allMissiles.Find(m => m != null && m.name == rewardId);
+        if (missile != null) return missile.icon;
+
+        return null;
     }
 
     /// <summary>
@@ -242,7 +243,6 @@ public class BattlePassUI : MonoBehaviour
         {
             purchasePremiumPanel.SetActive(true);
 
-            // Set price (example: 1000 gems)
             if (premiumPriceText != null)
                 premiumPriceText.text = "1000 Gems";
         }
@@ -255,7 +255,7 @@ public class BattlePassUI : MonoBehaviour
     {
         int gemCost = 1000; // Adjust as needed
 
-        bool success = progressionManager.PurchasePremiumBattlePass(gemCost);
+        bool success = BattlePassSystem.Instance != null && BattlePassSystem.Instance.PurchasePremiumPass(gemCost);
         if (success)
         {
             Debug.Log("[BattlePassUI] Premium Battle Pass purchased!");
@@ -275,51 +275,33 @@ public class BattlePassUI : MonoBehaviour
     private void ShowPremiumRewardsPopup()
     {
         if (rewardsPopup == null) return;
+        var bp = BattlePassSystem.Instance;
+        if (bp == null) return;
 
         rewardsPopup.SetActive(true);
 
-        // Clear previous rewards
         foreach (Transform child in rewardsContainer)
-        {
             Destroy(child.gameObject);
-        }
 
-        // Show all premium rewards up to current tier
-        PlayerAccountData data = progressionManager.currentPlayerData;
-        for (int i = 0; i <= data.battlePassTier; i++)
+        for (int level = 1; level <= bp.GetCurrentLevel(); level++)
         {
-            BattlePassTier tier = battlePass.GetTier(i);
-            if (tier != null && tier.premiumReward.HasReward())
-            {
-                GameObject rewardObj = Instantiate(rewardItemPrefab, rewardsContainer);
-                TextMeshProUGUI rewardText = rewardObj.GetComponentInChildren<TextMeshProUGUI>();
-                if (rewardText != null)
-                    rewardText.text = $"Tier {tier.tierNumber}: {tier.premiumReward.GetDisplayText()}";
-            }
+            var reward = bp.GetPremiumReward(level);
+            if (reward == null) continue;
+
+            GameObject rewardObj = Instantiate(rewardItemPrefab, rewardsContainer);
+            TextMeshProUGUI rewardText = rewardObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (rewardText != null)
+                rewardText.text = $"Level {level}: {reward.displayName}";
         }
     }
 
     /// <summary>
     /// Shows reward details popup
     /// </summary>
-    private void ShowRewardDetails(UnlockableReward reward)
+    private void ShowRewardDetails(BattlePassReward reward)
     {
-        Debug.Log($"[BattlePassUI] Reward details: {reward.GetDisplayText()}");
+        Debug.Log($"[BattlePassUI] Reward details: {reward.displayName}");
         // TODO: Show fancy popup with reward details
-    }
-
-    /// <summary>
-    /// Extracts icon from ScriptableObject
-    /// </summary>
-    private Sprite GetIconFromScriptableObject(ScriptableObject obj)
-    {
-        if (obj is ShipBodySO body) return body.icon;
-        if (obj is ActivePerkSO perk) return perk.icon;
-        if (obj is PassiveAbilitySO passive) return passive.icon;
-        if (obj is MoveTypeSO moveType) return moveType.icon;
-        if (obj is MissilePresetSO missile) return missile.icon;
-
-        return null;
     }
 
     /// <summary>

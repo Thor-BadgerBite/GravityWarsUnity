@@ -71,7 +71,8 @@ public class GameContentGenerator : EditorWindow
         if (GUILayout.Button("Missiles")) { Begin(); GenerateMissiles(); Finish("missiles"); }
         if (GUILayout.Button("Move Types")) { Begin(); GenerateMoveTypes(); Finish("move types"); }
         if (GUILayout.Button("Prebuilt Ships")) { Begin(); GeneratePrebuiltShips(); Finish("prebuilt ships"); }
-        if (GUILayout.Button("Battle Pass (Season 1)")) { Begin(); GenerateBattlePass(); Finish("battle pass"); }
+        // NOTE: no "Battle Pass" generator button anymore - see the comment
+        // above the removed GenerateBattlePass() method for why.
     }
 
     private void GenerateAll()
@@ -83,7 +84,6 @@ public class GameContentGenerator : EditorWindow
         GenerateMissiles();
         GenerateMoveTypes();
         GeneratePrebuiltShips();   // References bodies/passives/perks/missiles
-        GenerateBattlePass();      // References everything
         Finish("content items");
     }
 
@@ -791,137 +791,26 @@ public class GameContentGenerator : EditorWindow
 
     #region Battle Pass
 
-    private void GenerateBattlePass()
-    {
-        var pass = GetOrCreate<BattlePassData>(BATTLEPASS_PATH, "Season1_BattlePass");
-        pass.battlePassID = "season_1";
-        pass.displayName = "Season 1: Cosmic Dawn";
-        pass.isSeasonal = true;
-        pass.seasonNumber = 1;
-        pass.seasonStartDate = "2026-01-01";
-        pass.seasonEndDate = "2026-12-31";
-        pass.description = "The first season of Gravity Wars. Climb 30 tiers of rewards across free and premium tracks.";
-
-        var tiers = new List<BattlePassTier>();
-        for (int i = 1; i <= 30; i++)
-        {
-            var tier = new BattlePassTier
-            {
-                tierNumber = i,
-                xpRequired = i * 1000,
-                freeReward = BuildFreeReward(i),
-                premiumReward = BuildPremiumReward(i)
-            };
-            tiers.Add(tier);
-        }
-        pass.tiers = tiers.ToArray();
-    }
-
-    private UnlockableReward BuildFreeReward(int tier)
-    {
-        var reward = new UnlockableReward();
-
-        switch (tier)
-        {
-            case 3:
-                reward.rewardType = RewardType.Missile;
-                reward.rewardItem = Load<MissilePresetSO>(MISSILES_PATH, "standard_mk2");
-                break;
-            case 6:
-                reward.rewardType = RewardType.Passive;
-                reward.rewardItem = Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_shield_regen");
-                break;
-            case 10:
-                reward.rewardType = RewardType.PrebuildShip;
-                reward.rewardItem = Load<ShipPresetSO>(SHIPS_PATH, "nova_class");
-                break;
-            case 14:
-                reward.rewardType = RewardType.Tier1Perk;
-                reward.rewardItem = Load<MultiMissileSO>(PERKS_PATH, "multi_missile_t1");
-                break;
-            case 18:
-                reward.rewardType = RewardType.Missile;
-                reward.rewardItem = Load<MissilePresetSO>(MISSILES_PATH, "light_swarm");
-                break;
-            case 22:
-                reward.rewardType = RewardType.Passive;
-                reward.rewardItem = Load<PassiveAbilitySO>(PASSIVES_PATH, "passive_damage_boost_1");
-                break;
-            case 26:
-                reward.rewardType = RewardType.Tier2Perk;
-                reward.rewardItem = Load<ClusterMissileSO>(PERKS_PATH, "cluster_missile_t2");
-                break;
-            case 30:
-                reward.rewardType = RewardType.PrebuildShip;
-                reward.rewardItem = Load<ShipPresetSO>(SHIPS_PATH, "eclipse_striker");
-                break;
-            default:
-                // Credits filler, scaling with tier; small gem drops every 5 tiers
-                reward.rewardType = RewardType.Credits;
-                reward.softCurrencyAmount = 250 + (tier * 50);
-                if (tier % 5 == 0) reward.hardCurrencyAmount = 10;
-                break;
-        }
-
-        return reward;
-    }
-
-    private UnlockableReward BuildPremiumReward(int tier)
-    {
-        var reward = new UnlockableReward();
-
-        switch (tier)
-        {
-            case 2:
-                reward.rewardType = RewardType.Skin;
-                reward.skinID = "skin_premium_platinum";
-                break;
-            case 5:
-                reward.rewardType = RewardType.PrebuildShip;
-                reward.rewardItem = Load<ShipPresetSO>(SHIPS_PATH, "phoenix_mk1");
-                break;
-            case 8:
-                reward.rewardType = RewardType.Tier2Perk;
-                reward.rewardItem = Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t2");
-                break;
-            case 12:
-                reward.rewardType = RewardType.Skin;
-                reward.skinID = "skin_premium_cosmic";
-                break;
-            case 15:
-                reward.rewardType = RewardType.PrebuildShip;
-                reward.rewardItem = Load<ShipPresetSO>(SHIPS_PATH, "bastion_class");
-                break;
-            case 18:
-                reward.rewardType = RewardType.Missile;
-                reward.rewardItem = Load<MissilePresetSO>(MISSILES_PATH, "heavy_titan");
-                break;
-            case 21:
-                reward.rewardType = RewardType.Skin;
-                reward.skinID = "skin_premium_diamond";
-                break;
-            case 25:
-                reward.rewardType = RewardType.PrebuildShip;
-                reward.rewardItem = Load<ShipPresetSO>(SHIPS_PATH, "viper_assault");
-                break;
-            case 28:
-                reward.rewardType = RewardType.Tier3Perk;
-                reward.rewardItem = Load<ExplosiveMissileSO>(PERKS_PATH, "explosive_missile_t3");
-                break;
-            case 30:
-                reward.rewardType = RewardType.PrebuildShip;
-                reward.rewardItem = Load<ShipPresetSO>(SHIPS_PATH, "nexus_command");
-                break;
-            default:
-                // Gems filler, scaling with tier
-                reward.rewardType = RewardType.Gems;
-                reward.hardCurrencyAmount = 20 + (tier * 2);
-                reward.softCurrencyAmount = 500 + (tier * 50);
-                break;
-        }
-
-        return reward;
-    }
+    // GenerateBattlePass()/BuildFreeReward()/BuildPremiumReward() used to
+    // live here, building a BattlePassData ScriptableObject (30 tiers,
+    // real asset references). Removed: the game had TWO parallel battle
+    // pass implementations - this SO-based one, and BattlePassSystem.cs's
+    // hardcoded reward dictionaries - reading/writing the same
+    // profile.battlePassXP/Tier fields with no coordination between them.
+    // Neither was ever actually live: this one's asset was never generated
+    // (Season1_BattlePass.asset didn't exist), and even if it had been,
+    // ProgressionManager.freeBattlePass/seasonalBattlePass had no auto-
+    // population step (unlike ships/perks/passives, which self-populate
+    // from Resources) - someone would still have had to manually drag the
+    // asset into two Inspector fields for it to ever run.
+    //
+    // BattlePassSystem.cs won: it self-bootstraps (no scene/Inspector setup
+    // needed, same lazy-singleton pattern as AchievementService/
+    // QuestService) and its reward tables now reference real, generated
+    // content (see IMPLEMENTATION_STATUS.md). This generator method's
+    // content was legitimate and could be resurrected later if the team
+    // ever wants designer-editable SO-based rewards instead of C# tables -
+    // check git history for the removed implementation.
 
     #endregion
 }

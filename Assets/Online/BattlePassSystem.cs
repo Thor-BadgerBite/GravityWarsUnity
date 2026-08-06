@@ -15,16 +15,41 @@ public class BattlePassSystem : MonoBehaviour
 {
     #region Singleton
 
-    public static BattlePassSystem Instance { get; private set; }
+    private static BattlePassSystem _instance;
+
+    /// <summary>
+    /// Lazily creates the singleton the first time anything asks for it -
+    /// nothing in any scene ever adds this component, so without this the
+    /// Instance was always null and every caller's "if (Instance != null)"
+    /// guard silently no-op'd. Same bootstrap pattern as AchievementService
+    /// / QuestService.
+    /// </summary>
+    public static BattlePassSystem Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<BattlePassSystem>();
+                if (_instance == null)
+                {
+                    var go = new GameObject("[BattlePassSystem]");
+                    _instance = go.AddComponent<BattlePassSystem>();
+                    DontDestroyOnLoad(go);
+                }
+            }
+            return _instance;
+        }
+    }
 
     private void Awake()
     {
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else
+        else if (_instance != this)
         {
             Destroy(gameObject);
         }
@@ -48,7 +73,7 @@ public class BattlePassSystem : MonoBehaviour
 
     private void OnDestroy()
     {
-        if (Instance == this && AccountSystem.Instance != null)
+        if (_instance == this && AccountSystem.Instance != null)
         {
             AccountSystem.Instance.OnLoginSuccess -= LoadFromProfile;
         }
@@ -191,6 +216,7 @@ public class BattlePassSystem : MonoBehaviour
         isPremiumUnlocked = profile.hasPremiumBattlePass;
         _claimedFreeRewards = new List<int>(profile.claimedFreeBattlePassTiers);
         _claimedPremiumRewards = new List<int>(profile.claimedPremiumBattlePassTiers);
+        _loadedOnce = true;
 
         Debug.Log($"[BattlePass] Restored progress - Level {_currentLevel}, XP {_currentXP}, Premium: {isPremiumUnlocked}");
     }
@@ -237,11 +263,32 @@ public class BattlePassSystem : MonoBehaviour
 
     #region Battle Pass Progression
 
+    private bool _loadedOnce = false;
+
+    /// <summary>
+    /// Re-syncs in-memory level/XP from the active profile if this is the
+    /// first mutation since the singleton was created. Needed because the
+    /// lazy Instance getter AddComponent()s this on demand - Awake() runs
+    /// synchronously, but Start() (where LoadFromProfile normally happens)
+    /// does not, so the very first AddBattlePassXP() call of a session could
+    /// otherwise fire against a zeroed, not-yet-restored state and stomp the
+    /// real saved progress on write-back.
+    /// </summary>
+    private void EnsureLoaded()
+    {
+        if (_loadedOnce) return;
+        var profile = GetActiveProfile();
+        if (profile == null) return;
+        LoadFromProfile(profile);
+        _loadedOnce = true;
+    }
+
     /// <summary>
     /// Add XP to battle pass and check for level ups.
     /// </summary>
     public void AddBattlePassXP(int xp)
     {
+        EnsureLoaded();
         _currentXP += xp;
 
         // Check for level ups
@@ -265,27 +312,30 @@ public class BattlePassSystem : MonoBehaviour
     }
 
     /// <summary>
-    /// Called when player levels up in battle pass.
+    /// Called when player levels up in battle pass. Rewards auto-grant on
+    /// reaching the level (no separate "claim" UI action needed yet) - the
+    /// free reward always grants; the premium one only if the pass is
+    /// owned. If premium is purchased later, PurchasePremiumPass() sweeps
+    /// back through already-reached levels to grant what was missed.
     /// </summary>
     private void OnLevelUp(int newLevel)
     {
-        // Notify player of available rewards
-        Debug.Log($"[BattlePass] Rewards available at level {newLevel}!");
+        Debug.Log($"[BattlePass] Reached level {newLevel}!");
 
-        // Check what rewards are available
-        bool hasFreeReward = FREE_TRACK_REWARDS.ContainsKey(newLevel);
-        bool hasPremiumReward = PREMIUM_TRACK_REWARDS.ContainsKey(newLevel) && isPremiumUnlocked;
-
-        if (hasFreeReward)
+        if (FREE_TRACK_REWARDS.ContainsKey(newLevel) && !_claimedFreeRewards.Contains(newLevel))
         {
             var reward = FREE_TRACK_REWARDS[newLevel];
-            Debug.Log($"[BattlePass] Free reward: {reward.displayName}");
+            ApplyReward(reward);
+            _claimedFreeRewards.Add(newLevel);
+            Debug.Log($"[BattlePass] Free reward granted: {reward.displayName}");
         }
 
-        if (hasPremiumReward)
+        if (isPremiumUnlocked && PREMIUM_TRACK_REWARDS.ContainsKey(newLevel) && !_claimedPremiumRewards.Contains(newLevel))
         {
             var reward = PREMIUM_TRACK_REWARDS[newLevel];
-            Debug.Log($"[BattlePass] Premium reward: {reward.displayName}");
+            ApplyReward(reward);
+            _claimedPremiumRewards.Add(newLevel);
+            Debug.Log($"[BattlePass] Premium reward granted: {reward.displayName}");
         }
     }
 
@@ -416,6 +466,19 @@ public class BattlePassSystem : MonoBehaviour
 
         profile.gems -= gemCost;
         isPremiumUnlocked = true;
+
+        // Retroactively grant premium rewards for every level already
+        // reached on the free track, since OnLevelUp only auto-grants the
+        // premium side while the pass is owned.
+        for (int level = 1; level <= _currentLevel; level++)
+        {
+            if (PREMIUM_TRACK_REWARDS.ContainsKey(level) && !_claimedPremiumRewards.Contains(level))
+            {
+                ApplyReward(PREMIUM_TRACK_REWARDS[level]);
+                _claimedPremiumRewards.Add(level);
+            }
+        }
+
         SaveToProfile();
 
         Debug.Log($"[BattlePass] Premium pass purchased for {gemCost} gems!");
@@ -427,6 +490,7 @@ public class BattlePassSystem : MonoBehaviour
     #region Public API
 
     public int GetCurrentLevel() => _currentLevel;
+    public int GetMaxLevel() => maxLevel;
     public int GetCurrentXP() => _currentXP;
     public int GetXPForNextLevel() => xpPerLevel;
     public bool IsPremiumUnlocked() => isPremiumUnlocked;
