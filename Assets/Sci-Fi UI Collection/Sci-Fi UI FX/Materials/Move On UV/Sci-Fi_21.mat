@@ -1,0 +1,154 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Sci-Fi_21
+  m_Shader: {fileID: 4800000, guid: d0f3638684c9bda40bb0e1197873043d, type: 3}
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _APPLYFINALUVCOMPRESSION_ON
+  - _SHOWSPRITE_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AlphaCurve:
+        m_Texture: {fileID: 2800000, guid: 041d7465f4aa4fa43abde459538615ff, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BumpMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailAlbedoMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailMask:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DetailNormalMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer1Tex:
+        m_Texture: {fileID: 2800000, guid: 2dfa62596a6e82d44b29e3c206be9312, type: 3}
+        m_Scale: {x: 0.5, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer2Tex:
+        m_Texture: {fileID: 2800000, guid: 288981c9361e129418d03a56bdecebbd, type: 3}
+        m_Scale: {x: 0.5, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer3Tex:
+        m_Texture: {fileID: 2800000, guid: d5380c7490d7c8343bebfae03f71f755, type: 3}
+        m_Scale: {x: 0.2, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer4Tex:
+        m_Texture: {fileID: 2800000, guid: ed8430c99b9d0344db03950c3aff5649, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer5Tex:
+        m_Texture: {fileID: 2800000, guid: beb30fe5f3f03cc41b1f3ba21f7f4f26, type: 3}
+        m_Scale: {x: 1.8, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer6Tex:
+        m_Texture: {fileID: 2800000, guid: d5380c7490d7c8343bebfae03f71f755, type: 3}
+        m_Scale: {x: 0.1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer7Tex:
+        m_Texture: {fileID: 2800000, guid: 570fbce1e1339db468f9ffb087da14aa, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _Layer8Tex:
+        m_Texture: {fileID: 2800000, guid: a649c81b423bc7c42ada41bbbe3c929a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 71bfdea0e335d435da2fcc889bee8fc1, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MetallicGlossMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ParallaxMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ApplyFinalUVCompression: 1
+    - _BumpScale: 1
+    - _Cutoff: 0.5
+    - _DetailNormalMapScale: 1
+    - _DstBlend: 0
+    - _EdgeFade: 0
+    - _GlossMapScale: 1
+    - _Glossiness: 0.5
+    - _GlossyReflections: 1
+    - _ImageEdgeFade: 0.297
+    - _Layer1Angle: 0
+    - _Layer1Speed: -0.8
+    - _Layer2Angle: 0
+    - _Layer2Speed: -0.3
+    - _Layer3Angle: 0
+    - _Layer3Speed: -0.3
+    - _Layer4Angle: 0
+    - _Layer4Speed: -1
+    - _Layer5Angle: 0
+    - _Layer5Speed: -0.8
+    - _Layer6Angle: 0
+    - _Layer6Speed: -0.5
+    - _Layer7Angle: 0
+    - _Layer7Speed: -0.5
+    - _Layer8Angle: 0
+    - _Layer8Speed: -0.5
+    - _Metallic: 0
+    - _Mode: 0
+    - _OcclusionStrength: 1
+    - _Parallax: 0.02
+    - _ShowSprite: 1
+    - _SmoothnessTextureChannel: 0
+    - _SpecularHighlights: 1
+    - _SrcBlend: 1
+    - _TextureEdgeFade: 1
+    - _UVLeftMax: 1
+    - _UVLeftMin: 0
+    - _UVRightMax: 0.5
+    - _UVRightMin: 0.139
+    - _UVSec: 0
+    - _UseCurve: -5.61
+    - _ZWrite: 1
+    m_Colors:
+    - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _Layer1Color: {r: 1.4980392, g: 1.4980392, b: 1.4980392, a: 1}
+    - _Layer2Color: {r: 0, g: 0.5488169, b: 2.670157, a: 0.36078432}
+    - _Layer3Color: {r: 1.3908929, g: 1.6167644, b: 3.031433, a: 1}
+    - _Layer4Color: {r: 1.4980392, g: 1.4980392, b: 1.4980392, a: 0.19215687}
+    - _Layer5Color: {r: 2.1185474, g: 2.1185474, b: 2.1185474, a: 1}
+    - _Layer6Color: {r: 1, g: 1, b: 1, a: 0.21960784}
+    - _Layer7Color: {r: 0, g: 3.4956472, b: 6.8831816, a: 0.19215687}
+    - _Layer8Color: {r: 2, g: 2, b: 2, a: 0.23529412}
+    - _UVLeft: {r: 0, g: 1, b: 0, a: 0}
+    - _UVRight: {r: 0, g: 1, b: 0, a: 0}
+  m_BuildTextureStacks: []

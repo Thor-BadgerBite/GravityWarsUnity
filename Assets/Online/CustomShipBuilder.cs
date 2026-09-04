@@ -1,28 +1,29 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
 /// <summary>
-/// Custom Ship Builder System
-/// Handles the creation of custom ships from unlocked components:
-/// - Ship Body (defines archetype + base stats + 3D model)
-/// - 1 Passive Ability (with archetype restriction)
-/// - 3 Active Abilities (one from each tier: 1, 2, 3)
-/// - Custom Name
+/// Custom Ship Builder - ID-BASED WRAPPER around the canonical builder.
 ///
-/// Custom ships act like prebuild ships and start at level 1.
-/// Players can delete ships (prebuild or custom) to free slots, but lose all progress.
+/// The single source of truth for ship building rules is
+/// ProgressionManager.ValidateLoadoutBuild / CreateCustomLoadout (SO-based):
+/// - Ship body + move type (archetype-compatible, unlocked)
+/// - Exactly 1 passive (archetype-restricted)
+/// - 3 active perks, one from each tier (1/2/3)
+/// - Missile is NOT part of the build - it is retrofitted before each match
+///   (MissileSelectionUI); changing it never resets ship XP
+/// - Custom slots limited by account level (1/2/3 at levels 1/20/40)
+///
+/// This wrapper resolves string ids (as used by the online/progression
+/// schedules - which match the generated asset names) to the actual
+/// ScriptableObjects and delegates. Use it from online flows that only have
+/// ids; use ProgressionManager directly when you already hold SO references.
 /// </summary>
 public static class CustomShipBuilder
 {
     /// <summary>
-    /// Validate if a custom ship configuration is valid.
-    /// Checks:
-    /// - Ship body is unlocked
-    /// - Passive is unlocked and compatible with body archetype
-    /// - All 3 actives are unlocked, one from each tier
-    /// - Player has an available custom slot
+    /// Validate a custom ship configuration by component ids.
+    /// Delegates to ProgressionManager.ValidateLoadoutBuild (canonical rules).
     /// </summary>
     public static ShipBuildValidation ValidateShipBuild(
         PlayerAccountData profile,
@@ -30,118 +31,43 @@ public static class CustomShipBuilder
         string passiveId,
         string tier1ActiveId,
         string tier2ActiveId,
-        string tier3ActiveId)
+        string tier3ActiveId,
+        string shipName = "Custom Ship")
     {
-        var validation = new ShipBuildValidation();
-
-        // Check if ship body is unlocked
-        if (!profile.unlockedShipBodies.Contains(bodyId))
+        var pm = ProgressionManager.Instance;
+        if (pm == null)
         {
-            validation.isValid = false;
-            validation.errors.Add("Ship body is not unlocked");
-            return validation;
+            var failed = new ShipBuildValidation();
+            failed.Fail("ProgressionManager not available - cannot validate builds");
+            return failed;
         }
 
-        // Get ship body data to check archetype
-        var shipBody = ExtendedProgressionData.GetAllShipBodies()
-            .FirstOrDefault(b => b.bodyId == bodyId);
-
-        if (shipBody == null)
+        var body = ResolveBody(pm, bodyId);
+        if (body == null)
         {
-            validation.isValid = false;
-            validation.errors.Add("Invalid ship body ID");
-            return validation;
+            var failed = new ShipBuildValidation();
+            failed.Fail($"Unknown ship body id '{bodyId}' (no matching ShipBodySO asset)");
+            return failed;
         }
 
-        // Check if passive is unlocked
-        if (!profile.unlockedPassives.Contains(passiveId))
-        {
-            validation.isValid = false;
-            validation.errors.Add("Passive ability is not unlocked");
-        }
+        var passives = new List<PassiveAbilitySO>();
+        var passive = ResolvePassive(pm, passiveId);
+        if (passive != null) passives.Add(passive);
 
-        // Check if passive is compatible with ship archetype
-        var passive = ExtendedProgressionData.GetAllPassives()
-            .FirstOrDefault(p => p.passiveId == passiveId);
-
-        if (passive == null)
-        {
-            validation.isValid = false;
-            validation.errors.Add("Invalid passive ID");
-        }
-        else if (passive.compatibleArchetype != shipBody.shipClass)
-        {
-            validation.isValid = false;
-            validation.errors.Add($"Passive '{passive.displayName}' is not compatible with {shipBody.shipClass} archetype");
-        }
-
-        // Check Tier 1 active
-        if (!ValidateActiveAbility(profile, tier1ActiveId, 1, out string tier1Error))
-        {
-            validation.isValid = false;
-            validation.errors.Add(tier1Error);
-        }
-
-        // Check Tier 2 active
-        if (!ValidateActiveAbility(profile, tier2ActiveId, 2, out string tier2Error))
-        {
-            validation.isValid = false;
-            validation.errors.Add(tier2Error);
-        }
-
-        // Check Tier 3 active
-        if (!ValidateActiveAbility(profile, tier3ActiveId, 3, out string tier3Error))
-        {
-            validation.isValid = false;
-            validation.errors.Add(tier3Error);
-        }
-
-        // Check if player has available custom slots
-        int maxSlots = ProgressionSystem.GetUnlockedCustomSlots(profile.level);
-        int currentCustomShips = profile.customLoadouts.Count;
-
-        if (currentCustomShips >= maxSlots)
-        {
-            validation.isValid = false;
-            validation.errors.Add($"No available custom slots (max: {maxSlots}). Delete a ship to free a slot.");
-        }
-
-        return validation;
+        return pm.ValidateLoadoutBuild(
+            shipName,
+            body,
+            ResolveDefaultMoveType(pm, body),
+            null, // missile is retrofitted pre-match, never part of the build
+            ResolvePerk(pm, tier1ActiveId),
+            ResolvePerk(pm, tier2ActiveId),
+            ResolvePerk(pm, tier3ActiveId),
+            passives);
     }
 
     /// <summary>
-    /// Validate a single active ability (check if unlocked and correct tier).
-    /// </summary>
-    private static bool ValidateActiveAbility(PlayerAccountData profile, string activeId, int expectedTier, out string error)
-    {
-        error = null;
-
-        if (!profile.unlockedActives.Contains(activeId))
-        {
-            error = $"Tier {expectedTier} active ability is not unlocked";
-            return false;
-        }
-
-        var active = ExtendedProgressionData.GetAllActives()
-            .FirstOrDefault(a => a.activeId == activeId);
-
-        if (active == null)
-        {
-            error = $"Invalid Tier {expectedTier} active ID";
-            return false;
-        }
-
-        if (active.tier != expectedTier)
-        {
-            error = $"Active '{active.displayName}' is Tier {active.tier}, but Tier {expectedTier} is required";
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// Create a custom ship and add it to player's loadouts.
+    /// Create a custom ship by component ids and add it to the player's loadouts.
+    /// Delegates to ProgressionManager.CreateCustomLoadout (canonical path).
     /// Returns the created loadout or null if validation fails.
     /// </summary>
     public static CustomShipLoadout CreateCustomShip(
@@ -153,149 +79,173 @@ public static class CustomShipBuilder
         string tier3ActiveId,
         string customName)
     {
-        // Validate the build
-        var validation = ValidateShipBuild(profile, bodyId, passiveId, tier1ActiveId, tier2ActiveId, tier3ActiveId);
-
-        if (!validation.isValid)
+        var pm = ProgressionManager.Instance;
+        if (pm == null)
         {
-            Debug.LogError($"[CustomShipBuilder] Build validation failed:\n{string.Join("\n", validation.errors)}");
+            Debug.LogError("[CustomShipBuilder] ProgressionManager not available - cannot build ships");
             return null;
         }
 
-        // Validate custom name
-        if (string.IsNullOrWhiteSpace(customName))
+        var body = ResolveBody(pm, bodyId);
+        if (body == null)
         {
-            Debug.LogError("[CustomShipBuilder] Ship name cannot be empty");
+            Debug.LogError($"[CustomShipBuilder] Unknown ship body id '{bodyId}'");
             return null;
         }
 
-        if (customName.Length > 30)
-        {
-            Debug.LogError("[CustomShipBuilder] Ship name too long (max 30 characters)");
-            return null;
-        }
+        var passives = new List<PassiveAbilitySO>();
+        var passive = ResolvePassive(pm, passiveId);
+        if (passive != null) passives.Add(passive);
 
-        // Create the custom loadout (using existing CustomShipLoadout structure)
-        var loadout = new CustomShipLoadout
-        {
-            loadoutID = Guid.NewGuid().ToString(),
-            loadoutName = customName,
-            shipBodyName = bodyId,
-            passiveNames = new List<string> { passiveId },  // Single passive (user wants only 1)
-            tier1PerkName = tier1ActiveId,
-            tier2PerkName = tier2ActiveId,
-            tier3PerkName = tier3ActiveId,
-            // equippedMissileName is selected separately before matches, not during building
-            moveTypeName = "", // TODO: Set default move type based on ship body or remove if not needed
-            skinID = "",
-            colorSchemeID = "",
-            decalID = ""
-        };
-
-        // Add to player's custom loadouts
-        profile.customLoadouts.Add(loadout);
-
-        Debug.Log($"[CustomShipBuilder] Created custom ship '{customName}' (ID: {loadout.loadoutID})");
-        return loadout;
+        // Missile intentionally omitted - selected before each match.
+        return pm.CreateCustomLoadout(
+            customName,
+            body,
+            ResolveDefaultMoveType(pm, body),
+            null,
+            ResolvePerk(pm, tier1ActiveId),
+            ResolvePerk(pm, tier2ActiveId),
+            ResolvePerk(pm, tier3ActiveId),
+            passives);
     }
 
     /// <summary>
-    /// Delete a ship from player's account (frees a slot but loses ALL progress).
+    /// Delete a ship from the player's account (frees a slot but loses ALL progress).
     /// Can delete BOTH prebuild ships and custom ships.
     /// Returns true if successfully deleted.
     /// </summary>
     public static bool DeleteShip(PlayerAccountData profile, string shipId, bool isPrebuildShip)
     {
+        bool deleted;
+
         if (isPrebuildShip)
         {
-            // Delete a prebuild ship (remove from unlocked list)
-            if (profile.unlockedShipModels.Contains(shipId))
-            {
-                profile.unlockedShipModels.Remove(shipId);
-                Debug.Log($"[CustomShipBuilder] Deleted prebuild ship: {shipId}");
-                return true;
-            }
-            else
-            {
-                Debug.LogWarning($"[CustomShipBuilder] Prebuild ship not found: {shipId}");
-                return false;
-            }
+            deleted = profile.unlockedShipModels.Remove(shipId);
+            if (deleted) Debug.Log($"[CustomShipBuilder] Deleted prebuild ship: {shipId}");
+            else Debug.LogWarning($"[CustomShipBuilder] Prebuild ship not found: {shipId}");
         }
         else
         {
-            // Delete a custom ship (remove from loadouts)
             var loadout = profile.customLoadouts.FirstOrDefault(l => l.loadoutID == shipId);
-
             if (loadout != null)
             {
                 var progression = profile.GetShipProgression(loadout);
                 int shipLevel = progression != null ? progression.shipLevel : 1;
                 profile.customLoadouts.Remove(loadout);
                 Debug.Log($"[CustomShipBuilder] Deleted custom ship '{loadout.loadoutName}' (Level {shipLevel})");
-                return true;
+                deleted = true;
             }
             else
             {
                 Debug.LogWarning($"[CustomShipBuilder] Custom ship not found: {shipId}");
-                return false;
+                deleted = false;
             }
         }
+
+        if (deleted && ProgressionManager.Instance != null &&
+            ProgressionManager.Instance.currentPlayerData == profile)
+        {
+            ProgressionManager.Instance.Save();
+        }
+
+        return deleted;
     }
 
+    #region UI Helpers (SO-based)
+
     /// <summary>
-    /// Get all actives unlocked by player, organized by tier.
-    /// Useful for UI to display available actives per tier.
+    /// All perks the player has unlocked, organized by tier (for builder UI).
     /// </summary>
-    public static Dictionary<int, List<ActiveUnlock>> GetActivesByTier(PlayerAccountData profile)
+    public static Dictionary<int, List<ActivePerkSO>> GetActivesByTier(PlayerAccountData profile)
     {
-        var activesByTier = new Dictionary<int, List<ActiveUnlock>>
+        var byTier = new Dictionary<int, List<ActivePerkSO>>
         {
-            { 1, new List<ActiveUnlock>() },
-            { 2, new List<ActiveUnlock>() },
-            { 3, new List<ActiveUnlock>() }
+            { 1, new List<ActivePerkSO>() },
+            { 2, new List<ActivePerkSO>() },
+            { 3, new List<ActivePerkSO>() }
         };
 
-        var allActives = ExtendedProgressionData.GetAllActives();
+        var pm = ProgressionManager.Instance;
+        if (pm == null) return byTier;
 
-        foreach (var activeId in profile.unlockedActives)
+        foreach (var perk in pm.allPerks)
         {
-            var active = allActives.FirstOrDefault(a => a.activeId == activeId);
-            if (active != null)
-            {
-                activesByTier[active.tier].Add(active);
-            }
+            if (perk == null || !byTier.ContainsKey(perk.tier)) continue;
+            if (pm.IsUnlocked(perk))
+                byTier[perk.tier].Add(perk);
         }
 
-        return activesByTier;
+        return byTier;
     }
 
     /// <summary>
-    /// Get all passives compatible with a specific ship archetype.
-    /// Useful for UI to show only compatible passives.
+    /// All unlocked passives compatible with a ship body's archetype (for builder UI).
     /// </summary>
-    public static List<PassiveUnlock> GetCompatiblePassives(PlayerAccountData profile, ShipClass archetype)
+    public static List<PassiveAbilitySO> GetCompatiblePassives(PlayerAccountData profile, ShipArchetype archetype)
     {
-        var compatiblePassives = new List<PassiveUnlock>();
-        var allPassives = ExtendedProgressionData.GetAllPassives();
+        var compatible = new List<PassiveAbilitySO>();
 
-        foreach (var passiveId in profile.unlockedPassives)
+        var pm = ProgressionManager.Instance;
+        if (pm == null) return compatible;
+
+        foreach (var passive in pm.allPassives)
         {
-            var passive = allPassives.FirstOrDefault(p => p.passiveId == passiveId);
-            if (passive != null && passive.compatibleArchetype == archetype)
-            {
-                compatiblePassives.Add(passive);
-            }
+            if (passive == null) continue;
+            if (pm.IsUnlocked(passive) && passive.CanBeUsedBy(archetype))
+                compatible.Add(passive);
         }
 
-        return compatiblePassives;
+        return compatible;
     }
+
+    #endregion
+
+    #region Id → ScriptableObject Resolution
+
+    private static ShipBodySO ResolveBody(ProgressionManager pm, string id)
+    {
+        return pm.allShipBodies.FirstOrDefault(b => b != null && b.name == id);
+    }
+
+    private static PassiveAbilitySO ResolvePassive(ProgressionManager pm, string id)
+    {
+        return pm.allPassives.FirstOrDefault(p => p != null && p.name == id);
+    }
+
+    private static ActivePerkSO ResolvePerk(ProgressionManager pm, string id)
+    {
+        return pm.allPerks.FirstOrDefault(p => p != null && p.name == id);
+    }
+
+    /// <summary>
+    /// Default move type for id-based builds: the first unlocked move type the
+    /// body's archetype can use (standard move is always unlocked for new
+    /// accounts, so this resolves for everyone).
+    /// </summary>
+    private static MoveTypeSO ResolveDefaultMoveType(ProgressionManager pm, ShipBodySO body)
+    {
+        return pm.allMoveTypes.FirstOrDefault(m =>
+            m != null && pm.IsUnlocked(m) && m.CanBeUsedBy(body.archetype));
+    }
+
+    #endregion
 }
 
 /// <summary>
-/// Validation result for ship building.
+/// Validation result for ship building, with per-error messages for UI display.
 /// </summary>
 public class ShipBuildValidation
 {
     public bool isValid = true;
     public List<string> errors = new List<string>();
+
+    /// <summary>Marks the validation as failed with a reason.</summary>
+    public void Fail(string error)
+    {
+        isValid = false;
+        errors.Add(error);
+    }
+
+    /// <summary>All errors joined for quick display.</summary>
+    public string GetErrorText() => string.Join("\n", errors);
 }

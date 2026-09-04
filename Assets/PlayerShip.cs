@@ -205,6 +205,13 @@ public class PlayerShip : MonoBehaviour
             maxHealth = baseHealth;
         }
 
+        // Apply per-round action point bonuses (mutator / comeback) AFTER the
+        // preset has set movesAllowedPerTurn, so they are never overwritten.
+        if (!isGhost)
+        {
+            GameManager.Instance?.ApplyTurnBonuses(this);
+        }
+
         if (!isGhost)
         {
             ghostShipInstance = Instantiate(gameObject, transform.position, transform.rotation);
@@ -219,7 +226,13 @@ public class PlayerShip : MonoBehaviour
                 ghostPS.isGhost = true;
             }
 
-            // Strip off the PlayerShip script (if you want NO ship logic)
+            // Strip off the PlayerShip script (if you want NO ship logic).
+            // BotController has [RequireComponent(typeof(PlayerShip))], so if
+            // the source ship is bot-controlled, the cloned ghost carries a
+            // BotController too and Unity refuses to destroy PlayerShip while
+            // it's still required - remove that first.
+            BotController ghostBot = ghostShipInstance.GetComponent<BotController>();
+            if (ghostBot != null) Destroy(ghostBot);
             Destroy(ghostPS);
 
             // Remove collisions, rigidbodies, line renderers, etc.
@@ -356,15 +369,18 @@ public class PlayerShip : MonoBehaviour
             return;
         }
 
+        // Tournament mode normalizes every ship to a fixed reference level
+        int effectiveLevel = TournamentMode.GetEffectiveLevel(shipLevel);
+
         // Calculate stats using ScriptableObject formulas
-        maxHealth = formula.CalculateHealthAtLevel(baseHealth, shipLevel);
-        armor = formula.CalculateArmorAtLevel(baseArmorValue, shipLevel);
-        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, shipLevel);
+        maxHealth = formula.CalculateHealthAtLevel(baseHealth, effectiveLevel);
+        armor = formula.CalculateArmorAtLevel(baseArmorValue, effectiveLevel);
+        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, effectiveLevel);
 
         // Initialize current health to max (ship starts at full health)
         currentHealth = maxHealth;
 
-        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+        Debug.Log($"{playerName} (PRESET) => L{effectiveLevel}{(TournamentMode.Enabled ? " [TOURNAMENT]" : "")}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
     }
 
     /// <summary>
@@ -373,7 +389,8 @@ public class PlayerShip : MonoBehaviour
     private void UpdateStatsFromHardcodedFormulas()
     {
         // This "level offset" = how many increments we are above level 1
-        int Loffset = shipLevel - 1;
+        // (Tournament mode normalizes every ship to a fixed reference level)
+        int Loffset = TournamentMode.GetEffectiveLevel(shipLevel) - 1;
         if (Loffset < 0) Loffset = 0;
 
         // Apply formulas based on archetype (with BALANCE FIXES!)
@@ -825,8 +842,10 @@ void Update()
             sourceInfo = "Fallback Defaults";
         }
 
-        // Debug log to verify correct stats are being used (only log occasionally to avoid spam)
-        if (Time.frameCount % 60 == 0)
+        // Debug log to verify correct stats are being used - OFF by default,
+        // see DebugSettings.verboseTrajectoryLogging (this fires every ~60
+        // frames while aiming, which floods the Console during normal play).
+        if (DebugSettings.verboseTrajectoryLogging && Time.frameCount % 60 == 0)
         {
             Debug.Log($"[{playerName}] Trajectory Prediction Stats from {sourceInfo}: Mass={missileMass:F2}, Drag={missileDragCoef:F3}, MaxVel={maxVel:F1}, LaunchVel={launchVelocity:F2}");
         }
@@ -861,6 +880,9 @@ void Update()
     void FireMissile()
 {
     lastFireTime = Time.time;
+
+    // Report to match stats (fired missiles / accuracy tracking)
+    MatchStatsTracker.Instance?.RecordMissileFired(this);
 
     // ===== BUG FIX: Activate toggled perk BEFORE spawning missiles! =====
     // This sets the flags (nextMultiEnabled, nextExplosiveEnabled, etc.) BEFORE we check them.
@@ -1224,6 +1246,47 @@ void OnCollisionEnter(Collision collision)
     {
         controlsEnabled = enable;
         playerUI?.SetActive(enable);
+    }
+
+    // ---------------------------------------------------------
+    // BOT CONTROL API (used by BotController)
+    // ---------------------------------------------------------
+
+    /// <summary>
+    /// Sets the firing angle (degrees) and launch velocity directly.
+    /// Velocity is clamped to the equipped missile's launch range.
+    /// </summary>
+    public void BotSetAim(float angleDegrees, float velocity)
+    {
+        currentZRotation = Mathf.Repeat(angleDegrees, 360f);
+
+        float minV = equippedMissile != null ? equippedMissile.minLaunchVelocity : minLaunchVelocity;
+        float maxV = equippedMissile != null ? equippedMissile.maxLaunchVelocity : maxLaunchVelocity;
+        launchVelocity = Mathf.Clamp(velocity, minV, maxV);
+
+        // Update visual rotation to match the aim
+        if (rb != null)
+        {
+            rb.MoveRotation(Quaternion.Euler(0, 0, currentZRotation));
+        }
+    }
+
+    /// <summary>
+    /// Fires a missile with the current aim (bot equivalent of pressing fire).
+    /// Consumes an action via GameManager.PlayerActionUsed like a normal shot.
+    /// </summary>
+    public void BotFire()
+    {
+        if (isDestroyed) return;
+        FireMissile();
+    }
+
+    /// <summary>Effective launch velocity range for the currently equipped missile.</summary>
+    public (float min, float max) GetLaunchVelocityRange()
+    {
+        float minV = equippedMissile != null ? equippedMissile.minLaunchVelocity : minLaunchVelocity;
+        float maxV = equippedMissile != null ? equippedMissile.maxLaunchVelocity : maxLaunchVelocity;
+        return (minV, maxV);
     }
 
     /// <summary>
@@ -1732,6 +1795,12 @@ private IEnumerator ShakeAnimation(float shakeDuration, float maxAngle)
         currentHealth -= effectiveDamage;
         Debug.Log($"{playerName} took {effectiveDamage} damage! Remaining health = {currentHealth}");
 
+        // Report to match stats (damage dealt is attributed to the opponent)
+        MatchStatsTracker.Instance?.RecordDamageTaken(this, effectiveDamage);
+
+        // Report to killshot recorder (replay + trickshot detection)
+        KillshotRecorder.Instance?.NotifyShipDamaged(this, currentHealth <= 0f);
+
         UpdateHealthUI();
 
         if (currentHealth <= 0f)
@@ -1882,9 +1951,12 @@ private IEnumerator StabilizeRotationOverTime(float totalDuration, float delayBe
     }
     private IEnumerator RegenerationCoroutine()
     {
+        // NOTE: ticks 20x per second, i.e. effective regen = regenRate * 20 HP/sec.
+        // (e.g. regenRate 1.5 => 30 HP/sec => ~450 HP over a 15s enemy turn.)
+        // This is the play-tested rate - change regenRate, not the tick interval.
         while (true)
         {
-            yield return new WaitForSeconds(0.05f);  // Regenerate every 1 second.
+            yield return new WaitForSeconds(0.05f);
             if (currentHealth < maxHealth)
             {
                 currentHealth += regenRate;
@@ -1899,17 +1971,19 @@ private IEnumerator StabilizeRotationOverTime(float totalDuration, float delayBe
     private IEnumerator DamageBoostCoroutine()
     {
         float elapsed = 0f;
-        // Choose k so that at 120 seconds, the boost approaches 2.0.
-        // For example, using: multiplier = 1 + (damageBoostCap - 1)*(1 - exp(-k*t))
-        // If we want damageBoostCap = 2, then when t=120, (1 - exp(-k*120)) should be near 1.
-        // One option: k = 4.60517/120 (since 1 - exp(-4.60517) ≈ 0.99)
+        // Exponential ramp toward the cap over ~120 seconds:
+        // multiplier = base + (cap - base) * (1 - exp(-k*t)), k tuned so the
+        // curve is ~99% complete at t=120s.
         float k = 4.60517f / 120f;
-        float damageBoostCap = 2f;
+
+        // Cap is PROPORTIONAL to the ship's base multiplier (+100%), so every
+        // archetype gains the same relative benefit. (The old absolute cap of
+        // 2.0 gave a 0.75x tank +167% but a 1.45x damage dealer only +38%.)
+        float damageBoostCap = baseDamageMultiplier * 2f;
 
         while (elapsed < 120f)
         {
             elapsed += Time.deltaTime;
-            // Increase damageMultiplier from 1 to damageBoostCap exponentially.
             damageMultiplier = baseDamageMultiplier + (damageBoostCap - baseDamageMultiplier) * (1f - Mathf.Exp(-k * elapsed));
             yield return null;
         }

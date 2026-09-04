@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: ControllerLevelingMain
   m_EditorClassIdentifier: 
   archetype: 3
-  healthScalingPerLevel: 0.02
-  armorScalingPerLevel: 2
-  damageScalingPerLevel: 0.027
+  healthScalingPerLevel: 0.03
+  armorScalingPerLevel: 2.5
+  damageScalingPerLevel: 0.036
   previewLevel: 10
   previewStats: '=== Controller at Level 10 ===
 

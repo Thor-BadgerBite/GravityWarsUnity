@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: DDLevelingMain
   m_EditorClassIdentifier: 
   archetype: 1
-  healthScalingPerLevel: 0.02
-  armorScalingPerLevel: 1
-  damageScalingPerLevel: 0.04
+  healthScalingPerLevel: 0.03
+  armorScalingPerLevel: 2.5
+  damageScalingPerLevel: 0.045
   previewLevel: 10
   previewStats: '=== DamageDealer at Level 10 ===
 

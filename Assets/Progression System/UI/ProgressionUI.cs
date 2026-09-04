@@ -184,28 +184,26 @@ public class ProgressionUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Updates next unlock preview
+    /// Updates next unlock preview - sourced from BattlePassSystem (the
+    /// canonical battle pass; see ProgressionManager for why the old
+    /// freeBattlePass/BattlePassData path was removed). Tracks the battle
+    /// pass's own level, not account level - they're different progression
+    /// axes fed by the same match XP.
     /// </summary>
     private void UpdateNextUnlock(PlayerAccountData data)
     {
         if (nextUnlockPanel == null) return;
 
-        // Get next unlock from free battle pass
-        if (progressionManager.freeBattlePass == null)
+        var bp = BattlePassSystem.Instance;
+        if (bp == null)
         {
             nextUnlockPanel.SetActive(false);
             return;
         }
 
-        int nextLevel = data.level + 1;
-        if (nextLevel > progressionManager.freeBattlePass.GetTierCount())
-        {
-            nextUnlockPanel.SetActive(false);
-            return;
-        }
-
-        BattlePassTier nextTier = progressionManager.freeBattlePass.GetTier(nextLevel - 1);
-        if (nextTier == null || !nextTier.freeReward.HasReward())
+        int nextLevel = bp.GetCurrentLevel() + 1;
+        BattlePassReward nextReward = bp.GetFreeReward(nextLevel);
+        if (nextReward == null)
         {
             nextUnlockPanel.SetActive(false);
             return;
@@ -215,18 +213,47 @@ public class ProgressionUI : MonoBehaviour
 
         // Display reward info
         if (nextUnlockText != null)
-            nextUnlockText.text = nextTier.freeReward.GetDisplayText();
+            nextUnlockText.text = nextReward.displayName;
 
         if (nextUnlockLevelText != null)
-            nextUnlockLevelText.text = $"Unlocks at Level {nextLevel}";
+            nextUnlockLevelText.text = $"Unlocks at Battle Pass Level {nextLevel}";
 
-        // Display icon (if ScriptableObject reward)
-        if (nextUnlockIcon != null && nextTier.freeReward.rewardItem != null)
+        // Display icon, resolved from the content databases by reward id
+        // (BattlePassReward only carries an id string, not a live SO ref).
+        if (nextUnlockIcon != null && !string.IsNullOrEmpty(nextReward.rewardId))
         {
-            Sprite icon = GetIconFromScriptableObject(nextTier.freeReward.rewardItem);
+            Sprite icon = ResolveRewardIcon(nextReward.rewardId);
             if (icon != null)
                 nextUnlockIcon.sprite = icon;
         }
+    }
+
+    /// <summary>
+    /// Looks up a reward's icon by id across the content databases
+    /// (bodies/perks/passives/missiles/ships). Returns null for
+    /// currency/skin rewards, which have no ScriptableObject to draw from.
+    /// </summary>
+    private Sprite ResolveRewardIcon(string rewardId)
+    {
+        var pm = progressionManager;
+        if (pm == null) return null;
+
+        var body = pm.allShipBodies.Find(b => b != null && b.name == rewardId);
+        if (body != null) return body.icon;
+
+        var perk = pm.allPerks.Find(p => p != null && p.name == rewardId);
+        if (perk != null) return perk.icon;
+
+        var passive = pm.allPassives.Find(p => p != null && p.name == rewardId);
+        if (passive != null) return passive.icon;
+
+        var missile = pm.allMissiles.Find(m => m != null && m.name == rewardId);
+        if (missile != null) return missile.icon;
+
+        var ship = pm.allShipPresets.Find(s => s != null && s.name == rewardId);
+        if (ship != null) return ship.shipIcon;
+
+        return null;
     }
 
     /// <summary>

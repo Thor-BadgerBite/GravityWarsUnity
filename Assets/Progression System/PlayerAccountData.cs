@@ -30,9 +30,10 @@ public class PlayerAccountData
     public int gems = 0;         // Renamed from hardCurrency - Premium currency
 
     [Header("Competitive Stats - Online Play")]
-    public int eloRating = 1200;
-    public int peakEloRating = 1200;
-    public CompetitiveRank currentRank = CompetitiveRank.Bronze;
+    public int eloRating = ELORatingSystem.STARTING_ELO;
+    public int peakEloRating = ELORatingSystem.STARTING_ELO;
+    public string lastRankedSeasonID = "";
+    public CompetitiveRank currentRank = CompetitiveRank.Ensign;
     public int rankedMatchesPlayed = 0;
     public int rankedMatchesWon = 0;
     public int casualMatchesPlayed = 0;
@@ -45,6 +46,8 @@ public class PlayerAccountData
     public int battlePassXP = 0;
     public bool hasPremiumBattlePass = false;
     public string currentSeasonID = "";
+    public List<int> claimedFreeBattlePassTiers = new List<int>();
+    public List<int> claimedPremiumBattlePassTiers = new List<int>();
 
     [Header("Unlocked Content - Ship Bodies")]
     public List<string> unlockedShipBodyIDs = new List<string>();
@@ -87,6 +90,9 @@ public class PlayerAccountData
     public List<MatchResultData> recentMatches = new List<MatchResultData>();
     public List<QuestProgressData> activeQuests = new List<QuestProgressData>();
     public List<string> completedQuests = new List<string>();
+
+    [Header("Daily Engagement")]
+    public string lastFirstWinDate = "";   // "yyyy-MM-dd" of the last first-win-of-the-day bonus
 
     [Header("Statistics")]
     public int totalMatchesPlayed = 0;
@@ -139,15 +145,86 @@ public class PlayerAccountData
     }
 
     /// <summary>
-    /// Unlocks default content for new accounts
+    /// Unlocks default content for new accounts.
+    /// Every new player starts with:
+    /// - The starter prebuilt ship
+    /// - The standard All-Around ship body (custom building)
+    /// - The Standard Mk-I missile
+    /// - The standard move type
+    /// - Custom loadout slot #1 (level-based, nothing to store)
     /// </summary>
     private void InitializeDefaultUnlocks()
     {
-        // Starter content - minimal unlocks
-        // (In production, you'd only unlock 1-2 ships, 1 perk, etc.)
+        // Starter prebuilt ship (ready to play immediately)
+        AddUnique(unlockedShipModels, "starter_ship");
 
-        // For development, we'll unlock common items
-        // Customize this based on your game design
+        // Starter ship body for the custom ship builder (All-Around frame).
+        // "Standard" matches the existing ShipBodySO asset name;
+        // "body_allaround_standard" matches the progression-schedule id.
+        AddUnique(unlockedShipBodyIDs, "Standard");
+        AddUnique(unlockedShipBodyIDs, "body_allaround_standard");
+
+        // Starter missile (retrofit system id + existing MissilePresetSO asset name)
+        AddUnique(unlockedMissileIDs, "standard_mk1");
+        AddUnique(unlockedMissileIDs, "Standard");
+
+        // Standard movement is always available
+        AddUnique(unlockedMoveTypeIDs, "Standard Move");
+    }
+
+    private static void AddUnique(List<string> list, string id)
+    {
+        if (!string.IsNullOrEmpty(id) && !list.Contains(id))
+            list.Add(id);
+    }
+
+    /// <summary>
+    /// Unlocks an item by string id, routed to the right list by unlock type.
+    /// Used by progression / battle pass rewards where only ids are known
+    /// (no ScriptableObject reference available).
+    /// Returns true if the item was newly unlocked.
+    /// </summary>
+    public bool UnlockById(UnlockType type, string id)
+    {
+        if (string.IsNullOrEmpty(id)) return false;
+
+        List<string> target = null;
+        switch (type)
+        {
+            case UnlockType.Ship:
+            case UnlockType.PrebuildShip:
+                target = unlockedShipModels;
+                break;
+            case UnlockType.ShipBody:
+                target = unlockedShipBodyIDs;
+                break;
+            case UnlockType.Passive:
+                target = unlockedPassiveIDs;
+                break;
+            case UnlockType.Active:
+                switch (ExtendedProgressionData.GetActiveTier(id))
+                {
+                    case 2: target = unlockedTier2PerkIDs; break;
+                    case 3: target = unlockedTier3PerkIDs; break;
+                    default: target = unlockedTier1PerkIDs; break;
+                }
+                break;
+            case UnlockType.Missile:
+                target = unlockedMissileIDs;
+                break;
+            case UnlockType.Skin:
+            case UnlockType.Cosmetic:
+                target = unlockedSkinIDs;
+                break;
+            default:
+                // GameMode / Feature / ShipClass / CustomSlot are level-derived,
+                // nothing needs to be stored.
+                return false;
+        }
+
+        if (target.Contains(id)) return false;
+        target.Add(id);
+        return true;
     }
 
     /// <summary>
@@ -244,15 +321,50 @@ public class PlayerAccountData
     }
 
     /// <summary>
-    /// Adds XP to a specific ship loadout
+    /// Adds XP to a specific ship loadout.
+    /// Mastery milestones (ship level 10/20) unlock prestige skins visible to opponents.
     /// </summary>
     public void AddShipXP(CustomShipLoadout loadout, int amount)
     {
         var progression = GetShipProgression(loadout);
-        if (progression != null)
+        if (progression == null) return;
+
+        int levelBefore = progression.shipLevel;
+        progression.AddXP(amount);
+
+        // Mastery prestige unlocks on crossing milestone levels
+        if (levelBefore < 10 && progression.shipLevel >= 10)
+            UnlockMasterySkin(loadout, "gold");
+        if (levelBefore < 20 && progression.shipLevel >= 20)
+            UnlockMasterySkin(loadout, "legend");
+    }
+
+    private void UnlockMasterySkin(CustomShipLoadout loadout, string masteryTier)
+    {
+        string skinId = $"skin_mastery_{masteryTier}_{loadout.shipBodyName}";
+        if (!unlockedSkinIDs.Contains(skinId))
         {
-            progression.AddXP(amount);
+            unlockedSkinIDs.Add(skinId);
+            Debug.Log($"[PlayerAccountData] 🏆 Mastery skin unlocked: {skinId}");
         }
+    }
+
+    /// <summary>
+    /// Head-to-head record against a specific opponent, computed from recent
+    /// match history. Used for the rivalry ("Nemesis") display.
+    /// </summary>
+    public (int wins, int losses) GetHeadToHeadRecord(string opponentUsername)
+    {
+        int wins = 0, losses = 0;
+        if (string.IsNullOrEmpty(opponentUsername)) return (0, 0);
+
+        foreach (var match in recentMatches)
+        {
+            if (match.opponentUsername != opponentUsername) continue;
+            if (match.won) wins++;
+            else losses++;
+        }
+        return (wins, losses);
     }
 
     /// <summary>
@@ -316,13 +428,22 @@ public class PlayerAccountData
     /// </summary>
     public void UpdateRankFromELO()
     {
-        if (eloRating < 1000) currentRank = CompetitiveRank.Bronze;
-        else if (eloRating < 1200) currentRank = CompetitiveRank.Silver;
-        else if (eloRating < 1400) currentRank = CompetitiveRank.Gold;
-        else if (eloRating < 1600) currentRank = CompetitiveRank.Platinum;
-        else if (eloRating < 1800) currentRank = CompetitiveRank.Diamond;
-        else if (eloRating < 2000) currentRank = CompetitiveRank.Master;
-        else currentRank = CompetitiveRank.Grandmaster;
+        if (eloRating < 700) currentRank = CompetitiveRank.Cadet;
+        else if (eloRating < 1050) currentRank = CompetitiveRank.Ensign;
+        else if (eloRating < 1200) currentRank = CompetitiveRank.Lieutenant;
+        else if (eloRating < 1350) currentRank = CompetitiveRank.LieutenantCommander;
+        else if (eloRating < 1500) currentRank = CompetitiveRank.Commander;
+        else if (eloRating < 1650) currentRank = CompetitiveRank.Captain;
+        else if (eloRating < 1800) currentRank = CompetitiveRank.SeniorCaptain;
+        else if (eloRating < 1950) currentRank = CompetitiveRank.Commodore;
+        else if (eloRating < 2100) currentRank = CompetitiveRank.RearAdmiral;
+        else if (eloRating < 2250) currentRank = CompetitiveRank.RearAdmiralUpperHalf;
+        else if (eloRating < 2400) currentRank = CompetitiveRank.ViceAdmiral;
+        else if (eloRating < 2550) currentRank = CompetitiveRank.Admiral;
+        else if (eloRating < 2700) currentRank = CompetitiveRank.HighAdmiral;
+        else if (eloRating < 2850) currentRank = CompetitiveRank.FleetAdmiral;
+        else if (eloRating < 3000) currentRank = CompetitiveRank.SupremeAdmiral;
+        else currentRank = CompetitiveRank.GrandAdmiral;
     }
 }
 
@@ -443,21 +564,44 @@ public class ShipProgressionEntry
 
         return Mathf.Clamp01((float)xpIntoLevel / xpNeededForLevel);
     }
+
+    /// <summary>
+    /// Prestige title for this ship's mastery level (shown in lobby/results).
+    /// </summary>
+    public string GetMasteryTitle()
+    {
+        if (shipLevel >= 20) return "Legend";
+        if (shipLevel >= 15) return "Master";
+        if (shipLevel >= 10) return "Ace";
+        if (shipLevel >= 5) return "Veteran";
+        return "";
+    }
 }
 
 /// <summary>
-/// Competitive ranking tiers for matchmaking
+/// Competitive ranking tiers for matchmaking.
+/// Military/Naval-themed ranks progressing from Cadet to Grand Admiral.
+/// 16 ranks total - Starting rank: Ensign (800 ELO)
 /// </summary>
 [System.Serializable]
 public enum CompetitiveRank
 {
-    Bronze,
-    Silver,
-    Gold,
-    Platinum,
-    Diamond,
-    Master,
-    Grandmaster
+    Cadet,                  // Rank 16 (Lowest): 0-699 ELO
+    Ensign,                 // Rank 15 (Starting): 700-1049 ELO ⭐ STARTING RANK (800)
+    Lieutenant,             // Rank 14: 1050-1199 ELO
+    LieutenantCommander,    // Rank 13: 1200-1349 ELO
+    Commander,              // Rank 12: 1350-1499 ELO
+    Captain,                // Rank 11: 1500-1649 ELO
+    SeniorCaptain,          // Rank 10: 1650-1799 ELO
+    Commodore,              // Rank 9: 1800-1949 ELO
+    RearAdmiral,            // Rank 8: 1950-2099 ELO
+    RearAdmiralUpperHalf,   // Rank 7: 2100-2249 ELO
+    ViceAdmiral,            // Rank 6: 2250-2399 ELO
+    Admiral,                // Rank 5: 2400-2549 ELO
+    HighAdmiral,            // Rank 4: 2550-2699 ELO
+    FleetAdmiral,           // Rank 3: 2700-2849 ELO
+    SupremeAdmiral,         // Rank 2: 2850-2999 ELO
+    GrandAdmiral            // Rank 1 (Highest): 3000+ ELO
 }
 
 /// <summary>
@@ -468,6 +612,7 @@ public class MatchResultData
 {
     public string matchID;
     public DateTime matchDate;
+    public long timestamp;          // Unix timestamp (cloud-save friendly)
     public bool isRanked;
     public bool won;
     public string opponentUsername;
@@ -477,6 +622,10 @@ public class MatchResultData
     public int roundsLost;
     public int damageDealt;
     public int damageReceived;
+    public int missilesFired;
+    public int missilesHit;
+    public int xpGained;
+    public int creditsGained;
     public string shipUsed;
 }
 

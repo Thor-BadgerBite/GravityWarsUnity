@@ -87,13 +87,13 @@ public static class ExtendedProgressionData
         { 71, new ShipBodyUnlock("body_allaround_apex", "Apex Frame", ShipClass.AllAround, "Ultimate versatile chassis") },
 
         // ========== TANK BODIES (4 bodies) ==========
-        { 21, new ShipBodyUnlock("body_tank_reinforced", "Reinforced Hull", ShipClass.Tank, "Heavy armor chassis") },
+        { 25, new ShipBodyUnlock("body_tank_reinforced", "Reinforced Hull", ShipClass.Tank, "Heavy armor chassis") },
         { 39, new ShipBodyUnlock("body_tank_fortress", "Fortress Hull", ShipClass.Tank, "Fortified defensive chassis") },
         { 57, new ShipBodyUnlock("body_tank_colossus", "Colossus Hull", ShipClass.Tank, "Massive tank chassis") },
         { 73, new ShipBodyUnlock("body_tank_invincible", "Invincible Hull", ShipClass.Tank, "Ultimate tank chassis") },
 
         // ========== DAMAGE DEALER BODIES (4 bodies) ==========
-        { 21, new ShipBodyUnlock("body_dd_striker", "Striker Chassis", ShipClass.DamageDealer, "Agile assault frame") },
+        { 31, new ShipBodyUnlock("body_dd_striker", "Striker Chassis", ShipClass.DamageDealer, "Agile assault frame") },
         { 41, new ShipBodyUnlock("body_dd_reaper", "Reaper Chassis", ShipClass.DamageDealer, "High-damage glass cannon") },
         { 59, new ShipBodyUnlock("body_dd_devastator", "Devastator Chassis", ShipClass.DamageDealer, "Maximum firepower frame") },
         { 77, new ShipBodyUnlock("body_dd_annihilator", "Annihilator Chassis", ShipClass.DamageDealer, "Ultimate DD chassis") },
@@ -193,7 +193,19 @@ public static class ExtendedProgressionData
         { 83, new ActiveUnlock("active_phoenix_burst", "Phoenix Burst", 3, 180f, "Death-defying resurrection") },
         { 88, new ActiveUnlock("active_ragnarok", "Ragnarok", 3, 150f, "Apocalyptic destruction") },
         { 93, new ActiveUnlock("active_ascension", "Ascension", 3, 200f, "Become god-like temporarily") },
-        { 98, new ActiveUnlock("active_omega_strike", "Omega Strike", 3, 300f, "Ultimate one-shot kill ability") }
+        { 98, new ActiveUnlock("active_omega_strike", "Omega Strike", 3, 300f, "Ultimate one-shot kill ability") },
+
+        // NOTE: everything above this line is aspirational/unimplemented -
+        // none of these 20 ids have a backing ActivePerkSO or gameplay
+        // mechanic anywhere in the codebase. The entry below is different:
+        // it exists purely so PlayerAccountData.UnlockById(UnlockType.Active,
+        // ...) files this REAL, generated Tier 3 perk into
+        // unlockedTier3PerkIDs instead of silently defaulting to Tier 1
+        // (GetActiveTier() falls back to tier 1 for any id it doesn't
+        // recognize). Tier 1 exclusive/reused ids don't need an entry here
+        // since the tier-1 fallback happens to already be correct for them.
+        { 76, new ActiveUnlock("explosive_missile_exclusive_t3", "Explosive Missile: Void Bomb", 3, 0f,
+            "Battle pass premium exclusive - see PERKS_PATH/explosive_missile_exclusive_t3 for the real perk") }
     };
 
     #endregion
@@ -254,6 +266,33 @@ public static class ExtendedProgressionData
     public static List<ActiveUnlock> GetAllActives()
     {
         return ACTIVE_UNLOCKS.Values.ToList();
+    }
+
+    /// <summary>
+    /// Look up an active ability by its id (e.g. "active_cloak").
+    /// Returns null if unknown.
+    /// </summary>
+    public static ActiveUnlock GetActiveById(string activeId)
+    {
+        return ACTIVE_UNLOCKS.Values.FirstOrDefault(a => a.activeId == activeId);
+    }
+
+    /// <summary>
+    /// Look up a passive ability by its id (e.g. "passive_lifesteal").
+    /// Returns null if unknown.
+    /// </summary>
+    public static PassiveUnlock GetPassiveById(string passiveId)
+    {
+        return PASSIVE_UNLOCKS.Values.FirstOrDefault(p => p.passiveId == passiveId);
+    }
+
+    /// <summary>
+    /// Get the tier (1-3) for an active ability id. Defaults to tier 1 for unknown ids.
+    /// </summary>
+    public static int GetActiveTier(string activeId)
+    {
+        var active = GetActiveById(activeId);
+        return active != null ? active.tier : 1;
     }
 
     #endregion
