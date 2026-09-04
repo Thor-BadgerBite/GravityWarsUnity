@@ -113,26 +113,17 @@ public class MainMenuController : MonoBehaviour
     {
         Debug.Log("[MainMenuController] Initializing main menu...");
 
-        // Check if account system is ready
-        if (AccountSystem.Instance == null)
-        {
-            Debug.LogError("[MainMenuController] AccountSystem not found! Make sure player is logged in.");
-            return;
-        }
-
-        if (!AccountSystem.Instance.IsSignedIn)
-        {
-            Debug.LogError("[MainMenuController] Player not signed in! Redirect to login screen.");
-            // TODO: Load login scene
-            return;
-        }
-
-        // Get current player profile
-        _currentProfile = AccountSystem.Instance.CurrentPlayerProfile;
+        // The online account profile when signed in, the local
+        // ProgressionManager profile otherwise - same fallback
+        // BattlePassSystem.GetActiveProfile() already uses. Previously this
+        // hard-required AccountSystem + a live sign-in and bailed out with
+        // an error otherwise, even though every playtest this project has
+        // actually run went through the local/offline path.
+        _currentProfile = GetActiveProfile();
 
         if (_currentProfile == null)
         {
-            Debug.LogError("[MainMenuController] Failed to load player profile!");
+            Debug.LogError("[MainMenuController] No player profile available (not signed in and no local ProgressionManager data).");
             return;
         }
 
@@ -150,6 +141,31 @@ public class MainMenuController : MonoBehaviour
 
         _isInitialized = true;
         Debug.Log("[MainMenuController] Main menu initialized successfully");
+    }
+
+    /// <summary>
+    /// The profile to display/edit: the online account profile when signed
+    /// in, the local ProgressionManager profile otherwise. Mirrors
+    /// BattlePassSystem.GetActiveProfile().
+    /// </summary>
+    private PlayerAccountData GetActiveProfile()
+    {
+        if (AccountSystem.Instance != null && AccountSystem.Instance.IsSignedIn)
+            return AccountSystem.Instance.CurrentPlayerProfile;
+
+        return ProgressionManager.Instance != null ? ProgressionManager.Instance.currentPlayerData : null;
+    }
+
+    /// <summary>
+    /// Persists the current profile through whichever backing store is
+    /// active (cloud profile update if signed in, local save otherwise).
+    /// </summary>
+    private void SaveActiveProfile()
+    {
+        if (AccountSystem.Instance != null && AccountSystem.Instance.IsSignedIn)
+            _ = AccountSystem.Instance.UpdateProfileAsync(_currentProfile);
+        else
+            ProgressionManager.Instance?.Save();
     }
 
     /// <summary>
@@ -380,13 +396,7 @@ public class MainMenuController : MonoBehaviour
     /// </summary>
     public async Task RefreshProfile()
     {
-        if (AccountSystem.Instance == null || !AccountSystem.Instance.IsSignedIn)
-        {
-            Debug.LogError("[MainMenuController] Cannot refresh profile - not signed in");
-            return;
-        }
-
-        _currentProfile = AccountSystem.Instance.CurrentPlayerProfile;
+        _currentProfile = GetActiveProfile();
 
         if (_currentProfile != null && menuUI != null)
         {
@@ -404,8 +414,7 @@ public class MainMenuController : MonoBehaviour
         _currentProfile.currentEquippedShipId = shipId;
         shipViewer.DisplayShip(shipId);
 
-        // Save profile
-        _ = AccountSystem.Instance.UpdateProfileAsync(_currentProfile);
+        SaveActiveProfile();
 
         Debug.Log($"[MainMenuController] Equipped ship updated: {shipId}");
     }
