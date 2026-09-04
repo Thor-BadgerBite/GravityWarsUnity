@@ -801,3 +801,27 @@ mid-match, not at spawn. This looks like the knockback-impulse-into-a-
 planet scenario, not the spawn-overlap bug fixed earlier - the ship had
 just taken a hit with a visible physics impulse the turn before. Left
 as-is; flag it if it turns out to happen without a preceding hit.)
+
+### MainMenuController required online sign-in with no local fallback
+Checked whether the recovered MainMenuScene is actually ready to open
+before moving on to manual UI wiring. `MainMenuController.
+InitializeMainMenu()` hard-required `AccountSystem.Instance.IsSignedIn`
+and logged an error + bailed out otherwise - with zero fallback to
+`ProgressionManager`'s local profile, which is the one every playtest
+this project has actually run goes through. `AccountSystem` also has no
+lazy-bootstrap (same gap class fixed earlier this session for
+Achievement/Quest/BattlePass/Progression managers), so
+`AccountSystem.Instance` is null in the tested flow - opening
+`MainMenuScene` and hitting Play would have shown an empty screen and a
+console error instead of real player data.
+
+Fixed with the same fallback `BattlePassSystem.GetActiveProfile()`
+already uses (online profile when signed in, local `ProgressionManager`
+profile otherwise) - added `GetActiveProfile()`/`SaveActiveProfile()` to
+`MainMenuController` and routed `InitializeMainMenu`/`RefreshProfile`/
+`UpdateEquippedShip` through them.
+
+Checked `ShipsGarageController.cs` for the same pattern - already uses
+`ProgressionManager.Instance` directly, no gap. `SettingsUI.cs`'s
+`AccountSystem` usage (logout button) is already optional/graceful, no
+fix needed.
