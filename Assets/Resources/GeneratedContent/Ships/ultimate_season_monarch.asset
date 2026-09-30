@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f11841f110074d44ab7504486d8bc67, type: 3}
+  m_Name: ultimate_season_monarch
+  m_EditorClassIdentifier: 
+  shipName: Season Monarch
+  shipIcon: {fileID: 0}
+  description: Ultimate exclusive battle pass reward - the season's flagship command
+    ship, only earned by completing the full premium track.
+  shipBody: {fileID: 11400000, guid: b1a46946d9abbf94b8e1931ab7e28131, type: 2}
+  levelingFormula: {fileID: 11400000, guid: 7403be5319b16d4439fa0d1ac6fbb199, type: 2}
+  passives:
+  - {fileID: 11400000, guid: 52b7291d996a1db48b6389c9cc3784b4, type: 2}
+  tier1Perk: {fileID: 11400000, guid: 7d5e7c16a11947c4fbed14cbdbacd212, type: 2}
+  tier2Perk: {fileID: 11400000, guid: 61b847276017160449a58194620fde57, type: 2}
+  tier3Perk: {fileID: 11400000, guid: b02913f6ddd2bc6468768a4b4921fb8d, type: 2}
+  moveType: {fileID: 11400000, guid: aead6e20f96f9b1449af6ddffe3785d4, type: 2}
+  defaultMissile: {fileID: 11400000, guid: 8b17e4c4065ef1e46bd832887e64476e, type: 2}
+  requiredAccountLevel: 25
+  isPremiumShip: 1
+  validationStatus: 'ERROR: Passive ''Last Stand'' cannot be used by Controller!
+
+'

@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdded9b39a4332644836540f13687ba2, type: 3}
+  m_Name: Weekly_WinWithTank
+  m_EditorClassIdentifier: 
+  questID: weekly_winwithtank
+  displayName: Tank Mastery
+  description: Win 10 matches using Tank archetype.
+  questType: 1
+  objectiveType: 10
+  targetValue: 10
+  requiredAccountLevel: 1
+  requiredArchetype: 0
+  requiredMissileType: 
+  softCurrencyReward: 400
+  hardCurrencyReward: 10
+  accountXPReward: 200
+  itemRewards: []
+  icon: {fileID: 0}
+  difficulty: 1
+  currentProgress: 0

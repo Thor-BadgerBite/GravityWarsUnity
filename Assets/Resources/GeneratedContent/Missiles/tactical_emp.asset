@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aefa48c7f123d72479092016a9718a8d, type: 3}
+  m_Name: tactical_emp
+  m_EditorClassIdentifier: 
+  missileName: Tactical EMP
+  missileType: 0
+  visualModelPrefab: {fileID: 0}
+  icon: {fileID: 0}
+  requiredAccountLevel: 0
+  physicsMass: 1
+  displayMass: 305
+  minLaunchVelocity: 0.1
+  maxLaunchVelocity: 20
+  maxVelocity: 60.5
+  drag: 0.01
+  velocityApproachRate: 0.1
+  fuel: 112
+  fuelConsumptionRate: 2
+  payload: 2240
+  pushStrength: 1.45
+  damageVariation: 0.1
+  selfDestructRadius: 4
+  selfDestructDamageFactor: 0.5
+  selfDestructPushStrength: 2
+  trailColor: {r: 1, g: 0.5, b: 0, a: 1}
+  maxVelocityColor: {r: 1, g: 0, b: 0, a: 1}
+  launchSound: {fileID: 0}
+  flyingSound: {fileID: 0}
+  explosionSound: {fileID: 0}
+  maxTiltAngle: 45
+  bankingSensitivity: 0.5

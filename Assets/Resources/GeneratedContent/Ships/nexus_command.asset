@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f11841f110074d44ab7504486d8bc67, type: 3}
+  m_Name: nexus_command
+  m_EditorClassIdentifier: 
+  shipName: Nexus Command
+  shipIcon: {fileID: 0}
+  description: Deploy tactical abilities to control the battlefield.
+  shipBody: {fileID: 11400000, guid: b1a46946d9abbf94b8e1931ab7e28131, type: 2}
+  levelingFormula: {fileID: 11400000, guid: 7403be5319b16d4439fa0d1ac6fbb199, type: 2}
+  passives:
+  - {fileID: 11400000, guid: b899d33b3bae72e46a50c2efe0efbe91, type: 2}
+  tier1Perk: {fileID: 11400000, guid: b448ac3f738644c4ab96d531773f59f2, type: 2}
+  tier2Perk: {fileID: 11400000, guid: 795ad5b3e41350d49ad1f7927cc212ca, type: 2}
+  tier3Perk: {fileID: 11400000, guid: b02913f6ddd2bc6468768a4b4921fb8d, type: 2}
+  moveType: {fileID: 11400000, guid: aead6e20f96f9b1449af6ddffe3785d4, type: 2}
+  defaultMissile: {fileID: 11400000, guid: 8b17e4c4065ef1e46bd832887e64476e, type: 2}
+  requiredAccountLevel: 26
+  isPremiumShip: 0
+  validationStatus: "\u2713 All validations passed!"

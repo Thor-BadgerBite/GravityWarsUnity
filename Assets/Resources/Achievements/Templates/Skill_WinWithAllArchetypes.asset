@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc146a7795fccde4c84b0f357f226d3b, type: 3}
+  m_Name: Skill_WinWithAllArchetypes
+  m_EditorClassIdentifier: 
+  achievementID: skill_winwithallarchetypes
+  displayName: Master of All
+  description: Win matches with all ship archetypes.
+  icon: {fileID: 0}
+  achievementType: 0
+  category: 3
+  isSecret: 0
+  tier: 0
+  conditionType: 15
+  targetValue: 1
+  requiredContext: 
+  requiresSimultaneousConditions: 0
+  additionalConditions: []
+  softCurrencyReward: 1000
+  hardCurrencyReward: 20
+  accountXPReward: 300
+  exclusiveItemReward: 
+  titleReward: 
+  profileIconReward: {fileID: 0}
+  sortOrder: 7
+  achievementPoints: 50
+  requiredLevelToView: 1
+  steamAchievementID: 
+  playstationTrophyID: 
+  xboxAchievementID: 
