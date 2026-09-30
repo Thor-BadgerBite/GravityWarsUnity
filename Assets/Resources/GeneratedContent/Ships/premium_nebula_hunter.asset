@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f11841f110074d44ab7504486d8bc67, type: 3}
+  m_Name: premium_nebula_hunter
+  m_EditorClassIdentifier: 
+  shipName: Nebula Hunter
+  shipIcon: {fileID: 0}
+  description: Premium battle pass ship - hunts key targets with a focused-salvo
+    cluster round exclusive to the premium track.
+  shipBody: {fileID: 11400000, guid: b9abee4a3dc1ddf47bce924617899660, type: 2}
+  levelingFormula: {fileID: 11400000, guid: 76f7aad339dc10a4d8ee8111b2e0b67b, type: 2}
+  passives:
+  - {fileID: 11400000, guid: 22b1167138cf0dd43be05fe0595be5c0, type: 2}
+  tier1Perk: {fileID: 11400000, guid: 34d244429d75a404492d34ce3adb996c, type: 2}
+  tier2Perk: {fileID: 11400000, guid: 61b847276017160449a58194620fde57, type: 2}
+  tier3Perk: {fileID: 11400000, guid: 6a11fb34e1da9f44280a1f164bc2dedf, type: 2}
+  moveType: {fileID: 11400000, guid: d870944c3d337cf41b844d7c19ddd4d3, type: 2}
+  defaultMissile: {fileID: 11400000, guid: f271f23c3a9d5d145bdbe02b2cf301c8, type: 2}
+  requiredAccountLevel: 5
+  isPremiumShip: 1
+  validationStatus: "\u2713 All validations passed!"

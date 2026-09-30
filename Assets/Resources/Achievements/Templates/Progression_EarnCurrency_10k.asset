@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc146a7795fccde4c84b0f357f226d3b, type: 3}
+  m_Name: Progression_EarnCurrency_10k
+  m_EditorClassIdentifier: 
+  achievementID: progression_earncurrency_10k
+  displayName: Wealth Builder
+  description: Earn 10,000 total coins.
+  icon: {fileID: 0}
+  achievementType: 1
+  category: 1
+  isSecret: 0
+  tier: 0
+  conditionType: 18
+  targetValue: 10000
+  requiredContext: 
+  requiresSimultaneousConditions: 0
+  additionalConditions: []
+  softCurrencyReward: 500
+  hardCurrencyReward: 0
+  accountXPReward: 100
+  exclusiveItemReward: 
+  titleReward: 
+  profileIconReward: {fileID: 0}
+  sortOrder: 4
+  achievementPoints: 20
+  requiredLevelToView: 1
+  steamAchievementID: 
+  playstationTrophyID: 
+  xboxAchievementID: 

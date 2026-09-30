@@ -8,11 +8,14 @@ using System.Collections.Generic;
 /// Usage:
 ///   In Unity Editor: Tools → Gravity Wars → Generate Achievement Templates
 ///
-/// This will create 50+ achievement ScriptableObjects in Assets/Achievements/Templates/
+/// This will create 50+ achievement ScriptableObjects in Assets/Resources/Achievements/Templates/
+///
+/// IMPORTANT: Must live under a Resources folder - AchievementService auto-loads
+/// templates via Resources.LoadAll("Achievements/Templates") at runtime.
 /// </summary>
 public class AchievementTemplateGenerator : EditorWindow
 {
-    private const string TEMPLATE_PATH = "Assets/Achievements/Templates/";
+    private const string TEMPLATE_PATH = "Assets/Resources/Achievements/Templates/";
 
     [MenuItem("Tools/Gravity Wars/Generate Achievement Templates")]
     public static void ShowWindow()

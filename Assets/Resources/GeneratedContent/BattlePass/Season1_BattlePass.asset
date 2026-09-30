@@ -1,0 +1,684 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fff125f0b03b87a40b6ebcbeb8d7433a, type: 3}
+  m_Name: Season1_BattlePass
+  m_EditorClassIdentifier: 
+  battlePassID: season_1
+  displayName: 'Season 1: Cosmic Dawn'
+  isSeasonal: 1
+  seasonNumber: 1
+  seasonStartDate: 2026-01-01
+  seasonEndDate: 2026-12-31
+  tiers:
+  - tierNumber: 1
+    xpRequired: 1000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 300
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 550
+      hardCurrencyAmount: 22
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 2
+    xpRequired: 2000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 350
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 12
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: skin_premium_platinum
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 3
+    xpRequired: 3000
+    freeReward:
+      rewardType: 10
+      rewardItem: {fileID: 11400000, guid: c29b32f8bb1cbe644bc6a65523851f1f, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 650
+      hardCurrencyAmount: 26
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 4
+    xpRequired: 4000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 450
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 700
+      hardCurrencyAmount: 28
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 5
+    xpRequired: 5000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 500
+      hardCurrencyAmount: 10
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 11
+      rewardItem: {fileID: 11400000, guid: 378177bd84bb7bc41a80e01b1a3eb350, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 6
+    xpRequired: 6000
+    freeReward:
+      rewardType: 8
+      rewardItem: {fileID: 11400000, guid: 6ea11e68aa9f3724d9ff04fec334bcb4, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 800
+      hardCurrencyAmount: 32
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 7
+    xpRequired: 7000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 600
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 850
+      hardCurrencyAmount: 34
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 8
+    xpRequired: 8000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 650
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 5
+      rewardItem: {fileID: 11400000, guid: 8efab3cb1ea7abf41a0b192a73ddec87, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 9
+    xpRequired: 9000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 700
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 950
+      hardCurrencyAmount: 38
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 10
+    xpRequired: 10000
+    freeReward:
+      rewardType: 11
+      rewardItem: {fileID: 11400000, guid: 302c386af6a5d884a8d1ad1754f8023e, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1000
+      hardCurrencyAmount: 40
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 11
+    xpRequired: 11000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 800
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1050
+      hardCurrencyAmount: 42
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 12
+    xpRequired: 12000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 850
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 12
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: skin_premium_cosmic
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 13
+    xpRequired: 13000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 900
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1150
+      hardCurrencyAmount: 46
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 14
+    xpRequired: 14000
+    freeReward:
+      rewardType: 4
+      rewardItem: {fileID: 11400000, guid: 7d5e7c16a11947c4fbed14cbdbacd212, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1200
+      hardCurrencyAmount: 48
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 15
+    xpRequired: 15000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1000
+      hardCurrencyAmount: 10
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 11
+      rewardItem: {fileID: 11400000, guid: 72c4842be4843d941b2a373ec441a046, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 16
+    xpRequired: 16000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1050
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1300
+      hardCurrencyAmount: 52
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 17
+    xpRequired: 17000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1100
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1350
+      hardCurrencyAmount: 54
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 18
+    xpRequired: 18000
+    freeReward:
+      rewardType: 10
+      rewardItem: {fileID: 11400000, guid: f271f23c3a9d5d145bdbe02b2cf301c8, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 10
+      rewardItem: {fileID: 11400000, guid: cecbf0850e873264e9041395f19f2151, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 19
+    xpRequired: 19000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1200
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1450
+      hardCurrencyAmount: 58
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 20
+    xpRequired: 20000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1250
+      hardCurrencyAmount: 10
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1500
+      hardCurrencyAmount: 60
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 21
+    xpRequired: 21000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1300
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 12
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: skin_premium_diamond
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 22
+    xpRequired: 22000
+    freeReward:
+      rewardType: 8
+      rewardItem: {fileID: 11400000, guid: 402b9c7170cb1a44882c8201a235daa8, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1600
+      hardCurrencyAmount: 64
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 23
+    xpRequired: 23000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1400
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1650
+      hardCurrencyAmount: 66
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 24
+    xpRequired: 24000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1450
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1700
+      hardCurrencyAmount: 68
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 25
+    xpRequired: 25000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1500
+      hardCurrencyAmount: 10
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 11
+      rewardItem: {fileID: 11400000, guid: dfcd4904aee27cf4d9de69ad850e7dfa, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 26
+    xpRequired: 26000
+    freeReward:
+      rewardType: 5
+      rewardItem: {fileID: 11400000, guid: 2ccad43f51872d540ae81f90ec208221, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1800
+      hardCurrencyAmount: 72
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 27
+    xpRequired: 27000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1600
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1850
+      hardCurrencyAmount: 74
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 28
+    xpRequired: 28000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1650
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 6
+      rewardItem: {fileID: 11400000, guid: 6a11fb34e1da9f44280a1f164bc2dedf, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 29
+    xpRequired: 29000
+    freeReward:
+      rewardType: 1
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1700
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 2
+      rewardItem: {fileID: 0}
+      softCurrencyAmount: 1950
+      hardCurrencyAmount: 78
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  - tierNumber: 30
+    xpRequired: 30000
+    freeReward:
+      rewardType: 11
+      rewardItem: {fileID: 11400000, guid: 737aa250177fc8c4cb8a6416e39901d9, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+    premiumReward:
+      rewardType: 11
+      rewardItem: {fileID: 11400000, guid: 51c1ec837091cbe4b919a66c39009263, type: 2}
+      softCurrencyAmount: 0
+      hardCurrencyAmount: 0
+      accountXP: 0
+      shipXP: 0
+      skinID: 
+      colorSchemeID: 
+      decalID: 
+  icon: {fileID: 0}
+  description: The first season of Gravity Wars. Climb 30 tiers of rewards across
+    free and premium tracks.

@@ -57,6 +57,32 @@ public class PerkManager : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Re-reads the perk slots from the ship's (possibly newly assigned)
+    /// preset. Needed because Awake runs at Instantiate time, BEFORE
+    /// MatchLoadoutBridge assigns the selected preset/loadout to the ship.
+    /// </summary>
+    public void ReloadSlotsFromPreset()
+    {
+        if (_ship == null) _ship = GetComponent<PlayerShip>();
+
+        if (_ship.shipPreset != null)
+        {
+            _soSlots[0] = _ship.shipPreset.tier1Perk;
+            _soSlots[1] = _ship.shipPreset.tier2Perk;
+            _soSlots[2] = _ship.shipPreset.tier3Perk;
+            Debug.Log($"<color=cyan>[PerkManager] Reloaded perks from preset: {_ship.shipPreset.shipName}</color>");
+        }
+
+        for (int i = 0; i < 3; i++)
+        {
+            _equipped[i]     = _soSlots[i]?.CreatePerk();
+            _usedThisTurn[i] = false;
+        }
+        _toggledSlot = -1;
+        RefreshUI();
+    }
+
     void Update()
     {
         if (!_ship.controlsEnabled) return;
@@ -99,9 +125,11 @@ public class PerkManager : MonoBehaviour
 
         // 1) no perk assigned
         // 2) ship not high enough level
-        // 3) not otherwise valid (enough moves, correct mode, one‑per‑turn rules, etc.)
+        // 3) tier usage limit reached (T2: once per turn, T3: once per round)
+        // 4) not otherwise valid (enough moves, correct mode, etc.)
         if (so == null
         || _ship.shipLevel < so.minLevel
+        || _usedThisTurn[slot]
         || !perk.CanActivate(_ship))
             return;
 
@@ -134,7 +162,16 @@ public class PerkManager : MonoBehaviour
         // Activate the perk (sets flags like nextMultiEnabled, etc.)
         Debug.Log($"[PerkManager] Activating {so.perkName} BEFORE firing missile");
         perk.Activate(_ship);
-        _usedThisTurn[_toggledSlot] = true;
+
+        // Tier usage limits: T1 unlimited, T2 once per turn, T3 once per round.
+        // (Ships are re-instantiated each round, so T3 resets naturally.)
+        if (so.tier > 1)
+            _usedThisTurn[_toggledSlot] = true;
+
+        // Match stats + quest/achievement tracking
+        MatchStatsTracker.Instance?.RecordPerkUsed(_ship);
+        GameManager.Instance?.GetComponent<GameManagerQuestIntegration>()?.OnPlayerActivatePerk(so.perkName);
+        GameManager.Instance?.GetComponent<GameManagerAchievementIntegration>()?.OnPlayerActivatePerk(so.perkName);
     }
 
     /// <summary>
@@ -209,13 +246,14 @@ public class PerkManager : MonoBehaviour
 
     /// <summary>
     /// Call this at the start of each new turn to clear usage flags.
+    /// Tier limits: T1 unlimited (never marked used), T2 resets each turn,
+    /// T3 stays used for the whole round (ultimate - once per round).
     /// </summary>
     public void ResetPerTurn()
     {
         for (int i = 0; i < _usedThisTurn.Length; i++)
         {
-            // only Tier‑2/3, leave Tier‑1 unlimited:
-            if (_soSlots[i] != null && _soSlots[i].tier > 1)
+            if (_soSlots[i] != null && _soSlots[i].tier == 2)
                 _usedThisTurn[i] = false;
         }
         _toggledSlot = -1;

@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f11841f110074d44ab7504486d8bc67, type: 3}
+  m_Name: viper_assault
+  m_EditorClassIdentifier: 
+  shipName: Viper Assault
+  shipIcon: {fileID: 0}
+  description: Lightning-fast attacks with devastating firepower.
+  shipBody: {fileID: 11400000, guid: b9abee4a3dc1ddf47bce924617899660, type: 2}
+  levelingFormula: {fileID: 11400000, guid: 76f7aad339dc10a4d8ee8111b2e0b67b, type: 2}
+  passives:
+  - {fileID: 11400000, guid: c1cf4b275a0655f498b65fcdb1269f11, type: 2}
+  tier1Perk: {fileID: 11400000, guid: 7d5e7c16a11947c4fbed14cbdbacd212, type: 2}
+  tier2Perk: {fileID: 11400000, guid: 61b847276017160449a58194620fde57, type: 2}
+  tier3Perk: {fileID: 11400000, guid: 1105968fc950d5f4a8d1b95c83cc82ad, type: 2}
+  moveType: {fileID: 11400000, guid: d870944c3d337cf41b844d7c19ddd4d3, type: 2}
+  defaultMissile: {fileID: 11400000, guid: f271f23c3a9d5d145bdbe02b2cf301c8, type: 2}
+  requiredAccountLevel: 16
+  isPremiumShip: 0
+  validationStatus: "\u2713 All validations passed!"

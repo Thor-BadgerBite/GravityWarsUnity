@@ -13,9 +13,9 @@ MonoBehaviour:
   m_Name: TankLevelingMain
   m_EditorClassIdentifier: 
   archetype: 0
-  healthScalingPerLevel: 0.04
-  armorScalingPerLevel: 4
-  damageScalingPerLevel: 0.017
+  healthScalingPerLevel: 0.03
+  armorScalingPerLevel: 2.5
+  damageScalingPerLevel: 0.018
   previewLevel: 10
   previewStats: '=== Tank at Level 10 ===
 

@@ -44,16 +44,19 @@ public class HotSeatSetup : MonoBehaviour
     private void UpdateWinningScoreText(float value)
     {
         winningScoreText.text = $"Winning Score: {value:0}";
+        gameManager.winningScore = Mathf.RoundToInt(value);
     }
 
     private void UpdateTurnDurationText(float value)
     {
         turnDurationText.text = $"Turn Duration: {value:0.0}s";
+        gameManager.turnDuration = value;
     }
 
     private void UpdatePrepTimeText(float value)
     {
         prepTimeText.text = $"Prep Time: {value:0.0}s";
+        gameManager.preparationTime = value;
     }
 
 public void StartGame()

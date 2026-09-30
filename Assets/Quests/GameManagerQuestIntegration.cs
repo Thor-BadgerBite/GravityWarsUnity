@@ -74,7 +74,15 @@ public class GameManagerQuestIntegration : MonoBehaviour
         {
             Debug.LogWarning("[GameManagerQuestIntegration] QuestService not available - quests disabled");
             enableQuestTracking = false;
+            return;
         }
+
+        // Start the quest system here too (not just from ProgressionManager),
+        // so quests still work when testing a match scene directly without
+        // going through the MainMenu/account-load flow first.
+        // InitializeQuests() is idempotent, so this is safe even if
+        // ProgressionManager already started it.
+        _ = _questService.InitializeQuests();
     }
 
     #endregion

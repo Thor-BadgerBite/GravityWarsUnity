@@ -1,0 +1,39 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bc146a7795fccde4c84b0f357f226d3b, type: 3}
+  m_Name: Combat_WinMatches_Platinum
+  m_EditorClassIdentifier: 
+  achievementID: combat_winmatches_platinum
+  displayName: Legend
+  description: Win 500 matches!
+  icon: {fileID: 0}
+  achievementType: 2
+  category: 0
+  isSecret: 0
+  tier: 4
+  conditionType: 0
+  targetValue: 500
+  requiredContext: 
+  requiresSimultaneousConditions: 0
+  additionalConditions: []
+  softCurrencyReward: 5000
+  hardCurrencyReward: 100
+  accountXPReward: 2000
+  exclusiveItemReward: 
+  titleReward: 
+  profileIconReward: {fileID: 0}
+  sortOrder: 4
+  achievementPoints: 100
+  requiredLevelToView: 1
+  steamAchievementID: 
+  playstationTrophyID: 
+  xboxAchievementID: 

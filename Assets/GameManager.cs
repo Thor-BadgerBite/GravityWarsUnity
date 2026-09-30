@@ -53,6 +53,36 @@ public class GameManager : MonoBehaviour
     public string player1Name = "Player 1";
     public string player2Name = "Player 2";
 
+    [Header("Bot Opponent (Practice Mode)")]
+    [Tooltip("When true, Player 2 is controlled by the AI")]
+    public bool player2IsBot = false;
+    [Tooltip("Bot accuracy: 0 = wild shots, 1 = deadly precise")]
+    [Range(0f, 1f)] public float botDifficulty = 0.6f;
+
+    [Header("Ship Loadouts (applied to spawned ships)")]
+    [Tooltip("Prebuilt ship preset for Player 1 (optional - overrides prefab defaults)")]
+    public ShipPresetSO player1Preset;
+    [Tooltip("Prebuilt ship preset for Player 2 (optional - overrides prefab defaults)")]
+    public ShipPresetSO player2Preset;
+    [Tooltip("When no preset is set, apply the local player's equipped custom loadout to Player 1")]
+    public bool applyEquippedLoadoutToPlayer1 = true;
+
+    [Header("Engagement Features")]
+    [Tooltip("Apply the rotating weekly mutator (low gravity, giant planets, ...)")]
+    public bool enableWeeklyMutators = false;
+    [Tooltip("Previous round's loser gets +1 action point next round")]
+    public bool comebackBonusActionPoint = true;
+
+    // Which side lost the previous round (null on the first round of a match)
+    private bool? lastRoundLoserIsLeft = null;
+
+    // Set the instant a ship is destroyed and cleared when the next round's
+    // ships are actually spawned. Blocks the normal "missile destroyed ->
+    // advance to next turn" flow from also firing on the SAME lethal hit,
+    // which otherwise races the round-reset flow using stale ship references
+    // (see ShipDestroyed / OnMissileDestroyed).
+    private bool roundEndPending = false;
+
     // ----------------------------------
     // OLD UI references
     // ----------------------------------
@@ -168,6 +198,22 @@ public class GameManager : MonoBehaviour
             Debug.LogWarning("Planet cache is empty! Updating cache now...");
             UpdatePlanetCache();
         }
+
+        // Defensive: a round reset destroys the old planets, but Destroy()
+        // is deferred to end-of-frame, so FindObjectsOfType (called by
+        // UpdatePlanetCache right after) can still capture them for one
+        // frame. Strip any stale entries here so trajectory prediction and
+        // bot AI never hit a MissingReferenceException. Self-heals the
+        // cache in place so this only allocates when actually needed.
+        for (int i = 0; i < cachedPlanets.Length; i++)
+        {
+            if (cachedPlanets[i] == null)
+            {
+                cachedPlanets = System.Array.FindAll(cachedPlanets, p => p != null);
+                break;
+            }
+        }
+
         return cachedPlanets;
     }
 
@@ -222,6 +268,13 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
+            // DontDestroyOnLoad only works on a root GameObject - if this
+            // one is nested under something else in the scene hierarchy
+            // (confirmed live: "DontDestroyOnLoad only works for root
+            // GameObjects..." warning), un-parent it first so it actually
+            // survives scene loads (needed for requeue/rematch flows).
+            if (transform.parent != null)
+                transform.SetParent(null);
             DontDestroyOnLoad(gameObject);
         }
         else
@@ -282,6 +335,24 @@ public class GameManager : MonoBehaviour
 
     var pm2 = player2Ship.GetComponent<PerkManager>();
     pm2.SetIconSlots(player2PerkIcons);
+
+        // ===== MATCH TRACKING & INTEGRATIONS =====
+        lastRoundLoserIsLeft = null;   // comeback bonus starts fresh each match
+        MatchStatsTracker.GetOrCreate().ResetMatch();
+        KillshotRecorder.GetOrCreate().ResetMatch();
+        GetComponent<GameManagerQuestIntegration>()?.OnMatchStart();
+        GetComponent<GameManagerAchievementIntegration>()?.OnMatchStart();
+        GetComponent<GameManagerLeaderboardIntegration>()?.OnMatchStart();
+        GetComponent<GameManagerAnalytics>()?.TrackMatchStart();
+        // =========================================
+
+        // Weekly mutator announcement
+        if (enableWeeklyMutators)
+        {
+            var mutator = MutatorSystem.GetCurrentMutator();
+            if (mutator != MutatorSystem.Mutator.None)
+                ShowInfoText($"{MutatorSystem.GetDisplayName(mutator)}\n{MutatorSystem.GetDescription(mutator)}");
+        }
 
         StartCoroutine(StartGamePhase());
     }
@@ -460,6 +531,24 @@ public class GameManager : MonoBehaviour
         }
 
         RepositionPlanets();
+
+        // ===== WEEKLY MUTATOR: planet mass/size adjustments =====
+        if (enableWeeklyMutators)
+        {
+            var mutator = MutatorSystem.GetCurrentMutator();
+            float massScale = MutatorSystem.GetPlanetMassScale(mutator);
+            float sizeScale = MutatorSystem.GetPlanetSizeScale(mutator);
+
+            if (!Mathf.Approximately(massScale, 1f) || !Mathf.Approximately(sizeScale, 1f))
+            {
+                foreach (var planet in planetComponents)
+                {
+                    planet.mass *= massScale;
+                    planet.transform.localScale *= sizeScale;
+                }
+                Debug.Log($"[GameManager] Mutator '{mutator}' applied: mass x{massScale}, size x{sizeScale}");
+            }
+        }
 
         // Update planet cache after all planets are spawned
         UpdatePlanetCache();
@@ -691,6 +780,11 @@ public class GameManager : MonoBehaviour
 
     void PlaceShips()
     {
+        // Fresh ships are being spawned now - any pending round-end sequence
+        // has finished its job, and the normal per-turn flow (EndTurn on
+        // missile destroy) is safe to run again for the new round.
+        roundEndPending = false;
+
         Vector3 player1Position = GetValidShipPosition(true);
         GameObject player1 = Instantiate(playerShipPrefab, player1Position, Quaternion.Euler(0, 90, -90));
         player1.name = "Player1Ship";
@@ -720,34 +814,71 @@ public class GameManager : MonoBehaviour
         pm2.SetIconSlots(player2PerkIcons);
         Debug.Log($"icon set for player2");
 
+        // ===== LOADOUT → MATCH BRIDGE =====
+        // Apply the selected ships to the spawned instances. Without this the
+        // ships always play with the prefab's Inspector defaults and every
+        // loadout / missile selection is ignored in-game.
+        if (player1Preset != null)
+            MatchLoadoutBridge.ApplyPreset(player1Ship, player1Preset);
+        else if (applyEquippedLoadoutToPlayer1)
+            MatchLoadoutBridge.ApplyEquippedLoadout(player1Ship);
+
+        if (player2Preset != null)
+            MatchLoadoutBridge.ApplyPreset(player2Ship, player2Preset);
+        // ==================================
+
+        // ===== BOT OPPONENT (practice mode / offline play) =====
+        if (player2IsBot && player2Ship.GetComponent<BotController>() == null)
+        {
+            var bot = player2Ship.gameObject.AddComponent<BotController>();
+            bot.Configure(botDifficulty);
+            Debug.Log($"[GameManager] Player 2 is a bot (difficulty {botDifficulty:F2})");
+        }
     }
 
     Vector3 GetValidShipPosition(bool isLeftSide)
     {
+        // Track the least-overlapping candidate seen so far. Previously,
+        // running out of attempts fell back to ANOTHER fresh random
+        // position with zero validation - which could (and did, confirmed
+        // live: "Player 2 collided with Uranus -> destroyed" the instant
+        // the round started) place a ship directly on top of a planet.
+        // Now the worst case is "the best of maxShipPlacementAttempts
+        // tries", never an unchecked coin flip.
+        Vector3 bestPosition = GetRandomShipPosition(isLeftSide);
+        float bestClearance = float.NegativeInfinity;
+
         for (int attempt = 0; attempt < maxShipPlacementAttempts; attempt++)
         {
             Vector3 position = GetRandomShipPosition(isLeftSide);
-            if (!ShipOverlapsWithPlanet(position) && IsWithinValidVerticalRange(position.y))
+            if (!IsWithinValidVerticalRange(position.y)) continue;
+
+            float clearance = ClearanceFromPlanets(position);
+            if (clearance > bestClearance)
             {
-                return position;
+                bestClearance = clearance;
+                bestPosition = position;
             }
+
+            if (clearance >= 0f)
+                return position; // fully clear of every planet
         }
 
-        Debug.LogWarning("Could not find a valid position for the ship. Placing at default position.");
-        return GetRandomShipPosition(isLeftSide);
+        Debug.LogWarning($"[GameManager] No fully clear ship spawn position found after " +
+            $"{maxShipPlacementAttempts} attempts - using the least-overlapping candidate " +
+            $"(clearance {bestClearance:F2}) instead of an unvalidated random position.");
+        return bestPosition;
     }
 
-    Vector3 GetRandomShipPosition(bool isLeftSide)
+    /// <summary>
+    /// Distance from the nearest planet's surface, in the same
+    /// margin-adjusted terms ShipOverlapsWithPlanet uses. Negative =
+    /// overlapping that planet. float.PositiveInfinity if there are no
+    /// planets at all.
+    /// </summary>
+    private float ClearanceFromPlanets(Vector3 position)
     {
-        float horizontalPosition = Random.Range(minDistanceFromCenter, maxDistanceFromCenter);
-        if (isLeftSide) horizontalPosition = -horizontalPosition;
-
-        float verticalPosition = Random.Range(-height / 2f + topBottomOffset, height / 2f - topBottomOffset);
-        return new Vector3(horizontalPosition, verticalPosition, 0);
-    }
-
-    private bool ShipOverlapsWithPlanet(Vector3 position)
-    {
+        float minClearance = float.PositiveInfinity;
         foreach (Planet planet in planetComponents)
         {
             SphereCollider planetCollider = planet.GetComponent<SphereCollider>();
@@ -763,12 +894,25 @@ public class GameManager : MonoBehaviour
 
             float distance = Vector3.Distance(position, planet.transform.position);
             float minDist = shipCollisionRadius + planetCollider.radius * planet.transform.localScale.x;
-            if (distance < minDist)
-            {
-                return true;
-            }
+            float clearance = distance - minDist;
+            if (clearance < minClearance)
+                minClearance = clearance;
         }
-        return false;
+        return minClearance;
+    }
+
+    Vector3 GetRandomShipPosition(bool isLeftSide)
+    {
+        float horizontalPosition = Random.Range(minDistanceFromCenter, maxDistanceFromCenter);
+        if (isLeftSide) horizontalPosition = -horizontalPosition;
+
+        float verticalPosition = Random.Range(-height / 2f + topBottomOffset, height / 2f - topBottomOffset);
+        return new Vector3(horizontalPosition, verticalPosition, 0);
+    }
+
+    private bool ShipOverlapsWithPlanet(Vector3 position)
+    {
+        return ClearanceFromPlanets(position) < 0f;
     }
 
     bool IsWithinValidVerticalRange(float yPosition)
@@ -831,6 +975,16 @@ public class GameManager : MonoBehaviour
 
     void StartPreparationPhase(PlayerShip nextPlayer)
     {
+        // Defensive second layer: catches a stale/destroyed ship reference
+        // from any turn-advance path we haven't anticipated, instead of
+        // crashing (the roundEndPending guard in OnMissileDestroyed is the
+        // primary fix for the known race - this is just insurance).
+        if (nextPlayer == null)
+        {
+            Debug.LogWarning("[GameManager] StartPreparationPhase called with a null/destroyed ship - ignoring stale turn-advance.");
+            return;
+        }
+
         nextPlayer.StopOverTimeEffects();
 
         // Determine the enemy ship
@@ -861,6 +1015,13 @@ public class GameManager : MonoBehaviour
 
     void StartPlayerTurn()
     {
+        // Defensive second layer, same reasoning as StartPreparationPhase.
+        if (currentPlayer == null)
+        {
+            Debug.LogWarning("[GameManager] StartPlayerTurn called with a null/destroyed currentPlayer - ignoring stale turn-advance.");
+            return;
+        }
+
         Debug.Log($"Starting Player Turn for {currentPlayer.playerName}");
         currentPlayer.OnStartOfTurn();
         isTurnActive = true;
@@ -961,9 +1122,21 @@ public class GameManager : MonoBehaviour
 
     IEnumerator MissileFlightPhase()
     {
-        // 1) Grab a reference to the active missile
-        //    (We expect one just fired. If not found, we bail out.)
-        Missile3D activeMissile = FindObjectOfType<Missile3D>();
+        // 1) Grab a reference to the active missile fired by the CURRENT player.
+        //    (With multi/cluster/barrage several missiles exist - any of the
+        //    current player's works for the fuel display; previously this
+        //    grabbed an arbitrary missile which could belong to nobody.)
+        Missile3D activeMissile = null;
+        foreach (var m in FindObjectsOfType<Missile3D>())
+        {
+            if (m.isDestroyed) continue;
+            if (currentPlayer != null && m.FiredByShip == currentPlayer.gameObject)
+            {
+                activeMissile = m;
+                break;
+            }
+            if (activeMissile == null) activeMissile = m; // fallback: any live missile
+        }
         if (activeMissile == null)
         {
             yield break; // no missile => just end
@@ -1016,7 +1189,16 @@ public class GameManager : MonoBehaviour
             missileFlightCoroutine = null;
         }
         Debug.Log("Missile Destroyed event");
-        if (!isTurnActive && missileFired && currentPlayer.currentMode == PlayerShip.PlayerActionMode.Fire)
+
+        // Skip the normal turn-advance if this hit already killed a ship -
+        // ShipDestroyed()'s own round-reset sequence owns advancing the game
+        // now. Without this guard, both flows fire from the same lethal hit
+        // and race each other using stale ship references (the shorter
+        // infoFadeDuration delay here can fire mid-way through the longer
+        // round-reset sequence, calling StartPlayerTurn on an already-
+        // destroyed ship - see roundEndPending's declaration for details).
+        if (!roundEndPending && !isTurnActive && missileFired &&
+            currentPlayer != null && currentPlayer.currentMode == PlayerShip.PlayerActionMode.Fire)
         {
             if (timerCoroutine != null) StopCoroutine(timerCoroutine);
 
@@ -1061,6 +1243,23 @@ public class GameManager : MonoBehaviour
     // ---------------------------------------------------------
     public void ShipDestroyed(PlayerShip destroyedShip)
     {
+        // Set FIRST, synchronously, before anything else - this must be true
+        // before Missile3D finishes destroying the missile and fires
+        // OnMissileDestroyed, so that handler knows a round-ending sequence
+        // already owns the "advance to next turn" responsibility.
+        roundEndPending = true;
+
+        // A kill ends the round through this path, not through the normal
+        // EndTurn() (which is what stops these). Left running, the timer
+        // for the turn that just ended fires later against a match that's
+        // already over - confirmed live: "Ending Turn: No action taken in
+        // time!" followed by "StartPreparationPhase called with a
+        // null/destroyed ship" well after Game Over was already logged.
+        // The null-guard in StartPreparationPhase caught it safely, but
+        // stopping the timer here means it never fires at all.
+        if (activeCoroutine != null) StopCoroutine(activeCoroutine);
+        if (timerCoroutine != null) StopCoroutine(timerCoroutine);
+
         Debug.Log($"{destroyedShip.playerName}'s ship destroyed");
 
         if (destroyedShip.playerUI != null)
@@ -1080,6 +1279,15 @@ public class GameManager : MonoBehaviour
             storedScore1++;
             winningShip.score = storedScore1;
         }
+
+        // ===== ROUND TRACKING & INTEGRATIONS =====
+        bool roundWonByPlayer1 = (winningShip == player1Ship);
+        lastRoundLoserIsLeft = destroyedShip.isLeftPlayer;   // comeback bonus next round
+        MatchStatsTracker.Instance?.RecordRoundWon(winningShip);
+        GetComponent<GameManagerQuestIntegration>()?.OnRoundEnd(winningShip, roundWonByPlayer1);
+        GetComponent<GameManagerAchievementIntegration>()?.OnRoundEnd(winningShip, roundWonByPlayer1);
+        // =========================================
+
         UpdateScoreDisplay();
         StartCoroutine(HandleShipDestruction(destroyedShip, winningShip));
     }
@@ -1124,6 +1332,7 @@ public class GameManager : MonoBehaviour
     public void ResetForNewRound()
     {
         ClearAllMissileTrails();
+        KillshotRecorder.Instance?.ResetRound();
         InitializeGame();
 
         // destroy leftover UI
@@ -1140,10 +1349,24 @@ public class GameManager : MonoBehaviour
         Debug.Log($"Game Over. {winner.playerName} wins!");
         yield return StartCoroutine(FadeOverlay(true, $"Game Over!\n{winner.playerName} wins the game!"));
 
-        // ===== PROGRESSION SYSTEM: Award match XP =====
-        AwardMatchProgression(winner);
-        // ==============================================
+        // ===== PROGRESSION SYSTEM: Award match XP + integrations =====
+        MatchResultsSummary summary = AwardMatchProgression(winner);
+        // =============================================================
 
+        // Show the post-match results screen if one exists in the scene.
+        // The results screen takes over the flow (Play Again / Main Menu buttons).
+        var resultsUI = MatchResultsUI.Instance != null
+            ? MatchResultsUI.Instance
+            : FindObjectOfType<MatchResultsUI>(true);
+        if (resultsUI != null)
+        {
+            ResetScores();
+            currentRound = 1;
+            resultsUI.Show(summary);
+            yield break;
+        }
+
+        // Fallback: no results screen - restart match after delay (legacy behavior)
         yield return new WaitForSeconds(gameOverDuration);
         ResetScores();
         currentRound = 1;
@@ -1151,55 +1374,129 @@ public class GameManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Awards XP and progression after a match ends
+    /// Awards XP and progression after a match ends, updates quests/achievements/
+    /// leaderboards and returns a summary for the results screen.
     /// </summary>
-    private void AwardMatchProgression(PlayerShip winner)
+    private MatchResultsSummary AwardMatchProgression(PlayerShip winner)
     {
-        // Check if progression system is active
+        bool player1Won = (winner == player1Ship);
+        PlayerShip loser = player1Won ? player2Ship : player1Ship;
+
+        var tracker = MatchStatsTracker.Instance;
+        var winnerStats = tracker != null ? tracker.GetStats(winner) : new MatchStatsTracker.PlayerStats();
+        var loserStats = tracker != null ? tracker.GetStats(loser) : new MatchStatsTracker.PlayerStats();
+
+        // Build the results summary up-front (also used when progression is unavailable)
+        var summary = new MatchResultsSummary
+        {
+            winnerName = winner.playerName,
+            loserName = loser.playerName,
+            player1Won = player1Won,
+            winnerScore = winner.score,
+            loserScore = loser.score,
+            winnerStats = winnerStats,
+            loserStats = loserStats,
+            matchDurationSeconds = tracker != null ? tracker.MatchDurationSeconds : 0f
+        };
+
+        // ===== INTEGRATIONS (quests, achievements, leaderboards, analytics) =====
+        GetComponent<GameManagerQuestIntegration>()?.OnMatchEnd(winner, player1Won);
+        GetComponent<GameManagerAchievementIntegration>()?.OnMatchEnd(winner, player1Won);
+        GetComponent<GameManagerLeaderboardIntegration>()?.OnMatchEnd(winner, player1Won);
+        GetComponent<GameManagerAnalytics>()?.TrackMatchEnd(winner);
+        // ========================================================================
+
         if (ProgressionManager.Instance == null)
         {
             Debug.LogWarning("[GameManager] ProgressionManager not found, skipping XP award");
-            return;
+            return summary;
         }
 
-        // Determine winner and loser
-        PlayerShip player1 = player1Ship;
-        PlayerShip player2 = player2Ship;
+        var playerData = ProgressionManager.Instance.currentPlayerData;
 
-        bool player1Won = (winner == player1);
-        int winnerRoundsWon = winner.score;
-        int loserRoundsWon = player1Won ? player2.score : player1.score;
+        // Snapshot before awarding so the results screen can show gains
+        int xpBefore = playerData.currentXP;
+        int levelBefore = playerData.level;
+        int creditsBefore = playerData.credits;
+        int bpTierBefore = playerData.battlePassTier;
 
-        // Calculate damage dealt (TODO: Track this during match)
-        // For now, use a placeholder based on rounds won
-        int winnerDamage = winnerRoundsWon * 5000; // Rough estimate
-        int loserDamage = loserRoundsWon * 5000;
+        // Resolve the loadout used by the local player (ship XP tracking)
+        CustomShipLoadout equippedLoadout = ResolveEquippedLoadout(playerData);
 
-        // Get ship loadouts (if custom ships are being used)
-        // For now, we'll pass null and XP will be awarded to account only
-        CustomShipLoadout winnerLoadout = null;  // TODO: Get from ship selection
-        CustomShipLoadout loserLoadout = null;
+        // A loss one round short of victory is a "close match" (consolation bonus)
+        bool closeMatch = loser.score >= winningScore - 1 && loser.score > 0;
+        summary.closeMatch = closeMatch;
 
         // Award XP to winner
         Debug.Log($"[GameManager] Awarding XP to winner: {winner.playerName}");
-        ProgressionManager.Instance.AwardMatchXP(
+        var winnerResult = ProgressionManager.Instance.AwardMatchXP(
             won: true,
-            roundsWon: winnerRoundsWon,
-            damageDealt: winnerDamage,
-            usedLoadout: winnerLoadout
+            roundsWon: winner.score,
+            damageDealt: winnerStats.damageDealt,
+            usedLoadout: player1Won ? equippedLoadout : null,
+            closeMatch: false,
+            trickshots: winnerStats.trickshots
         );
 
         // Award XP to loser (reduced, but still something)
-        PlayerShip loser = player1Won ? player2 : player1;
         Debug.Log($"[GameManager] Awarding participation XP to: {loser.playerName}");
-        ProgressionManager.Instance.AwardMatchXP(
+        var loserResult = ProgressionManager.Instance.AwardMatchXP(
             won: false,
-            roundsWon: loserRoundsWon,
-            damageDealt: loserDamage,
-            usedLoadout: loserLoadout
+            roundsWon: loser.score,
+            damageDealt: loserStats.damageDealt,
+            usedLoadout: player1Won ? null : equippedLoadout,
+            closeMatch: closeMatch,
+            trickshots: loserStats.trickshots
         );
 
+        // Player 1 is the local player - their award drives the celebration UI
+        var localResult = player1Won ? winnerResult : loserResult;
+        summary.firstWinOfTheDay = winnerResult.firstWinOfTheDay || loserResult.firstWinOfTheDay;
+        summary.winStreak = localResult.winStreak;
+        summary.streakBonusCredits = localResult.streakBonusCredits;
+        summary.trickshotBonusXP = winnerResult.trickshotBonusXP + loserResult.trickshotBonusXP;
+        summary.closeMatchBonusXP = loserResult.closeMatchBonusXP;
+
+        // Fill reward info for the results screen
+        summary.xpGained = (playerData.currentXP - xpBefore) +
+                           SumLevelUpXP(levelBefore, playerData.level);
+        summary.creditsGained = playerData.credits - creditsBefore;
+        summary.leveledUp = playerData.level > levelBefore;
+        summary.newLevel = playerData.level;
+        summary.battlePassTiersGained = playerData.battlePassTier - bpTierBefore;
+
         Debug.Log("[GameManager] Match progression awarded!");
+        return summary;
+    }
+
+    /// <summary>
+    /// Finds the loadout the local player has equipped (for ship XP).
+    /// Falls back to the first custom loadout if nothing is selected.
+    /// </summary>
+    private CustomShipLoadout ResolveEquippedLoadout(PlayerAccountData playerData)
+    {
+        if (playerData == null || playerData.customShipLoadouts.Count == 0)
+            return null;
+
+        var equipped = playerData.customShipLoadouts.Find(l =>
+            l.loadoutID == playerData.currentEquippedShipId ||
+            l.loadoutID == playerData.selectedCasualLoadoutId);
+
+        return equipped ?? playerData.customShipLoadouts[0];
+    }
+
+    /// <summary>
+    /// XP consumed by level-ups between two levels (XP counter resets per level),
+    /// so the results screen can show total XP earned this match.
+    /// </summary>
+    private int SumLevelUpXP(int fromLevel, int toLevel)
+    {
+        int total = 0;
+        for (int lvl = fromLevel; lvl < toLevel; lvl++)
+        {
+            total += 1000 + (lvl * 500); // Matches ProgressionManager level formula
+        }
+        return total;
     }
 
     void ResetScores()
@@ -1293,6 +1590,54 @@ public class GameManager : MonoBehaviour
     {
         StartCoroutine(FadeText(infoText, message, infoFadeDuration));
     }
+
+    /// <summary>
+    /// Public banner for external systems (trickshots, mutators, streaks).
+    /// </summary>
+    public void ShowBanner(string message)
+    {
+        ShowInfoText(message);
+    }
+
+    /// <summary>
+    /// Applies per-round action point bonuses (weekly mutator, comeback bonus).
+    /// Called by PlayerShip.Start() AFTER the ship preset applies its base values,
+    /// so the bonuses are never overwritten by ShipPresetSO.ApplyToShip.
+    /// </summary>
+    public void ApplyTurnBonuses(PlayerShip ship)
+    {
+        if (ship == null) return;
+
+        // Re-sync after the preset (may have changed movesAllowedPerTurn,
+        // e.g. Controller bodies grant 4 AP while the prefab default is 3)
+        ship.movesRemainingThisRound = ship.movesAllowedPerTurn;
+
+        int bonus = 0;
+
+        if (enableWeeklyMutators)
+            bonus += MutatorSystem.GetBonusActionPoints(MutatorSystem.GetCurrentMutator());
+
+        if (comebackBonusActionPoint && lastRoundLoserIsLeft.HasValue &&
+            lastRoundLoserIsLeft.Value == ship.isLeftPlayer)
+        {
+            bonus += 1;
+            Debug.Log($"[GameManager] Comeback bonus: {ship.playerName} gets +1 action point this round");
+        }
+
+        // Cap the combined bonus so mutator + comeback can't stack runaway AP
+        bonus = Mathf.Min(bonus, 2);
+
+        if (bonus > 0)
+        {
+            ship.movesAllowedPerTurn += bonus;
+            ship.movesRemainingThisRound += bonus;
+        }
+    }
+
+    /// <summary>
+    /// The player whose turn it currently is (read-only, used by BotController).
+    /// </summary>
+    public PlayerShip CurrentPlayer => currentPlayer;
     void ClearTimerText()
     {
         timerText.text = "";

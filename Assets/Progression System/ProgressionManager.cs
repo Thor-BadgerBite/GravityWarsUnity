@@ -2,26 +2,72 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
+/// Breakdown of a single match's XP award, for the results screen.
+/// </summary>
+public class MatchXPResult
+{
+    public int accountXP;
+    public int battlePassXP;
+    public bool firstWinOfTheDay;
+    public int winStreak;
+    public int streakBonusCredits;
+    public int closeMatchBonusXP;
+    public int trickshotBonusXP;
+}
+
+/// <summary>
 /// Central manager for all progression systems (unlocks, XP, battle pass, currency).
 /// This is a singleton that persists across scenes.
 /// </summary>
 public class ProgressionManager : MonoBehaviour
 {
-    public static ProgressionManager Instance { get; private set; }
+    private static ProgressionManager _instance;
+
+    /// <summary>
+    /// Lazily creates the singleton the first time anything asks for it -
+    /// the HotSeat scene doesn't place one, so without this Instance was
+    /// always null and GameManager's "if (ProgressionManager.Instance ==
+    /// null) skip XP award" guard fired on every match (confirmed live:
+    /// "[GameManager] ProgressionManager not found, skipping XP award").
+    /// Same lazy-singleton pattern as AchievementService/QuestService/
+    /// BattlePassSystem.
+    /// </summary>
+    public static ProgressionManager Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<ProgressionManager>();
+                if (_instance == null)
+                {
+                    var go = new GameObject("[ProgressionManager]");
+                    _instance = go.AddComponent<ProgressionManager>();
+                }
+            }
+            return _instance;
+        }
+    }
 
     [Header("Player Data")]
     public PlayerAccountData currentPlayerData;
 
-    [Header("Battle Pass References")]
-    [Tooltip("The permanent free battle pass (account progression)")]
-    public BattlePassData freeBattlePass;
-
-    [Tooltip("The current seasonal premium battle pass")]
-    public BattlePassData seasonalBattlePass;
+    // NOTE: BattlePassData-based free/premium pass fields used to live here.
+    // Removed - BattlePassSystem.cs (hardcoded reward tables, real content
+    // as of this pass) is the canonical battle pass implementation; no
+    // BattlePassData asset was ever created in this project, so
+    // freeBattlePass/seasonalBattlePass were always null and every method
+    // gated on them (GrantAccountLevelRewards, CheckBattlePassTierUp,
+    // GrantBattlePassTierRewards, PurchasePremiumBattlePass) was dead code -
+    // or in PurchasePremiumBattlePass's case, a live NullReferenceException
+    // waiting to happen the first time anyone bought premium with gems.
 
     [Header("Content Databases")]
     [Tooltip("All available ship bodies in the game")]
     public List<ShipBodySO> allShipBodies = new List<ShipBodySO>();
+
+    [Tooltip("All prebuilt ships in the game")]
+    public List<ShipPresetSO> allShipPresets = new List<ShipPresetSO>();
 
     [Tooltip("All available perks (Tier 1/2/3)")]
     public List<ActivePerkSO> allPerks = new List<ActivePerkSO>();
@@ -42,13 +88,13 @@ public class ProgressionManager : MonoBehaviour
     void Awake()
     {
         // Singleton pattern
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             DontDestroyOnLoad(gameObject);
             Initialize();
         }
-        else
+        else if (_instance != this)
         {
             Destroy(gameObject);
         }
@@ -77,6 +123,17 @@ public class ProgressionManager : MonoBehaviour
         // Initialize content databases if empty (auto-populate from Resources)
         if (allShipBodies.Count == 0)
             PopulateContentDatabases();
+
+        // Catch-up sweep: a returning save whose level already passed a
+        // ship's requiredAccountLevel (from before this unlock hook
+        // existed, or from any future desync) gets swept here too - not
+        // just fresh level-ups going forward.
+        UnlockShipsForLevel(currentPlayerData.level);
+
+        // Start the quest system now that player data is ready.
+        // NOTE: QuestService.InitializeQuests() was previously never called
+        // anywhere in the codebase - quests could never generate or progress.
+        _ = GravityWars.Networking.QuestService.Instance?.InitializeQuests();
     }
 
     /// <summary>
@@ -202,10 +259,16 @@ public class ProgressionManager : MonoBehaviour
     #region XP & LEVELING
 
     /// <summary>
-    /// Awards XP after a match
+    /// Awards XP after a match. Handles the engagement bonuses:
+    /// first win of the day (2x battle pass XP), win streak milestones,
+    /// close-match consolation, trickshot bonus.
+    /// Returns a breakdown for the results screen.
     /// </summary>
-    public void AwardMatchXP(bool won, int roundsWon, int damageDealt, CustomShipLoadout usedLoadout)
+    public MatchXPResult AwardMatchXP(bool won, int roundsWon, int damageDealt, CustomShipLoadout usedLoadout,
+        bool closeMatch = false, int trickshots = 0)
     {
+        var result = new MatchXPResult();
+
         // Calculate XP amounts
         int baseXP = 50;
         int winBonus = won ? 100 : 0;
@@ -213,6 +276,48 @@ public class ProgressionManager : MonoBehaviour
         int damageBonus = Mathf.FloorToInt(damageDealt / 100f); // 1 XP per 100 damage
 
         int totalAccountXP = baseXP + winBonus + roundBonus + damageBonus;
+
+        // Trickshot bonus: reward flashy gravity-assist shots
+        if (trickshots > 0)
+        {
+            result.trickshotBonusXP = trickshots * 25;
+            totalAccountXP += result.trickshotBonusXP;
+            Debug.Log($"[ProgressionManager] Trickshot bonus: +{result.trickshotBonusXP} XP ({trickshots} gravity assists)");
+        }
+
+        // Close-match consolation: a narrow loss should never feel wasted
+        if (!won && closeMatch)
+        {
+            result.closeMatchBonusXP = 50;
+            totalAccountXP += result.closeMatchBonusXP;
+            Debug.Log("[ProgressionManager] Close match! +50 consolation XP");
+        }
+
+        // Win streak tracking (all matches, not just ranked)
+        if (won)
+        {
+            currentPlayerData.currentWinStreak++;
+            if (currentPlayerData.currentWinStreak > currentPlayerData.bestWinStreak)
+                currentPlayerData.bestWinStreak = currentPlayerData.currentWinStreak;
+
+            // Milestone bonuses at 3 / 5 / 10+ wins in a row
+            int streak = currentPlayerData.currentWinStreak;
+            if (streak >= 10) result.streakBonusCredits = 200;
+            else if (streak >= 5) result.streakBonusCredits = 100;
+            else if (streak >= 3) result.streakBonusCredits = 50;
+
+            if (result.streakBonusCredits > 0)
+            {
+                currentPlayerData.credits += result.streakBonusCredits;
+                Debug.Log($"[ProgressionManager] 🔥 {streak}-win streak! +{result.streakBonusCredits} credits");
+            }
+        }
+        else
+        {
+            currentPlayerData.currentWinStreak = 0;
+        }
+        result.winStreak = currentPlayerData.currentWinStreak;
+
         int totalShipXP = totalAccountXP; // Same for now, can be different
 
         // Apply premium pass bonus (e.g., +50% XP)
@@ -234,9 +339,20 @@ public class ProgressionManager : MonoBehaviour
             currentPlayerData.AddShipXP(usedLoadout, totalShipXP);
         }
 
-        // Award battle pass XP
-        currentPlayerData.battlePassXP += totalAccountXP;
-        CheckBattlePassTierUp();
+        // Battle pass XP - doubled on the first win of the day
+        int battlePassXP = totalAccountXP;
+        if (won && currentPlayerData.lastFirstWinDate != System.DateTime.Now.ToString("yyyy-MM-dd"))
+        {
+            currentPlayerData.lastFirstWinDate = System.DateTime.Now.ToString("yyyy-MM-dd");
+            battlePassXP *= 2;
+            result.firstWinOfTheDay = true;
+            Debug.Log("[ProgressionManager] ⭐ First win of the day! 2x Battle Pass XP");
+        }
+        // BattlePassSystem is the single source of truth for battle pass
+        // progress now - it writes currentPlayerData.battlePassXP/Tier
+        // itself (via SaveToProfile) and auto-grants tier rewards on
+        // level-up, so this method must not also touch those fields.
+        BattlePassSystem.Instance?.AddBattlePassXP(battlePassXP);
 
         // Update stats
         currentPlayerData.totalMatchesPlayed++;
@@ -244,10 +360,15 @@ public class ProgressionManager : MonoBehaviour
         currentPlayerData.totalRoundsWon += roundsWon;
         currentPlayerData.totalDamageDealt += damageDealt;
 
-        Debug.Log($"[ProgressionManager] Match XP: Account +{totalAccountXP}, Ship +{totalShipXP}");
+        result.accountXP = totalAccountXP;
+        result.battlePassXP = battlePassXP;
+
+        Debug.Log($"[ProgressionManager] Match XP: Account +{totalAccountXP}, Ship +{totalShipXP}, BP +{battlePassXP}");
 
         if (autoSave)
             Save();
+
+        return result;
     }
 
     /// <summary>
@@ -263,110 +384,43 @@ public class ProgressionManager : MonoBehaviour
             currentPlayerData.level++;
             Debug.Log($"[ProgressionManager] ACCOUNT LEVEL UP! Now Level {currentPlayerData.level}");
 
-            // Grant level-up rewards (check free battle pass)
-            GrantAccountLevelRewards(currentPlayerData.level);
+            // Unlock any prebuilt ship whose requiredAccountLevel is now met.
+            UnlockShipsForLevel(currentPlayerData.level);
 
             xpForNextLevel = 1000 + (currentPlayerData.level * 500);
         }
     }
 
     /// <summary>
-    /// Grants rewards for reaching an account level (from free battle pass)
+    /// Unlocks every prebuilt ship (ShipPresetSO) whose requiredAccountLevel
+    /// is met by the player's current level and isn't unlocked yet.
+    /// Previously nothing ever called this for the account-level axis - the
+    /// 9 non-starter prebuilt ships (Nova Class, Eclipse Striker, Viper
+    /// Assault, etc.) had requiredAccountLevel set but no live trigger ever
+    /// granted them, so they were unreachable to a real player.
     /// </summary>
-    private void GrantAccountLevelRewards(int level)
+    public void UnlockShipsForLevel(int level)
     {
-        if (freeBattlePass == null) return;
-
-        // Check if this level matches a battle pass tier
-        var tier = freeBattlePass.GetTier(level - 1); // 0-indexed
-        if (tier != null && tier.freeReward.HasReward())
+        foreach (var preset in allShipPresets)
         {
-            GrantReward(tier.freeReward);
+            if (preset == null) continue;
+            // Premium ships are earned through the battle pass (see
+            // BattlePassSystem.ApplyReward), not free account leveling -
+            // skip them here even if their requiredAccountLevel is met.
+            if (preset.isPremiumShip) continue;
+            if (preset.requiredAccountLevel > level) continue;
+            if (currentPlayerData.unlockedShipModels.Contains(preset.name)) continue;
+
+            currentPlayerData.UnlockById(UnlockType.PrebuildShip, preset.name);
+            Debug.Log($"[ProgressionManager] Unlocked ship at level {level}: {preset.shipName}");
         }
     }
 
-    /// <summary>
-    /// Checks if player unlocked new battle pass tier
-    /// </summary>
-    private void CheckBattlePassTierUp()
-    {
-        if (seasonalBattlePass == null || !seasonalBattlePass.IsActive())
-            return;
-
-        int newTier = seasonalBattlePass.GetTierFromXP(currentPlayerData.battlePassXP);
-
-        if (newTier > currentPlayerData.battlePassTier)
-        {
-            Debug.Log($"[ProgressionManager] BATTLE PASS TIER UP! Now Tier {newTier + 1}");
-
-            // Grant rewards for all tiers between old and new
-            for (int i = currentPlayerData.battlePassTier + 1; i <= newTier; i++)
-            {
-                GrantBattlePassTierRewards(i);
-            }
-
-            currentPlayerData.battlePassTier = newTier;
-        }
-    }
-
-    /// <summary>
-    /// Grants rewards for a battle pass tier
-    /// </summary>
-    private void GrantBattlePassTierRewards(int tierIndex)
-    {
-        if (seasonalBattlePass == null) return;
-
-        var tier = seasonalBattlePass.GetTier(tierIndex);
-        if (tier == null) return;
-
-        // Always grant free reward
-        if (tier.freeReward.HasReward())
-        {
-            Debug.Log($"[ProgressionManager] Battle Pass Tier {tierIndex + 1} - Free Reward");
-            GrantReward(tier.freeReward);
-        }
-
-        // Grant premium reward if player has premium pass
-        if (currentPlayerData.hasPremiumBattlePass && tier.premiumReward.HasReward())
-        {
-            Debug.Log($"[ProgressionManager] Battle Pass Tier {tierIndex + 1} - Premium Reward");
-            GrantReward(tier.premiumReward);
-        }
-    }
-
-    /// <summary>
-    /// Grants a reward to the player
-    /// </summary>
-    private void GrantReward(UnlockableReward reward)
-    {
-        // Unlock item
-        if (reward.rewardItem != null)
-        {
-            UnlockItem(reward.rewardItem);
-        }
-
-        // Grant currency
-        if (reward.softCurrencyAmount > 0 || reward.hardCurrencyAmount > 0)
-        {
-            currentPlayerData.AddCurrency(reward.softCurrencyAmount, reward.hardCurrencyAmount);
-        }
-
-        // Grant XP
-        if (reward.accountXP > 0)
-        {
-            currentPlayerData.currentXP += reward.accountXP;
-        }
-
-        // Unlock cosmetics
-        if (!string.IsNullOrEmpty(reward.skinID))
-            currentPlayerData.unlockedSkinIDs.Add(reward.skinID);
-        if (!string.IsNullOrEmpty(reward.colorSchemeID))
-            currentPlayerData.unlockedColorSchemeIDs.Add(reward.colorSchemeID);
-        if (!string.IsNullOrEmpty(reward.decalID))
-            currentPlayerData.unlockedDecalIDs.Add(reward.decalID);
-
-        Debug.Log($"[ProgressionManager] Granted reward: {reward.GetDisplayText()}");
-    }
+    // NOTE: GrantAccountLevelRewards / CheckBattlePassTierUp /
+    // GrantBattlePassTierRewards / GrantReward(UnlockableReward) used to
+    // live here - removed as dead code (see the note by the removed
+    // freeBattlePass/seasonalBattlePass fields above). Battle pass XP,
+    // leveling and reward granting now all go through BattlePassSystem.
 
     #endregion
 
@@ -403,86 +457,69 @@ public class ProgressionManager : MonoBehaviour
         return true;
     }
 
-    /// <summary>
-    /// Purchases premium battle pass
-    /// </summary>
-    public bool PurchasePremiumBattlePass(int gemCost)
-    {
-        if (currentPlayerData.hasPremiumBattlePass)
-        {
-            Debug.LogWarning("[ProgressionManager] Already owns premium battle pass!");
-            return false;
-        }
-
-        if (SpendCurrency(0, gemCost))
-        {
-            currentPlayerData.hasPremiumBattlePass = true;
-            Debug.Log("[ProgressionManager] Premium Battle Pass purchased!");
-
-            // Grant all premium rewards for already-unlocked tiers
-            for (int i = 0; i <= currentPlayerData.battlePassTier; i++)
-            {
-                var tier = seasonalBattlePass.GetTier(i);
-                if (tier != null && tier.premiumReward.HasReward())
-                {
-                    GrantReward(tier.premiumReward);
-                }
-            }
-
-            if (autoSave)
-                Save();
-
-            return true;
-        }
-
-        return false;
-    }
+    // NOTE: PurchasePremiumBattlePass used to live here, gated on the dead
+    // seasonalBattlePass field (a guaranteed NullReferenceException on
+    // seasonalBattlePass.GetTier(i) the moment anyone actually bought
+    // premium with gems, since that field was never assigned). Removed -
+    // BattlePassSystem.Instance.PurchasePremiumPass() is the real one now
+    // (it also correctly sweeps and grants already-reached premium tiers).
 
     #endregion
 
     #region CUSTOM LOADOUTS
 
     /// <summary>
-    /// Creates and saves a custom ship loadout
+    /// CANONICAL ship building entry point (single source of truth).
+    ///
+    /// Design rules enforced here:
+    /// - Ship body + move type: REQUIRED, unlocked, archetype-compatible
+    /// - 3 active perks: REQUIRED, exactly one from each tier (1/2/3),
+    ///   unlocked and archetype-compatible
+    /// - Exactly 1 passive: REQUIRED, unlocked and archetype-compatible
+    /// - Missile: OPTIONAL - missiles are retrofits selected before each match
+    ///   (MissileSelectionUI); if provided here it becomes the initial equip
+    /// - Custom slot limit by account level (1/2/3 at levels 1/20/40)
+    ///
+    /// The id-based CustomShipBuilder (online API) delegates to this method.
     /// </summary>
     public CustomShipLoadout CreateCustomLoadout(
         string loadoutName,
         ShipBodySO body,
         MoveTypeSO moveType,
-        MissilePresetSO missile,
+        MissilePresetSO missile = null,
         ActivePerkSO tier1Perk = null,
         ActivePerkSO tier2Perk = null,
         ActivePerkSO tier3Perk = null,
         List<PassiveAbilitySO> passives = null)
     {
         // Validate all components
-        if (!ValidateLoadout(body, moveType, missile, tier1Perk, tier2Perk, tier3Perk, passives))
+        var validation = ValidateLoadoutBuild(loadoutName, body, moveType, missile,
+            tier1Perk, tier2Perk, tier3Perk, passives);
+
+        if (!validation.isValid)
         {
-            Debug.LogError("[ProgressionManager] Invalid loadout configuration!");
+            Debug.LogError($"[ProgressionManager] Invalid loadout configuration:\n- {string.Join("\n- ", validation.errors)}");
             return null;
         }
 
-        // Create loadout
+        // Create loadout (missile may be empty - selected pre-match)
         CustomShipLoadout loadout = new CustomShipLoadout
         {
             loadoutID = CustomShipLoadout.GenerateLoadoutID(),
             loadoutName = loadoutName,
             shipBodyName = body.name,
             moveTypeName = moveType.name,
-            equippedMissileName = missile.name,
-            tier1PerkName = tier1Perk?.name ?? "",
-            tier2PerkName = tier2Perk?.name ?? "",
-            tier3PerkName = tier3Perk?.name ?? "",
+            equippedMissileName = missile != null ? missile.name : "",
+            tier1PerkName = tier1Perk.name,
+            tier2PerkName = tier2Perk.name,
+            tier3PerkName = tier3Perk.name,
             passiveNames = new List<string>()
         };
 
-        if (passives != null)
+        foreach (var passive in passives)
         {
-            foreach (var passive in passives)
-            {
-                if (passive != null)
-                    loadout.passiveNames.Add(passive.name);
-            }
+            if (passive != null)
+                loadout.passiveNames.Add(passive.name);
         }
 
         // Add to player's loadouts
@@ -497,9 +534,12 @@ public class ProgressionManager : MonoBehaviour
     }
 
     /// <summary>
-    /// Validates a loadout configuration
+    /// Full build validation with per-error messages (for UI display).
+    /// This is THE rule set for ship building - both the SO-based UI path and
+    /// the id-based online path (CustomShipBuilder) run through it.
     /// </summary>
-    private bool ValidateLoadout(
+    public ShipBuildValidation ValidateLoadoutBuild(
+        string loadoutName,
         ShipBodySO body,
         MoveTypeSO moveType,
         MissilePresetSO missile,
@@ -508,53 +548,92 @@ public class ProgressionManager : MonoBehaviour
         ActivePerkSO tier3Perk,
         List<PassiveAbilitySO> passives)
     {
-        if (body == null || moveType == null || missile == null)
-        {
-            Debug.LogError("[ProgressionManager] Body, move type, and missile are required!");
-            return false;
-        }
+        var v = new ShipBuildValidation();
 
-        // Check if unlocked
-        if (!IsUnlocked(body) || !IsUnlocked(moveType) || !IsUnlocked(missile))
-        {
-            Debug.LogError("[ProgressionManager] Some components are locked!");
-            return false;
-        }
+        // --- Name ---
+        if (string.IsNullOrWhiteSpace(loadoutName))
+            v.Fail("Ship name cannot be empty");
+        else if (loadoutName.Length > 30)
+            v.Fail("Ship name too long (max 30 characters)");
 
-        // Check archetype compatibility
+        // --- Body (defines the archetype everything else must match) ---
+        if (body == null)
+        {
+            v.Fail("Ship body is required");
+            return v; // nothing else can be checked without an archetype
+        }
+        if (!IsUnlocked(body))
+            v.Fail($"Ship body '{body.bodyName}' is not unlocked");
+
         ShipArchetype archetype = body.archetype;
 
-        if (!moveType.CanBeUsedBy(archetype))
+        // --- Move type ---
+        if (moveType == null)
+            v.Fail("Move type is required");
+        else
         {
-            Debug.LogError($"[ProgressionManager] {moveType.name} cannot be used by {archetype}!");
-            return false;
+            if (!IsUnlocked(moveType))
+                v.Fail($"Move type '{moveType.moveTypeName}' is not unlocked");
+            if (!moveType.CanBeUsedBy(archetype))
+                v.Fail($"Move type '{moveType.moveTypeName}' cannot be used by {archetype}");
         }
 
-        if (!body.CanUseMissileType(missile.missileType))
+        // --- Missile (OPTIONAL - retrofitted before each match) ---
+        if (missile != null)
         {
-            Debug.LogError($"[ProgressionManager] {body.name} cannot use {missile.missileType} missiles!");
-            return false;
+            if (!IsUnlocked(missile))
+                v.Fail($"Missile '{missile.missileName}' is not unlocked");
+            if (!body.CanUseMissileType(missile.missileType))
+                v.Fail($"'{body.bodyName}' cannot use {missile.missileType} missiles");
         }
 
-        // Check perks
-        if (tier1Perk != null && (!tier1Perk.CanBeUsedBy(archetype) || !IsUnlocked(tier1Perk)))
-            return false;
-        if (tier2Perk != null && (!tier2Perk.CanBeUsedBy(archetype) || !IsUnlocked(tier2Perk)))
-            return false;
-        if (tier3Perk != null && (!tier3Perk.CanBeUsedBy(archetype) || !IsUnlocked(tier3Perk)))
-            return false;
+        // --- Active perks: one from EACH tier, all required ---
+        ValidatePerkSlot(v, tier1Perk, 1, archetype);
+        ValidatePerkSlot(v, tier2Perk, 2, archetype);
+        ValidatePerkSlot(v, tier3Perk, 3, archetype);
 
-        // Check passives
+        // --- Passive: exactly one ---
+        int passiveCount = 0;
         if (passives != null)
         {
             foreach (var passive in passives)
             {
-                if (passive != null && (!passive.CanBeUsedBy(archetype) || !IsUnlocked(passive)))
-                    return false;
+                if (passive == null) continue;
+                passiveCount++;
+
+                if (!IsUnlocked(passive))
+                    v.Fail($"Passive '{passive.passiveName}' is not unlocked");
+                if (!passive.CanBeUsedBy(archetype))
+                    v.Fail($"Passive '{passive.passiveName}' is not compatible with {archetype}");
             }
         }
+        if (passiveCount == 0)
+            v.Fail("A passive ability is required");
+        else if (passiveCount > 1)
+            v.Fail("Only one passive ability is allowed");
 
-        return true;
+        // --- Custom slot limit by account level ---
+        int maxSlots = ProgressionSystem.GetUnlockedCustomSlots(currentPlayerData.level);
+        if (currentPlayerData.customShipLoadouts.Count >= maxSlots)
+            v.Fail($"No available custom slots (max: {maxSlots}). Delete a ship to free a slot.");
+
+        return v;
+    }
+
+    private void ValidatePerkSlot(ShipBuildValidation v, ActivePerkSO perk, int expectedTier, ShipArchetype archetype)
+    {
+        if (perk == null)
+        {
+            v.Fail($"A Tier {expectedTier} active perk is required");
+            return;
+        }
+
+        if (perk.tier != expectedTier)
+            v.Fail($"'{perk.perkName}' is Tier {perk.tier}, but the Tier {expectedTier} slot requires a Tier {expectedTier} perk");
+        if (!IsUnlocked(perk))
+            v.Fail($"Perk '{perk.perkName}' is not unlocked");
+        if (!perk.CanBeUsedBy(archetype))
+            v.Fail($"Perk '{perk.perkName}' cannot be used by {archetype}");
     }
 
     /// <summary>
@@ -603,12 +682,13 @@ public class ProgressionManager : MonoBehaviour
     {
         // Load all ScriptableObjects from Resources (or you can manually assign in Inspector)
         allShipBodies.AddRange(Resources.LoadAll<ShipBodySO>(""));
+        allShipPresets.AddRange(Resources.LoadAll<ShipPresetSO>(""));
         allPerks.AddRange(Resources.LoadAll<ActivePerkSO>(""));
         allPassives.AddRange(Resources.LoadAll<PassiveAbilitySO>(""));
         allMoveTypes.AddRange(Resources.LoadAll<MoveTypeSO>(""));
         allMissiles.AddRange(Resources.LoadAll<MissilePresetSO>(""));
 
-        Debug.Log($"[ProgressionManager] Loaded content: {allShipBodies.Count} bodies, {allPerks.Count} perks, {allPassives.Count} passives");
+        Debug.Log($"[ProgressionManager] Loaded content: {allShipBodies.Count} bodies, {allShipPresets.Count} ships, {allPerks.Count} perks, {allPassives.Count} passives");
     }
 
     #endregion

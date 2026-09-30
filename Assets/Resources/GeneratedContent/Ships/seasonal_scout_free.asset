@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f11841f110074d44ab7504486d8bc67, type: 3}
+  m_Name: seasonal_scout_free
+  m_EditorClassIdentifier: 
+  shipName: Seasonal Scout
+  shipIcon: {fileID: 0}
+  description: Free seasonal battle pass reward - agile scout build on the Seasonal
+    Frame.
+  shipBody: {fileID: 11400000, guid: 5971074d68521fa4fb22a6b23f753275, type: 2}
+  levelingFormula: {fileID: 11400000, guid: 6efa3446e5e318c45bfa1f731b5dfdf0, type: 2}
+  passives:
+  - {fileID: 11400000, guid: fd8c1842ac3ace1478e76bc0a457097b, type: 2}
+  tier1Perk: {fileID: 11400000, guid: 7d5e7c16a11947c4fbed14cbdbacd212, type: 2}
+  tier2Perk: {fileID: 11400000, guid: 2ccad43f51872d540ae81f90ec208221, type: 2}
+  tier3Perk: {fileID: 11400000, guid: 5a4c5984f957d084e9da7bfe612fbb91, type: 2}
+  moveType: {fileID: 11400000, guid: d870944c3d337cf41b844d7c19ddd4d3, type: 2}
+  defaultMissile: {fileID: 11400000, guid: d76c283886b018147847f06a1c538086, type: 2}
+  requiredAccountLevel: 10
+  isPremiumShip: 0
+  validationStatus: "\u2713 All validations passed!"

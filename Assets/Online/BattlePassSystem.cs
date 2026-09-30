@@ -15,18 +15,67 @@ public class BattlePassSystem : MonoBehaviour
 {
     #region Singleton
 
-    public static BattlePassSystem Instance { get; private set; }
+    private static BattlePassSystem _instance;
+
+    /// <summary>
+    /// Lazily creates the singleton the first time anything asks for it -
+    /// nothing in any scene ever adds this component, so without this the
+    /// Instance was always null and every caller's "if (Instance != null)"
+    /// guard silently no-op'd. Same bootstrap pattern as AchievementService
+    /// / QuestService.
+    /// </summary>
+    public static BattlePassSystem Instance
+    {
+        get
+        {
+            if (_instance == null)
+            {
+                _instance = FindObjectOfType<BattlePassSystem>();
+                if (_instance == null)
+                {
+                    var go = new GameObject("[BattlePassSystem]");
+                    _instance = go.AddComponent<BattlePassSystem>();
+                    DontDestroyOnLoad(go);
+                }
+            }
+            return _instance;
+        }
+    }
 
     private void Awake()
     {
-        if (Instance == null)
+        if (_instance == null)
         {
-            Instance = this;
+            _instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else
+        else if (_instance != this)
         {
             Destroy(gameObject);
+        }
+    }
+
+    private void Start()
+    {
+        // Restore battle pass state when a profile becomes available
+        if (AccountSystem.Instance != null)
+        {
+            AccountSystem.Instance.OnLoginSuccess += LoadFromProfile;
+            if (AccountSystem.Instance.CurrentPlayerProfile != null)
+                LoadFromProfile(AccountSystem.Instance.CurrentPlayerProfile);
+        }
+        else if (ProgressionManager.Instance != null && ProgressionManager.Instance.currentPlayerData != null)
+        {
+            // Offline / local play - restore from local save
+            LoadFromProfile(ProgressionManager.Instance.currentPlayerData);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_instance == this && AccountSystem.Instance != null)
+        {
+            AccountSystem.Instance.OnLoginSuccess -= LoadFromProfile;
         }
     }
 
@@ -65,14 +114,14 @@ public class BattlePassSystem : MonoBehaviour
         // Early Levels (1-5)
         { 1, new BattlePassReward(RewardType.Credits, 500, "Credits x500") },
         { 2, new BattlePassReward(RewardType.Skin, 0, "Starter Skin: Blue Wave", "skin_starter_blue") },
-        { 3, new BattlePassReward(RewardType.Passive, 0, "Passive: Speed Boost I", "passive_speed_boost_1") },
+        { 3, new BattlePassReward(RewardType.Passive, 0, "Passive: Shield Regeneration", "passive_shield_regen") },
         { 4, new BattlePassReward(RewardType.Credits, 750, "Credits x750") },
         { 5, new BattlePassReward(RewardType.Missile, 0, "Missile: Standard Mk-II", "standard_mk2") },
 
         // Mid Levels (6-15)
         { 6, new BattlePassReward(RewardType.Credits, 1000, "Credits x1000") },
         { 7, new BattlePassReward(RewardType.Skin, 0, "Tank Skin: Iron Fortress", "skin_tank_iron") },
-        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Emergency Repair", "active_repair") },
+        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Pusher Missile I", "pusher_missile_t1") },
         { 9, new BattlePassReward(RewardType.Credits, 1250, "Credits x1250") },
         { 10, new BattlePassReward(RewardType.PrebuildShip, 0, "Ship: Seasonal Scout", "seasonal_scout_free", ShipClass.AllAround) },
         { 11, new BattlePassReward(RewardType.Credits, 1500, "Credits x1500") },
@@ -84,7 +133,7 @@ public class BattlePassSystem : MonoBehaviour
         // Late Levels (16-25)
         { 16, new BattlePassReward(RewardType.Credits, 2000, "Credits x2000") },
         { 17, new BattlePassReward(RewardType.Skin, 0, "Controller Skin: Shadow Ops", "skin_ctrl_shadow") },
-        { 18, new BattlePassReward(RewardType.Active, 0, "Active: EMP Pulse", "active_emp_pulse") },
+        { 18, new BattlePassReward(RewardType.Active, 0, "Active: Missile Barrage I", "missile_barrage_t1") },
         { 19, new BattlePassReward(RewardType.Credits, 2500, "Credits x2500") },
         { 20, new BattlePassReward(RewardType.PrebuildShip, 0, "Ship: Seasonal Defender", "seasonal_defender_free", ShipClass.Tank) },
         { 21, new BattlePassReward(RewardType.Credits, 3000, "Credits x3000") },
@@ -110,7 +159,7 @@ public class BattlePassSystem : MonoBehaviour
         // Mid Levels (6-15)
         { 6, new BattlePassReward(RewardType.Gems, 30, "Gems x30") },
         { 7, new BattlePassReward(RewardType.Skin, 0, "PREMIUM Skin: Cosmic Void", "skin_premium_cosmic") },
-        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Stealth Cloak", "active_cloak") },
+        { 8, new BattlePassReward(RewardType.Active, 0, "Active: Cluster Missile - Focused Salvo (Exclusive)", "cluster_missile_exclusive_t1") },
         { 9, new BattlePassReward(RewardType.Gems, 35, "Gems x35") },
         { 10, new BattlePassReward(RewardType.PrebuildShip, 0, "EXCLUSIVE Ship: Stellar Dominator", "exclusive_stellar_dom", ShipClass.AllAround) },
         { 11, new BattlePassReward(RewardType.Gems, 40, "Gems x40") },
@@ -122,7 +171,7 @@ public class BattlePassSystem : MonoBehaviour
         // Late Levels (16-25)
         { 16, new BattlePassReward(RewardType.Gems, 50, "Gems x50") },
         { 17, new BattlePassReward(RewardType.Skin, 0, "PREMIUM Skin: Royal Prestige", "skin_premium_royal") },
-        { 18, new BattlePassReward(RewardType.Active, 0, "Active: Time Dilation", "active_time_dilation") },
+        { 18, new BattlePassReward(RewardType.Active, 0, "Active: Explosive Missile - Void Bomb (Exclusive)", "explosive_missile_exclusive_t3") },
         { 19, new BattlePassReward(RewardType.Gems, 60, "Gems x60") },
         { 20, new BattlePassReward(RewardType.PrebuildShip, 0, "PREMIUM Ship: Ethereal Phantom", "premium_ethereal_phantom", ShipClass.Controller) },
         { 21, new BattlePassReward(RewardType.Gems, 75, "Gems x75") },
@@ -134,13 +183,112 @@ public class BattlePassSystem : MonoBehaviour
 
     #endregion
 
+    #region Persistence
+
+    /// <summary>
+    /// Restore battle pass progress from the player profile.
+    /// Resets progress if the stored season doesn't match the current one.
+    /// </summary>
+    public void LoadFromProfile(PlayerAccountData profile)
+    {
+        if (profile == null) return;
+
+        string seasonId = $"season_{currentSeason}";
+
+        if (profile.currentSeasonID != seasonId)
+        {
+            // New season - reset progress (premium must be re-purchased per season)
+            profile.currentSeasonID = seasonId;
+            profile.battlePassTier = 0;
+            profile.battlePassXP = 0;
+            profile.hasPremiumBattlePass = false;
+            profile.claimedFreeBattlePassTiers.Clear();
+            profile.claimedPremiumBattlePassTiers.Clear();
+            Debug.Log($"[BattlePass] New season started: {seasonName}");
+
+            // Ranked ladder rolls over together with the battle pass season:
+            // peak-rank rewards + soft ELO reset
+            RankedSeasonSystem.ApplySeasonRollover(profile, seasonId);
+        }
+
+        _currentLevel = Mathf.Clamp(profile.battlePassTier, 0, maxLevel);
+        _currentXP = Mathf.Max(0, profile.battlePassXP - (_currentLevel * xpPerLevel));
+        isPremiumUnlocked = profile.hasPremiumBattlePass;
+        _claimedFreeRewards = new List<int>(profile.claimedFreeBattlePassTiers);
+        _claimedPremiumRewards = new List<int>(profile.claimedPremiumBattlePassTiers);
+        _loadedOnce = true;
+
+        Debug.Log($"[BattlePass] Restored progress - Level {_currentLevel}, XP {_currentXP}, Premium: {isPremiumUnlocked}");
+    }
+
+    /// <summary>
+    /// Write current battle pass state back to the player profile (and save).
+    /// </summary>
+    private void SaveToProfile()
+    {
+        var profile = GetActiveProfile();
+        if (profile == null) return;
+
+        profile.battlePassTier = _currentLevel;
+        profile.battlePassXP = (_currentLevel * xpPerLevel) + _currentXP;
+        profile.hasPremiumBattlePass = isPremiumUnlocked;
+        profile.currentSeasonID = $"season_{currentSeason}";
+        profile.claimedFreeBattlePassTiers = new List<int>(_claimedFreeRewards);
+        profile.claimedPremiumBattlePassTiers = new List<int>(_claimedPremiumRewards);
+
+        // Persist: online profile if signed in, local save otherwise
+        if (AccountSystem.Instance != null && AccountSystem.Instance.IsSignedIn)
+        {
+            _ = AccountSystem.Instance.UpdateProfileAsync(profile);
+        }
+        else if (ProgressionManager.Instance != null)
+        {
+            ProgressionManager.Instance.Save();
+        }
+    }
+
+    /// <summary>
+    /// The profile battle pass progress is stored on:
+    /// the online account profile when signed in, the local save otherwise.
+    /// </summary>
+    private PlayerAccountData GetActiveProfile()
+    {
+        if (AccountSystem.Instance != null && AccountSystem.Instance.CurrentPlayerProfile != null)
+            return AccountSystem.Instance.CurrentPlayerProfile;
+
+        return ProgressionManager.Instance != null ? ProgressionManager.Instance.currentPlayerData : null;
+    }
+
+    #endregion
+
     #region Battle Pass Progression
+
+    private bool _loadedOnce = false;
+
+    /// <summary>
+    /// Re-syncs in-memory level/XP from the active profile if this is the
+    /// first mutation since the singleton was created. Needed because the
+    /// lazy Instance getter AddComponent()s this on demand - Awake() runs
+    /// synchronously, but Start() (where LoadFromProfile normally happens)
+    /// does not, so the very first AddBattlePassXP() call of a session could
+    /// otherwise fire against a zeroed, not-yet-restored state and stomp the
+    /// real saved progress on write-back.
+    /// </summary>
+    private void EnsureLoaded()
+    {
+        if (_loadedOnce) return;
+        var profile = GetActiveProfile();
+        if (profile == null) return;
+        LoadFromProfile(profile);
+        _loadedOnce = true;
+    }
 
     /// <summary>
     /// Add XP to battle pass and check for level ups.
     /// </summary>
     public void AddBattlePassXP(int xp)
     {
+        EnsureLoaded();
         _currentXP += xp;
 
         // Check for level ups
@@ -159,30 +307,35 @@ public class BattlePassSystem : MonoBehaviour
             _currentLevel = maxLevel;
             _currentXP = 0;
         }
+
+        SaveToProfile();
     }
 
     /// <summary>
-    /// Called when player levels up in battle pass.
+    /// Called when player levels up in battle pass. Rewards auto-grant on
+    /// reaching the level (no separate "claim" UI action needed yet) - the
+    /// free reward always grants; the premium one only if the pass is
+    /// owned. If premium is purchased later, PurchasePremiumPass() sweeps
+    /// back through already-reached levels to grant what was missed.
     /// </summary>
     private void OnLevelUp(int newLevel)
     {
-        // Notify player of available rewards
-        Debug.Log($"[BattlePass] Rewards available at level {newLevel}!");
+        Debug.Log($"[BattlePass] Reached level {newLevel}!");
 
-        // Check what rewards are available
-        bool hasFreeReward = FREE_TRACK_REWARDS.ContainsKey(newLevel);
-        bool hasPremiumReward = PREMIUM_TRACK_REWARDS.ContainsKey(newLevel) && isPremiumUnlocked;
-
-        if (hasFreeReward)
+        if (FREE_TRACK_REWARDS.ContainsKey(newLevel) && !_claimedFreeRewards.Contains(newLevel))
         {
             var reward = FREE_TRACK_REWARDS[newLevel];
-            Debug.Log($"[BattlePass] Free reward: {reward.displayName}");
+            ApplyReward(reward);
+            _claimedFreeRewards.Add(newLevel);
+            Debug.Log($"[BattlePass] Free reward granted: {reward.displayName}");
         }
 
-        if (hasPremiumReward)
+        if (isPremiumUnlocked && PREMIUM_TRACK_REWARDS.ContainsKey(newLevel) && !_claimedPremiumRewards.Contains(newLevel))
         {
             var reward = PREMIUM_TRACK_REWARDS[newLevel];
-            Debug.Log($"[BattlePass] Premium reward: {reward.displayName}");
+            ApplyReward(reward);
+            _claimedPremiumRewards.Add(newLevel);
+            Debug.Log($"[BattlePass] Premium reward granted: {reward.displayName}");
         }
     }
 
@@ -202,6 +355,7 @@ public class BattlePassSystem : MonoBehaviour
         var reward = FREE_TRACK_REWARDS[level];
         ApplyReward(reward);
         _claimedFreeRewards.Add(level);
+        SaveToProfile();
 
         Debug.Log($"[BattlePass] Claimed free reward: {reward.displayName}");
         return true;
@@ -220,6 +374,7 @@ public class BattlePassSystem : MonoBehaviour
         var reward = PREMIUM_TRACK_REWARDS[level];
         ApplyReward(reward);
         _claimedPremiumRewards.Add(level);
+        SaveToProfile();
 
         Debug.Log($"[BattlePass] Claimed premium reward: {reward.displayName}");
         return true;
@@ -230,7 +385,7 @@ public class BattlePassSystem : MonoBehaviour
     /// </summary>
     private void ApplyReward(BattlePassReward reward)
     {
-        var profile = AccountSystem.Instance?.CurrentPlayerProfile;
+        var profile = GetActiveProfile();
         if (profile == null) return;
 
         switch (reward.type)
@@ -246,25 +401,39 @@ public class BattlePassSystem : MonoBehaviour
                 break;
 
             case RewardType.PrebuildShip:
-                if (!profile.unlockedShipModels.Contains(reward.rewardId))
-                {
-                    profile.unlockedShipModels.Add(reward.rewardId);
-                    Debug.Log($"[BattlePass] Unlocked ship: {reward.displayName}");
-                }
+                profile.UnlockById(UnlockType.PrebuildShip, reward.rewardId);
+                Debug.Log($"[BattlePass] Unlocked ship: {reward.displayName}");
                 break;
 
             case RewardType.ShipBody:
+                profile.UnlockById(UnlockType.ShipBody, reward.rewardId);
+                Debug.Log($"[BattlePass] Unlocked ship body: {reward.displayName}");
+                break;
+
             case RewardType.Skin:
+                profile.UnlockById(UnlockType.Skin, reward.rewardId);
+                Debug.Log($"[BattlePass] Unlocked skin: {reward.displayName}");
+                break;
+
             case RewardType.Passive:
+                profile.UnlockById(UnlockType.Passive, reward.rewardId);
+                Debug.Log($"[BattlePass] Unlocked passive: {reward.displayName}");
+                break;
+
             case RewardType.Active:
+                profile.UnlockById(UnlockType.Active, reward.rewardId);
+                Debug.Log($"[BattlePass] Unlocked active: {reward.displayName}");
+                break;
+
             case RewardType.Missile:
-                // TODO: Add to appropriate unlock lists
+                profile.UnlockById(UnlockType.Missile, reward.rewardId);
+                Debug.Log($"[BattlePass] Unlocked missile: {reward.displayName}");
+                break;
+
+            default:
                 Debug.Log($"[BattlePass] Unlocked {reward.type}: {reward.displayName}");
                 break;
         }
-
-        // Save profile
-        _ = AccountSystem.Instance.UpdateProfileAsync(profile);
     }
 
     #endregion
@@ -272,13 +441,47 @@ public class BattlePassSystem : MonoBehaviour
     #region Premium Purchase
 
     /// <summary>
-    /// Purchase premium battle pass.
+    /// Purchase premium battle pass with gems.
     /// </summary>
-    public bool PurchasePremiumPass()
+    public bool PurchasePremiumPass(int gemCost = 1000)
     {
-        // TODO: Integrate with payment system
+        if (isPremiumUnlocked)
+        {
+            Debug.LogWarning("[BattlePass] Premium pass already owned!");
+            return false;
+        }
+
+        var profile = GetActiveProfile();
+        if (profile == null)
+        {
+            Debug.LogWarning("[BattlePass] No player profile - cannot purchase");
+            return false;
+        }
+
+        if (profile.gems < gemCost)
+        {
+            Debug.LogWarning($"[BattlePass] Not enough gems ({profile.gems}/{gemCost})");
+            return false;
+        }
+
+        profile.gems -= gemCost;
         isPremiumUnlocked = true;
-        Debug.Log("[BattlePass] Premium pass purchased!");
+
+        // Retroactively grant premium rewards for every level already
+        // reached on the free track, since OnLevelUp only auto-grants the
+        // premium side while the pass is owned.
+        for (int level = 1; level <= _currentLevel; level++)
+        {
+            if (PREMIUM_TRACK_REWARDS.ContainsKey(level) && !_claimedPremiumRewards.Contains(level))
+            {
+                ApplyReward(PREMIUM_TRACK_REWARDS[level]);
+                _claimedPremiumRewards.Add(level);
+            }
+        }
+
+        SaveToProfile();
+
+        Debug.Log($"[BattlePass] Premium pass purchased for {gemCost} gems!");
         return true;
     }
 
@@ -287,6 +490,7 @@ public class BattlePassSystem : MonoBehaviour
     #region Public API
 
     public int GetCurrentLevel() => _currentLevel;
+    public int GetMaxLevel() => maxLevel;
     public int GetCurrentXP() => _currentXP;
     public int GetXPForNextLevel() => xpPerLevel;
     public bool IsPremiumUnlocked() => isPremiumUnlocked;

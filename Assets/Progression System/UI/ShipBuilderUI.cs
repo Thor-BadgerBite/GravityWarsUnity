@@ -317,21 +317,22 @@ public class ShipBuilderUI : MonoBehaviour
     /// </summary>
     private void UpdatePreview()
     {
-        // Check if minimum requirements met
-        if (selectedBody == null || selectedMoveType == null || selectedMissile == null)
+        // Missile is optional (retrofitted before matches) - body + move type
+        // are enough to start previewing
+        if (selectedBody == null || selectedMoveType == null)
         {
-            previewStatsText.text = "Select Body, Move Type, and Missile to preview";
+            previewStatsText.text = "Select Body and Move Type to preview\n(Missile is chosen before each match)";
             validationErrorPanel.SetActive(false);
             saveLoadoutButton.interactable = false;
             return;
         }
 
-        // Validate configuration
-        string validationError = ValidateLoadout();
-        if (!string.IsNullOrEmpty(validationError))
+        // Validate through the CANONICAL rule set (ProgressionManager)
+        var validation = BuildValidation();
+        if (!validation.isValid)
         {
             validationErrorPanel.SetActive(true);
-            validationErrorText.text = validationError;
+            validationErrorText.text = validation.GetErrorText();
             saveLoadoutButton.interactable = false;
         }
         else
@@ -349,44 +350,30 @@ public class ShipBuilderUI : MonoBehaviour
     }
 
     /// <summary>
-    /// Validates the current loadout configuration
+    /// Runs the canonical build validation for the current selections.
     /// </summary>
-    private string ValidateLoadout()
+    private ShipBuildValidation BuildValidation()
     {
-        if (selectedBody == null)
-            return "ERROR: No ship body selected";
+        var passives = new List<PassiveAbilitySO>();
+        if (selectedPassive != null)
+            passives.Add(selectedPassive);
 
-        if (selectedMoveType == null)
-            return "ERROR: No move type selected";
+        return progressionManager.ValidateLoadoutBuild(
+            CurrentLoadoutName(),
+            selectedBody,
+            selectedMoveType,
+            selectedMissile,
+            selectedTier1Perk,
+            selectedTier2Perk,
+            selectedTier3Perk,
+            passives);
+    }
 
-        if (selectedMissile == null)
-            return "ERROR: No missile selected";
-
-        ShipArchetype archetype = selectedBody.archetype;
-
-        // Check move type compatibility
-        if (!selectedMoveType.CanBeUsedBy(archetype))
-            return $"ERROR: {selectedMoveType.moveTypeName} cannot be used by {archetype}";
-
-        // Check missile compatibility
-        if (!selectedBody.CanUseMissileType(selectedMissile.missileType))
-            return $"ERROR: {selectedBody.bodyName} cannot use {selectedMissile.missileType} missiles";
-
-        // Check perk compatibility
-        if (selectedTier1Perk != null && !selectedTier1Perk.CanBeUsedBy(archetype))
-            return $"ERROR: {selectedTier1Perk.perkName} cannot be used by {archetype}";
-
-        if (selectedTier2Perk != null && !selectedTier2Perk.CanBeUsedBy(archetype))
-            return $"ERROR: {selectedTier2Perk.perkName} cannot be used by {archetype}";
-
-        if (selectedTier3Perk != null && !selectedTier3Perk.CanBeUsedBy(archetype))
-            return $"ERROR: {selectedTier3Perk.perkName} cannot be used by {archetype}";
-
-        // Check passive compatibility
-        if (selectedPassive != null && !selectedPassive.CanBeUsedBy(archetype))
-            return $"ERROR: {selectedPassive.passiveName} cannot be used by {archetype}";
-
-        return ""; // Valid!
+    private string CurrentLoadoutName()
+    {
+        return string.IsNullOrEmpty(loadoutNameInput.text)
+            ? $"{(selectedBody != null ? selectedBody.bodyName : "Custom")} Loadout"
+            : loadoutNameInput.text;
     }
 
     /// <summary>
@@ -402,7 +389,9 @@ public class ShipBuilderUI : MonoBehaviour
         preview += $"Action Points: {selectedBody.actionPointsPerTurn}\n\n";
 
         preview += $"<b>Movement:</b> {selectedMoveType.moveTypeName}\n";
-        preview += $"<b>Missile:</b> {selectedMissile.missileName} ({selectedMissile.missileType})\n\n";
+        preview += selectedMissile != null
+            ? $"<b>Missile:</b> {selectedMissile.missileName} ({selectedMissile.missileType})\n\n"
+            : "<b>Missile:</b> Selected before each match\n\n";
 
         if (selectedPassive != null)
             preview += $"<b>Passive:</b> {selectedPassive.passiveName}\n";
@@ -420,9 +409,7 @@ public class ShipBuilderUI : MonoBehaviour
     /// </summary>
     private void OnSaveLoadout()
     {
-        string loadoutName = string.IsNullOrEmpty(loadoutNameInput.text)
-            ? $"{selectedBody.bodyName} Loadout"
-            : loadoutNameInput.text;
+        string loadoutName = CurrentLoadoutName();
 
         List<PassiveAbilitySO> passives = new List<PassiveAbilitySO>();
         if (selectedPassive != null)
@@ -432,7 +419,7 @@ public class ShipBuilderUI : MonoBehaviour
             loadoutName,
             selectedBody,
             selectedMoveType,
-            selectedMissile,
+            selectedMissile,   // may be null - retrofitted before each match
             selectedTier1Perk,
             selectedTier2Perk,
             selectedTier3Perk,
@@ -443,6 +430,13 @@ public class ShipBuilderUI : MonoBehaviour
         {
             Debug.Log($"[ShipBuilderUI] Saved loadout: {loadoutName}");
             // Show success message, return to menu, etc.
+        }
+        else
+        {
+            // Surface the canonical validation errors to the player
+            var validation = BuildValidation();
+            validationErrorPanel.SetActive(true);
+            validationErrorText.text = validation.GetErrorText();
         }
     }
 

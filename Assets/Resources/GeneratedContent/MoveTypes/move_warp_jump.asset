@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1f0e931edd784214da8794443f5f2c60, type: 3}
+  m_Name: move_warp_jump
+  m_EditorClassIdentifier: 
+  moveTypeName: Warp Jump
+  icon: {fileID: 0}
+  category: 2
+  description: Instantly warp to the target location. No travel time, no regrets.
+  requiredAccountLevel: 30
+  allowTank: 0
+  allowDamageDealer: 1
+  allowController: 1
+  allowAllAround: 1
+  minMoveSpeed: 2
+  maxMoveSpeed: 10
+  moveDeceleration: 4
+  moveDuration: 2.5
+  warpZoomDuration: 0.3
+  minScaleFactor: 0.2
+  postWarpShakeTime: 1
+  postWarpShakeAngle: 15
