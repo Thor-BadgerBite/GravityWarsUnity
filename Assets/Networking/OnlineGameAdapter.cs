@@ -340,7 +340,7 @@ namespace GravityWars.Networking
             }
 
             // Return to main menu
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(SceneNames.MainMenu);
         }
 
         #endregion

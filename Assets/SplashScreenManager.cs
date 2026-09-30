@@ -71,7 +71,7 @@ public class SplashScreenManager : MonoBehaviour
     {
         if (!isLoading && Input.anyKeyDown)
         {
-            SceneManager.LoadScene("MainMenu");
+            SceneManager.LoadScene(SceneNames.MainMenu);
         }
     }
 }
