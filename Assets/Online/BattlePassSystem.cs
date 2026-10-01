@@ -515,7 +515,7 @@ public class BattlePassSystem : MonoBehaviour
 
 #region Data Structures
 
-// Note: RewardType enum is defined in BattlePassData.cs
+// Note: RewardType enum is defined in Online/RewardType.cs
 
 [Serializable]
 public class BattlePassReward
