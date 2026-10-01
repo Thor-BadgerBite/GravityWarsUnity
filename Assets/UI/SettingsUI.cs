@@ -97,16 +97,16 @@ public class SettingsUI : MonoBehaviour
             usernameText.text = profile != null ? profile.username : "Guest";
         }
 
-        if (settingsPanel != null) settingsPanel.SetActive(true);
-        else gameObject.SetActive(true);
+        // Hub popup (GDD §15.3): the host shows the dimmer behind the panel;
+        // without a host in the scene the panel just toggles itself.
+        HubPopupHost.ShowPanel(settingsPanel != null ? settingsPanel : gameObject);
     }
 
     public void Hide()
     {
         SavePreferences();
 
-        if (settingsPanel != null) settingsPanel.SetActive(false);
-        else gameObject.SetActive(false);
+        HubPopupHost.HidePanel(settingsPanel != null ? settingsPanel : gameObject);
     }
 
     #endregion

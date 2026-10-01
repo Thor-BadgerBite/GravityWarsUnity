@@ -421,11 +421,20 @@ public class ShipsGarageController : MonoBehaviour
 
     #region Garage Control
 
+    // The garage is a hub popup (GDD §15.3): it opens and closes through
+    // HubPopupHost, which shows the BackgroundDimmer behind it and hides it
+    // again. Without a host in the scene the panel just toggles itself.
+
     /// <summary>
-    /// Close the Ships Garage and return to main menu.
+    /// Close the Ships Garage and return to the hub. Public so the panel's
+    /// Cancel / X buttons can call it from their OnClick until ShipsGarageUI
+    /// is placed (M3). A click on the dimmer closes the panel through the
+    /// host without this method; equipping already saves, so nothing is lost.
     /// </summary>
-    private void CloseGarage()
+    public void CloseGarage()
     {
+        if (!gameObject.activeSelf) return; // already closed (e.g. by the dimmer)
+
         Debug.Log("[ShipsGarageController] Closing Ships Garage");
 
         // Save before closing
@@ -434,26 +443,24 @@ public class ShipsGarageController : MonoBehaviour
             ProgressionManager.Instance.Save();
         }
 
-        // Fade out and destroy
+        // Fade out, then hide
         if (garageUI != null)
         {
-            garageUI.FadeOut(() =>
-            {
-                gameObject.SetActive(false);
-            });
+            garageUI.FadeOut(() => HubPopupHost.HidePanel(gameObject));
         }
         else
         {
-            gameObject.SetActive(false);
+            HubPopupHost.HidePanel(gameObject);
         }
     }
 
     /// <summary>
-    /// Open the Ships Garage panel.
+    /// Open the Ships Garage panel. Bound to the hub's SHIPS GARAGE button
+    /// OnClick in the editor (GDD M1).
     /// </summary>
     public void OpenGarage()
     {
-        gameObject.SetActive(true);
+        HubPopupHost.ShowPanel(gameObject);
 
         if (!_isInitialized)
         {
