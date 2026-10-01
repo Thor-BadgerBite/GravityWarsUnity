@@ -369,18 +369,15 @@ public class PlayerShip : MonoBehaviour
             return;
         }
 
-        // Tournament mode normalizes every ship to a fixed reference level
-        int effectiveLevel = TournamentMode.GetEffectiveLevel(shipLevel);
-
         // Calculate stats using ScriptableObject formulas
-        maxHealth = formula.CalculateHealthAtLevel(baseHealth, effectiveLevel);
-        armor = formula.CalculateArmorAtLevel(baseArmorValue, effectiveLevel);
-        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, effectiveLevel);
+        maxHealth = formula.CalculateHealthAtLevel(baseHealth, shipLevel);
+        armor = formula.CalculateArmorAtLevel(baseArmorValue, shipLevel);
+        damageMultiplier = formula.CalculateDamageAtLevel(baseDamageMultiplier, shipLevel);
 
         // Initialize current health to max (ship starts at full health)
         currentHealth = maxHealth;
 
-        Debug.Log($"{playerName} (PRESET) => L{effectiveLevel}{(TournamentMode.Enabled ? " [TOURNAMENT]" : "")}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
+        Debug.Log($"{playerName} (PRESET) => L{shipLevel}, HP={currentHealth:F0}/{maxHealth:F0}, Armor={armor:F1}, DMGx={damageMultiplier:F2}");
     }
 
     /// <summary>
@@ -389,8 +386,7 @@ public class PlayerShip : MonoBehaviour
     private void UpdateStatsFromHardcodedFormulas()
     {
         // This "level offset" = how many increments we are above level 1
-        // (Tournament mode normalizes every ship to a fixed reference level)
-        int Loffset = TournamentMode.GetEffectiveLevel(shipLevel) - 1;
+        int Loffset = shipLevel - 1;
         if (Loffset < 0) Loffset = 0;
 
         // Apply formulas based on archetype (with BALANCE FIXES!)

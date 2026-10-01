@@ -31,7 +31,6 @@ public class GameContentGenerator : EditorWindow
     private const string MISSILES_PATH = ROOT + "Missiles/";
     private const string MOVETYPES_PATH = ROOT + "MoveTypes/";
     private const string SHIPS_PATH = ROOT + "Ships/";
-    private const string BATTLEPASS_PATH = ROOT + "BattlePass/";
 
     // Existing hand-made assets we reuse
     private const string STANDARD_MOVE_PATH = "Assets/Ship System/Standard Move.asset";
@@ -113,7 +112,6 @@ public class GameContentGenerator : EditorWindow
         EnsureFolder(MISSILES_PATH);
         EnsureFolder(MOVETYPES_PATH);
         EnsureFolder(SHIPS_PATH);
-        EnsureFolder(BATTLEPASS_PATH);
     }
 
     private void Finish(string what)

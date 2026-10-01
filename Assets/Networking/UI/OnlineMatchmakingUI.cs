@@ -237,8 +237,8 @@ namespace GravityWars.Networking.UI
             if (matchmakingPanel != null)
                 matchmakingPanel.SetActive(false);
 
-            // Show main menu (implement your main menu navigation here)
-            // Example: MainMenuManager.Instance.ShowMainMenu();
+            // The hub (MainMenuController) is the scene underneath this panel;
+            // hiding the panel is enough (GDD §15.3).
         }
 
         /// <summary>

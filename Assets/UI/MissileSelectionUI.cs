@@ -90,8 +90,9 @@ public class MissileSelectionUI : MonoBehaviour
         _activeLoadout = loadout;
         _selectedMissile = null;
 
-        if (selectionPanel != null) selectionPanel.SetActive(true);
-        else gameObject.SetActive(true);
+        // Hub popup (GDD §15.3): the host shows the dimmer behind the panel;
+        // without a host in the scene the panel just toggles itself.
+        HubPopupHost.ShowPanel(selectionPanel != null ? selectionPanel : gameObject);
 
         var body = FindShipBody(loadout.shipBodyName);
         if (shipInfoText != null)
@@ -108,8 +109,7 @@ public class MissileSelectionUI : MonoBehaviour
     public void Hide()
     {
         ClearEntries();
-        if (selectionPanel != null) selectionPanel.SetActive(false);
-        else gameObject.SetActive(false);
+        HubPopupHost.HidePanel(selectionPanel != null ? selectionPanel : gameObject);
     }
 
     #endregion

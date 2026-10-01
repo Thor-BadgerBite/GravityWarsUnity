@@ -4,7 +4,7 @@ Companion to `docs/GRAVITY_WARS_GDD.md` (GDD). Everything below was found by rea
 
 **Severity:** *critical* = blocks a playable build or corrupts player data · *high* = wrong behaviour the player will hit, or a design rule not enforced · *medium* = bug, duplicate or risk to fix within the milestone that touches the system · *low* = cleanup, perf or hygiene.
 
-**Counts:** 0 critical · 26 high · 53 medium · 57 low · 1 design decision (137 entries). Closed in 0.2: G1/A4, G2, G3, U1, U3, U11, N5.
+**Counts (recounted 0.3):** 0 critical · 26 high · 49 medium · 57 low · 1 design decision (133 entries). Closed in 0.2: G1/A4, G2, G3, U1, U3, U11, N5. Closed in 0.3: H6, M3, U8, SH7, B4 (G23, H1, A-rank reduced); added U12.
 
 Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and note the id in the GDD Changelog; add new findings with the same format.
 
@@ -14,15 +14,14 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 
 | ID | Sev | File / class / method | Problem | Suggested fix |
 |---|---|---|---|---|
-| U2 | high | `Assets/Scenes/MainMenu.unity` (the hub) | Hub scene contains only `ShipViewer3D` and `ShipsGarageController`; `MainMenuController`, `MainMenuUI`, `ShipsGarageUI`, `ShipInventoryCard` prefab are absent → `ShipsGarageController.ValidateReferences` errors, nothing displays. M1 adds only `MainMenuController` for PLAY NOW (its missing `MainMenuUI`/`ShipViewer3D` references warn, not error). | Editor task per archived `Main Menu Hub Build Guide.md` (M3). |
+| U2 | high | `Assets/Scenes/MainMenu.unity` (the hub) | Hub scene has `ShipViewer3D`, `ShipsGarageController` (on the inactive `ShipsGaragePanel`) and, since 0.3, `MainMenuController` with PLAY NOW wired (its empty `MainMenuUI`/`ShipViewer3D` references warn, not error). Still absent: `MainMenuUI`, `ShipsGarageUI`, the `ShipInventoryCard` prefab (→ `ShipsGarageController.ValidateReferences` errors, no cards) and `HubPopupHost` (→ garage opens without the dimmer). The committed scene carries no OnClick on `ShipsGarageButton` or the garage `CancelButton`. | M1 editor steps (GDD §15.3): place `HubPopupHost`, wire SHIPS GARAGE → `OpenGarage`, Cancel → `CloseGarage`; the rest per archived `Main Menu Hub Build Guide.md` (M3). |
 | U4 | high | `UI/MainMenu/ShipViewer3D.LoadShipPrefab` (174-197) | Looks for `Resources/Ships/{id}` etc.; no ship prefabs exist under `Resources` → viewer never shows a ship. | Load `ShipBodySO.visualPrefab` via `ProgressionManager.allShipBodies`. |
 | U5 | high | `UI/ShipsGarage/ShipsGarageController.EquipSelectedShip` (343) vs `UI/MissileSelectionUI.ShowForEquippedLoadout` (78), `MatchLoadoutBridge`, `GameManager.ResolveEquippedLoadout` | `currentEquippedShipId` is written with a `ShipBodySO.name` by the garage and read as a loadout/preset id elsewhere. | One id space (OQ5: loadout id); garage creates/equips a loadout. |
 | U7 | medium | `ShipsGarageController.GrantStarterShips` (134-152) | "For testing" grant of one body per archetype on first open. | Delete; starter content comes from `ProgressionManager` only. |
-| U8 | low | `Assets/MainMenu.cs` (`MainMenuManager`) | **Dead** since OQ1: the placeholder `MainMenu.unity` test menu it drove was deleted (commit 959fd108); no scene or prefab references the script (guid `319920d1…`). Its one scene literal already goes through `SceneNames`. | Delete the file + meta in refactor step 4. |
 | U6 | medium | `UI/NextUnlockWidget.cs:35`, `UI/MainMenu/MainMenuUI.cs:180`, `UI/ShipsGarage/ShipsGarageUI.cs:270,303` | Duplicated/hard-coded progression numbers (`1000 + level*500`, `baseMissileDamage = 1000`, `"0/275"`). | Read from the single XP tables / equipped missile. |
 | U9 | low | `MainMenuUI.SetPanelActive` (409), `ShipsGarageUI.DisplayShips`/`ClearInventory` | `transform.Find(string)`; card destroy/instantiate on every filter. | Serialized references; pooled cards. |
 | U10 | low | `Quests/UI/QuestUI.Update` (183), `Networking/UI/LobbyUI.Update` | Per-frame polling of services / `Time.frameCount % 120`. | Event-driven refresh. |
-| H6 | medium | `Assets/missilePrefab.prefab` → `Obsolete/MissileOLD.cs` | Last reference keeping `Assets/Obsolete` alive (`SampleScene.unity` and its `Obsolete/GameSetup` use are gone with OQ1). | Delete `missilePrefab.prefab`, delete `Assets/Obsolete` (refactor step 4). |
+| U12 | low | `Assets/Gravity2.prefab`, `Assets/Sparrow 1.prefab`, `Assets/StarSparrow2 (1).prefab`, `Assets/+3d Objects+/StarryBackround.prefab` | Root-level prefabs that no scene, prefab or asset references (GUID search, 0.3). Since refactor step 4 `StarryBackround.prefab` carries a missing script (`ScrollingBackground`, component was disabled) and `StarSparrow2 (1).prefab` a missing `PlayerShip.missilePrefab` (the deleted `missilePrefab.prefab`). Harmless at runtime (never instantiated), noisy in the Inspector. | Delete the four prefabs (+ metas) in the editor or in a later cleanup commit. |
 
 ## 2. Gameplay and physics
 
@@ -42,8 +41,8 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 | G19 | low | `MatchStatsTracker.RecordDamageTaken` | Every damage event counts as a hit → accuracy > 100 % with multi/cluster. | Count hits per missile. |
 | G20 | low | `PlayerShip.CanUseMissile`, `GetAllowedMissileTypes` | Dead hard-coded missile-restriction duplicate. | Delete; body flags only. |
 | G21 | low | `PlayerShip.FindWarpPosition`/`ShipOverlapsWithPlanet` | Duplicates `GameManager.ClearanceFromPlanets`. | Call the helper. |
-| G22 | low | `Assets/Gravity1.prefab` (`shipXP = 189050`), `PlayerShip.shipXP` default 6250 | Every hotseat ship spawns at ship level 20; gating never seen in playtests. | Prefab XP 0; bridge sets XP for prebuilt ships too (S2). |
-| G23 | low | `Assets/ScoreKeeper.cs` (no scene/prefab reference), `Assets/ScrollingBackround.cs` (`ScrollingBackground`; only `+3d Objects+/StarryBackround.prefab` references it and no canonical scene uses that prefab), `TournamentMode` (`Enabled` never set), `MutatorSystem.Override`, `PerkManager.HandleShotFired` | Dead or unreachable code; the first two only served the scenes deleted with OQ1. | Delete `ScoreKeeper`, `ScrollingBackround` (+ metas) in refactor step 4; wire the rest through config or delete. |
+| G22 | low | `Assets/Gravity1.prefab` (`shipXP = 189050`), `PlayerShip.shipXP` default 6250 | Every hotseat ship spawns at ship level 20; gating never seen in playtests. **Deferred to refactor step 7 with S2 (decision 2026-10-01):** prefab XP 0 alone would put every hotseat/bot ship at level 1 without perks or passive. | Prefab XP 0 in the same step as the bridge setting XP for prebuilt ships (S2). |
+| G23 | low | `MutatorSystem.Override`, `PerkManager.HandleShotFired` | Dead or unreachable code (`ScoreKeeper`, `ScrollingBackround`, `TournamentMode` were deleted in 0.3). | Wire through config or delete (see P8). |
 | G24 | low | `GameManager.CountdownTimer`/`TurnTimer` | Fixed decrements after `WaitForSeconds` drift; string allocations per tick. | Elapsed `Time.time`; update text only when the integer changes. |
 | G25 | low | `Missile3D.SetupAudio`, `AudioManager.Setup3DAudioSource` | `spatialBlend = 0` "temporarily" → 3D audio disabled. | OQ19. |
 | G26 | design | `PlayerShip.OnCollisionEnter` | Any planet contact (including after knockback) destroys the ship. | OQ13. |
@@ -67,7 +66,6 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 | SH4 | medium | `Editor/GameContentGenerator.cs` levels 46–98 (8 passives, 7 bodies, 9 perks) vs `ProgressionManager.CheckAccountLevelUp` cap 50 | Unreachable content. | OQ3; re-schedule in the generator. |
 | SH5 | medium | `ShipPresetSO.passives[]` + `ApplyToShip` (stacks every passive) vs builder rule "exactly one" | Prebuilt data model allows multiple passives; UI/validator do not. | Single `passive` field. |
 | SH6 | medium | `ShipBodySO.visualPrefab` | Never read; every ship uses the prefab mesh; the hub viewer cannot show bodies (U4). | Instantiate `visualPrefab` under the ship root in `ShipPresetSO.ApplyToShip` and in `ShipViewer3D`. |
-| SH7 | low | `Ship System/ArchetypeRestrictionChecker.cs` | Dead duplicate of `ShipPresetSO.Validate`. | Delete. |
 | SH8 | low | `Online/ProgressionSystem.cs` enum `ShipClass` | Duplicate of `ShipArchetype`. | Delete; tables use `ShipArchetype`. |
 | SH9 | low | `MoveTypeSO.ApplyToShip` (warp block commented out) | Warp parameters on the SO are not applied; `PlayerShip` keeps its own copies. | Apply or remove the SO fields. |
 | SH10 | low | `ShipLevelingFormulaSO.OnValidate` warnings | Stale against the deliberate rebalance. | Update thresholds or remove. |
@@ -81,8 +79,7 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 | M1 | medium | `Online/MissileRetrofitSystem.cs` (second enum `MissileType`, 19-entry table with 9 non-existent ids, `tactical_emp` level 13 vs asset 0) | Third restriction/unlock rule set contradicting the assets. | Delete; derive from `MissilePresetSO.requiredAccountLevel` and body flags. |
 | M5 | medium | `+Active Perks+/MissileBarragePerk.FireMissileBarrage` | Spawns missiles without `ApplyMissilePreset` (prefab mass 10, maxVel 10). | Route through `PlayerShip`'s spawn helper (P1). |
 | M2 | low | `MissilePresetSO.ApplyToMissile` | `selfDestructPushStrength`, `launchSound`, `flyingSound`, `explosionSound`, `trailColor` never used. | Apply or remove. |
-| M3 | low | `Assets/missilePrefab.prefab` | Uses obsolete `Missile` class. | Delete (H6). |
-| M4 | low | `Assets/Missile.prefab` vs `Assets/Missile3D.prefab` | Two prefabs with `Missile3D`; prefab and `Standard.asset.visualModelPrefab` disagree. | Keep one. |
+| M4 | low | `Assets/Missile.prefab` vs `Assets/Missile3D.prefab` | Two prefabs with `Missile3D`: `Gravity1.prefab` spawns `Missile.prefab`, while `Ship System/Standard.asset.visualModelPrefab` (the live default preset) points at `Missile3D.prefab` and `MissilePresetSO.ApplyVisualModel` reads it, so refactor step 4 kept both. | Editor: set `Standard.asset` → Visual Model Prefab to `Missile.prefab` (or none), then delete `Missile3D.prefab` + meta. |
 
 ## 5. Perks
 
@@ -121,7 +118,7 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 | S1 | high | `PlayerShip.RecalcLevelFromXP`/`XPNeededForNext` vs `ShipProgressionEntry.AddXP`/`GetXPRequiredForLevel` | Same `200 + 75·L²` read as per-level cost vs cumulative → different levels in match and garage. | `ShipXPTable` (OQ4) used by both. |
 | S2 | high | `GameManager.ResolveEquippedLoadout`, `MatchLoadoutBridge.ApplyPreset`, `ProgressionManager.AwardMatchXP` | Prebuilt ships never gain XP and always fight at the prefab's level 20. | Progression entry for every ship (preset id or loadout id); bridge sets `shipXP`. |
 | S3 | medium | `CustomShipLoadout.GetProgressionKey` | Editing perks/passive orphans the XP entry. | OQ4 (key by `loadoutID`). |
-| S4 | medium | `PlayerShip.shipXP` default 6250; `Gravity1.prefab` 189050 | Test values in code/prefab. | 0; bridge sets XP. |
+| S4 | medium | `PlayerShip.shipXP` default 6250; `Gravity1.prefab` 189050 | Test values in code/prefab. Deferred to refactor step 7 with S2/G22 (decision 2026-10-01). | 0; bridge sets XP. |
 | S5 | low | `ShipProgressionEntry.matchesPlayed/…/totalKills` | Never incremented; `ProgressionUI` shows them. | Update in `AwardMatchXP`. |
 | S6 | low | `PlayerAccountData.UnlockMasterySkin` | Skin ids without assets. | Cosmetics milestone (OQ15). |
 
@@ -142,12 +139,11 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 | B1 | high | `Online/BattlePassSystem` (`seasonEndTimestamp` unused) | No season clock; seasons change only by editing `currentSeason`. | `SeasonConfigSO` with start/end; check in `LoadFromProfile` (OQ9). |
 | B2 | medium | `BattlePassSystem.FREE_TRACK_REWARDS/PREMIUM_TRACK_REWARDS` | Hard-coded dictionaries; skin ids without content. | `BattlePassSeasonSO`. |
 | B3 | medium | `PlayerAccountData.UnlockById` + `ExtendedProgressionData.GetActiveTier` | Perk tier resolved from a fictional table (any T2 reward would file as T1). | Resolve via `ProgressionManager.allPerks[].tier`. |
-| B4 | medium | `Progression System/BattlePassData.cs`, `Resources/GeneratedContent/BattlePass/Season1_BattlePass.asset` | Orphaned second implementation. | Delete asset + classes; keep `RewardType`. |
 | B5 | medium | `RankedSeasonSystem.SOFT_RESET_ANCHOR` 1200 vs `ELORatingSystem.STARTING_ELO` 800 | Rollover raises low ratings. | OQ10. |
 | B6 | medium | `Online/MatchHistoryManager` (402-443) | Blocking waits; only ELO writer; compiled out. | Rewrite async in M8. |
 | B7 | low | `BattlePassSystem.maxLevel/xpPerLevel` `[SerializeField]` on a runtime-created object | Not editable. | Config SO. |
 | B8 | low | `BattlePassUI.UpdateHeader` | Tier shown as level+1. | Align wording. |
-| A-rank | medium | `PlayerAccountData.UpdateRankFromELO`, `ELORatingSystem.GetRankFromELO`, `RankedSeasonSystem.RankFromELO`, `Online/RankConfiguration.cs` | Rank table in three places plus an unreferenced fourth. | One table in `ELORatingSystem`; delete `RankConfiguration`. |
+| A-rank | medium | `PlayerAccountData.UpdateRankFromELO`, `ELORatingSystem.GetRankFromELO`, `RankedSeasonSystem.RankFromELO` | Rank table in three places (the unreferenced fourth, `Online/RankConfiguration.cs`, was deleted in 0.3). | One table in `ELORatingSystem`. |
 
 ## 10. Quests and achievements
 
@@ -210,7 +206,7 @@ Rule for maintaining this file (see `CLAUDE.md`): remove an entry when fixed and
 
 | ID | Sev | File / class / method | Problem | Suggested fix |
 |---|---|---|---|---|
-| H1 | low | `Assets/MainMenu.cs` (`MainMenuManager`, dead – U8), `Assets/ScrollingBackround.cs` (`ScrollingBackground`, dead – G23), `Networking/NetworkManager.cs` (`GravityWarsNetworkManager`) | File name ≠ class name. Unity refuses to add such a `MonoBehaviour` from the Inspector and shows a warning on the script asset. `SplasScreenManager.cs` was renamed to `SplashScreenManager.cs` in 0.2 (meta/GUID kept, so `SplashScreen.unity` still binds; verify in editor). | The two dead files go with step 4; rename `NetworkManager.cs` when touched (M7). |
+| H1 | low | `Networking/NetworkManager.cs` (`GravityWarsNetworkManager`) | File name ≠ class name. Unity refuses to add such a `MonoBehaviour` from the Inspector and shows a warning on the script asset. (`MainMenu.cs` and `ScrollingBackround.cs` were deleted in 0.3; `SplasScreenManager.cs` was renamed to `SplashScreenManager.cs` in 0.2 with meta/GUID kept, so `SplashScreen.unity` still binds; verify in editor.) | Rename `NetworkManager.cs` when touched (M7). |
 | H2 | low | two `MissileType` enums, two `PassiveType` enums, `ShipClass`/`ShipArchetype`, `LeaderboardShipFilter` | Parallel enums for one concept. | One enum each (M1, G12, SH8, L4). |
 | H3 | low | namespaces: most code global, `GravityWars.Networking/Multiplayer/CloudSave/DebugUI/Online` for the rest | Inconsistent; name collisions (`NetworkManager`, `MissileType`). | Adopt `GravityWars.<System>` for new code; migrate when touched. |
 | H4 | low | no `.asmdef`, no tests, no CI | Full recompiles; no regression net. | Optional: assembly per system after M2; edit-mode tests for XP tables and validators. |
@@ -226,12 +222,12 @@ Order follows the GDD milestones; each step is small enough to review in one sit
 | # | Step | Closes | Milestone |
 |---|---|---|---|
 | 1 | ✅ 0.2 – `SceneNames` static class; every `LoadScene("…")` and serialized scene-name field replaced; OQ1 decided; scenes renamed/deleted and Build Settings set (Thomas, 959fd108) | G2, U1, U3, N5 | M1 |
-| 2 | ✅ (part) 0.2 – `GameManager.AwardMatchProgression` awards the local player only; `DontDestroyOnLoad` removed from `GameManager`. **Open:** set `Gravity1.prefab` `shipXP` to 0 and `PlayerShip.shipXP` default to 0 – deferred because prebuilt presets never set ship XP (S2), so prefab XP 0 would put every hotseat/bot ship at level 1 with no perks or passive until step 7; do it together with S2 or accept level-1 playtests | G1/A4, G3, U11 done; G22, S4 open | M1 |
-| 3 | Editor session (Thomas): wire hub PLAY NOW → `MainMenuController.PlayNow`; place `MatchResultsUI`, `SettingsUI`, `MissileSelectionUI`, `KillshotReplayUI` panels in the match/hub scenes per their header comments; verify the loop | U-panels | M1 |
-| 4 | Delete `Assets/Obsolete`, `missilePrefab.prefab`, `Missile3D.prefab` (keep `Missile.prefab`), dead scripts `MainMenu.cs`, `ScoreKeeper`, `ScrollingBackround`, `TournamentMode`, `ArchetypeRestrictionChecker`, `RankConfiguration`, `BattlePassData` + orphan asset (scenes already gone) | H6, M3, M4, G23, U8, SH7, B4, A-rank (part) | M1 |
+| 2 | ✅ 0.2 – `GameManager.AwardMatchProgression` awards the local player only; `DontDestroyOnLoad` removed from `GameManager`. Prefab/default `shipXP` → 0 (G22, S4) **moved to step 7** by decision (Thomas, 2026-10-01): prebuilt presets never set ship XP (S2), so prefab XP 0 alone would put every hotseat/bot ship at level 1 with no perks or passive | G1/A4, G3, U11 | M1 |
+| 3 | Editor session (Thomas): ✅ hub PLAY NOW → `MainMenuController.PlayNow` (2026-10-01, tested); **open:** place `HubPopupHost` on `PanelsContainer` and wire SHIPS GARAGE → `ShipsGarageController.OpenGarage`, Cancel → `CloseGarage`; place `MatchResultsUI`, `KillshotReplayUI` (match scene) and `SettingsUI`, `MissileSelectionUI` (hub, as popups) per their header comments and the 0.3 session notes; verify the loop hub → match → results → hub | U2 (part), U-panels | M1 |
+| 4 | ✅ 0.3 – deleted `Assets/Obsolete`, `missilePrefab.prefab`, `MainMenu.cs`, `ScoreKeeper`, `ScrollingBackround`, `TournamentMode` (+ `PlayerShip` call sites), `ArchetypeRestrictionChecker`, `RankConfiguration`, `BattlePassData` + `Season1_BattlePass.asset` (`RewardType` → `Online/RewardType.cs`). **Kept** `Missile3D.prefab`: live through `Standard.asset.visualModelPrefab` (M4, editor step). Dangling references left in two dead prefabs (U12) | H6, M3, G23 (part), U8, SH7, B4, A-rank (part), H1 (part) | M1 |
 | 5 | `AccountXPTable` (OQ3): one formula, XP handling, `xpForNextLevel` maintained; `GameManager.SumLevelUpXP`, `ProgressionUI`, `NextUnlockWidget` read it; fix starter-content order | A1, A2, G10, U6 | M2 |
 | 6 | `ProgressionManager.UnlockContentForLevel` over bodies/passives/perks/moves/missiles by `requiredAccountLevel`; delete `ExtendedProgressionData`, `ProgressionSystem.SHIP_UNLOCKS`, `MissileRetrofitSystem`, `ShipClass`; `UnlockById` resolves perk tier from the SO; `NextUnlockWidget` walks SOs | A3, A8, M1, SH8, B3, P9 | M2 |
-| 7 | `ShipXPTable` (OQ4); every ship gets a progression entry; bridge sets XP and leveling formula; delete hard-coded formulas | S1, S2, S3, S5, G9 | M2 |
+| 7 | `ShipXPTable` (OQ4); every ship gets a progression entry; bridge sets XP and leveling formula; delete hard-coded formulas; prefab and default `shipXP` → 0 in the same step (deferred from step 2) | S1, S2, S3, S4, S5, G9, G22 | M2 |
 | 8 | Equipped id = loadout id everywhere; garage creates/equips loadouts; remove `GrantStarterShips` | U5, U7 | M2 |
 | 9 | Timestamps to `long`, `saveVersion` migration, delete the cloud "merge" | A9, A6, A12 | M2 |
 | 10 | Delete `CloudSave/SaveData`, `SaveManager`, `ServiceIntegrationHelper`, `EconomyValidator`, `RateLimiter`, `SuspiciousActivityDetector`; `DebugSystemsUI` → `ProgressionManager`; one UGS bootstrap | SV1, SV4, SV8, SV2 | M2 |
