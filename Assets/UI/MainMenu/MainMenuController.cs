@@ -27,17 +27,9 @@ public class MainMenuController : MonoBehaviour
     [SerializeField] private ShipViewer3D shipViewer;
     [SerializeField] private MainMenuUI menuUI;
 
-    [Header("Scene Names")]
-    [SerializeField] private string rankedMatchmakingScene = "RankedMatchmaking";
-    [SerializeField] private string casualMatchmakingScene = "CasualMatchmaking";
-    [SerializeField] private string localHotseatScene = "LocalHotseat";
-    [SerializeField] private string trainingScene = "Training";
-    [SerializeField] private string shipsScene = "ShipsGarage";
-    [SerializeField] private string achievementsScene = "Achievements";
-    [SerializeField] private string settingsScene = "Settings";
-    [SerializeField] private string profileScene = "Profile";
-    [SerializeField] private string leaderboardScene = "Leaderboard";
-    [SerializeField] private string questsScene = "Quests";
+    [Header("Hub Panels (in-scene, GDD §15.3)")]
+    [Tooltip("Optional until M3: the garage panel opened by the Ships button")]
+    [SerializeField] private ShipsGarageController shipsGarage;
 
     [Header("Audio")]
     [SerializeField] private AudioSource musicSource;
@@ -94,14 +86,16 @@ public class MainMenuController : MonoBehaviour
     /// </summary>
     private void ValidateReferences()
     {
+        // Both are wired in M3 (GDD Implementation Plan); until then the
+        // controller only has to get the player from the hub into a match.
         if (shipViewer == null)
         {
-            Debug.LogError("[MainMenuController] ShipViewer3D not assigned! Please assign in inspector.");
+            Debug.LogWarning("[MainMenuController] ShipViewer3D not assigned - no 3D ship in the hub (M3).");
         }
 
         if (menuUI == null)
         {
-            Debug.LogError("[MainMenuController] MainMenuUI not assigned! Please assign in inspector.");
+            Debug.LogWarning("[MainMenuController] MainMenuUI not assigned - only PlayNow() is reachable (M3).");
         }
     }
 
@@ -269,6 +263,11 @@ public class MainMenuController : MonoBehaviour
 
     #region Event Handlers - Game Modes
 
+    // GDD §15.3: the hub loads exactly one other scene, the match. Which
+    // opponent the match has (hotseat or bot) is decided inside the match
+    // scene's setup panel for now (GameManager.player2IsBot); online modes
+    // arrive with M7.
+
     private void HandleRankedClicked()
     {
         Debug.Log("[MainMenuController] Ranked mode selected");
@@ -280,73 +279,82 @@ public class MainMenuController : MonoBehaviour
             return;
         }
 
-        LoadScene(rankedMatchmakingScene);
+        ShowLockedMessage("Ranked play arrives with online play (GDD M7).");
     }
 
     private void HandleCasualClicked()
     {
         Debug.Log("[MainMenuController] Casual mode selected");
-        LoadScene(casualMatchmakingScene);
+        ShowLockedMessage("Online casual play arrives with GDD M7.");
     }
 
     private void HandleLocalHotseatClicked()
     {
         Debug.Log("[MainMenuController] Local hotseat selected");
-        LoadScene(localHotseatScene);
+        LoadMatch();
     }
 
     private void HandleTrainingClicked()
     {
         Debug.Log("[MainMenuController] Training mode selected");
-        LoadScene(trainingScene);
+        LoadMatch();
     }
 
     #endregion
 
     #region Event Handlers - Navigation
 
+    // Hub screens are panels inside this scene (GDD §15.3, OQ1). Panels that
+    // do not exist yet are wired in M3; until then the buttons say so.
+
     private void HandleShipsClicked()
     {
         Debug.Log("[MainMenuController] Ships garage selected");
-        LoadScene(shipsScene);
+
+        if (shipsGarage != null)
+        {
+            shipsGarage.OpenGarage();
+            return;
+        }
+
+        ShowLockedMessage("Ships garage panel not wired yet (GDD M3).");
     }
 
     private void HandleAchievementsClicked()
     {
         Debug.Log("[MainMenuController] Achievements selected");
-        LoadScene(achievementsScene);
+        ShowLockedMessage("Achievements panel not wired yet (GDD M3).");
     }
 
     private void HandleSettingsClicked()
     {
         Debug.Log("[MainMenuController] Settings selected");
 
-        // Prefer an in-scene settings panel; fall back to a dedicated scene
         if (SettingsUI.Instance != null)
         {
             SettingsUI.Instance.Show();
             return;
         }
 
-        LoadScene(settingsScene);
+        ShowLockedMessage("Settings panel not placed yet (GDD M1 editor step).");
     }
 
     private void HandleProfileClicked()
     {
         Debug.Log("[MainMenuController] Profile selected");
-        LoadScene(profileScene);
+        ShowLockedMessage("Profile panel not wired yet (GDD M3).");
     }
 
     private void HandleLeaderboardClicked()
     {
         Debug.Log("[MainMenuController] Leaderboard selected");
-        LoadScene(leaderboardScene);
+        ShowLockedMessage("Leaderboard panel not wired yet (GDD M3).");
     }
 
     private void HandleQuestsClicked()
     {
         Debug.Log("[MainMenuController] Quests selected");
-        LoadScene(questsScene);
+        ShowLockedMessage("Quests panel not wired yet (GDD M3).");
     }
 
     private void HandleNotificationsClicked()
@@ -360,29 +368,33 @@ public class MainMenuController : MonoBehaviour
     #region Scene Management
 
     /// <summary>
-    /// Load a scene with fade transition.
+    /// PLAY NOW: leaves the hub for the match scene. Bound to the hub's
+    /// PlayNowButton OnClick in the editor (GDD M1). The match scene's own
+    /// setup panel takes it from there.
     /// </summary>
-    private void LoadScene(string sceneName)
+    public void PlayNow()
     {
-        if (string.IsNullOrEmpty(sceneName))
-        {
-            Debug.LogWarning($"[MainMenuController] Scene name not set!");
-            return;
-        }
+        Debug.Log("[MainMenuController] Play Now");
+        LoadMatch();
+    }
 
-        Debug.Log($"[MainMenuController] Loading scene: {sceneName}");
+    /// <summary>
+    /// Loads the match scene, fading the hub UI out first when there is one.
+    /// </summary>
+    private void LoadMatch()
+    {
+        Debug.Log($"[MainMenuController] Loading scene: {SceneNames.Match}");
 
-        // Fade out UI
         if (menuUI != null)
         {
             menuUI.FadeOut(() =>
             {
-                SceneManager.LoadScene(sceneName);
+                SceneManager.LoadScene(SceneNames.Match);
             });
         }
         else
         {
-            SceneManager.LoadScene(sceneName);
+            SceneManager.LoadScene(SceneNames.Match);
         }
     }
 

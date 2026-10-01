@@ -69,10 +69,6 @@ public class MatchResultsUI : MonoBehaviour
     /// <summary>Raised when the player wants to jump straight into another online match.</summary>
     public event System.Action OnRequeueRequested;
 
-    [Header("Navigation")]
-    [Tooltip("Scene to load when returning to the main menu")]
-    [SerializeField] private string mainMenuSceneName = "MainMenu";
-
     private void Awake()
     {
         Instance = this;
@@ -225,23 +221,16 @@ public class MatchResultsUI : MonoBehaviour
         if (target != null) target.text = value;
     }
 
+    // Navigation per GDD §15.3: the match scene reloads for a rematch, the hub
+    // is the only other destination. Scene names only through SceneNames.
     private void OnPlayAgainClicked()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(SceneNames.Match);
     }
 
     private void OnReturnToMenuClicked()
     {
-        if (!string.IsNullOrEmpty(mainMenuSceneName) &&
-            Application.CanStreamedLevelBeLoaded(mainMenuSceneName))
-        {
-            SceneManager.LoadScene(mainMenuSceneName);
-        }
-        else
-        {
-            Debug.LogWarning($"[MatchResultsUI] Main menu scene '{mainMenuSceneName}' not in build settings - reloading current scene");
-            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
-        }
+        SceneManager.LoadScene(SceneNames.MainMenu);
     }
 }
 

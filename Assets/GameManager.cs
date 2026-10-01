@@ -265,22 +265,19 @@ public class GameManager : MonoBehaviour
     // ---------------------------------------------------------
     void Awake()
     {
-        if (Instance == null)
+        // Scene-bound singleton (GDD Implementation Plan, "Lazy singletons"):
+        // GameManager owns scene references (HUD texts, sliders, setupScreen),
+        // so it must die with the match scene and be recreated by the next
+        // load. Persisting it (audit G3) left a survivor pointing at destroyed
+        // objects after every reload; a rematch is simply a fresh scene load.
+        if (Instance != null && Instance != this)
         {
-            Instance = this;
-            // DontDestroyOnLoad only works on a root GameObject - if this
-            // one is nested under something else in the scene hierarchy
-            // (confirmed live: "DontDestroyOnLoad only works for root
-            // GameObjects..." warning), un-parent it first so it actually
-            // survives scene loads (needed for requeue/rematch flows).
-            if (transform.parent != null)
-                transform.SetParent(null);
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
+            Debug.LogWarning("[GameManager] Duplicate GameManager in scene - destroying the extra one");
             Destroy(gameObject);
+            return;
         }
+
+        Instance = this;
     }
 
     void Start()
@@ -299,6 +296,8 @@ public class GameManager : MonoBehaviour
     void OnDestroy()
     {
         Missile3D.OnMissileDestroyed -= OnMissileDestroyed;
+        if (Instance == this)
+            Instance = null;
     }
     /// <summary>
     /// Called by PlayerShip to say “I’m about to launch N missiles at once”.
@@ -1366,11 +1365,12 @@ public class GameManager : MonoBehaviour
             yield break;
         }
 
-        // Fallback: no results screen - restart match after delay (legacy behavior)
+        // Fallback: no results screen placed yet - close the loop back to the
+        // hub after a delay (GDD §15.3: menu → match → results → menu).
         yield return new WaitForSeconds(gameOverDuration);
         ResetScores();
         currentRound = 1;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene(SceneNames.MainMenu);
     }
 
     /// <summary>
@@ -1427,35 +1427,26 @@ public class GameManager : MonoBehaviour
         bool closeMatch = loser.score >= winningScore - 1 && loser.score > 0;
         summary.closeMatch = closeMatch;
 
-        // Award XP to winner
-        Debug.Log($"[GameManager] Awarding XP to winner: {winner.playerName}");
-        var winnerResult = ProgressionManager.Instance.AwardMatchXP(
-            won: true,
-            roundsWon: winner.score,
-            damageDealt: winnerStats.damageDealt,
-            usedLoadout: player1Won ? equippedLoadout : null,
-            closeMatch: false,
-            trickshots: winnerStats.trickshots
+        // GDD §3.10 / §8.1: exactly one account is awarded - the local player's,
+        // who is always Player 1. Player 2 is a hotseat guest or the bot and owns
+        // no account, so awarding "the loser" too (audit G1) doubled XP, credits
+        // and battle-pass XP and reset the win streak right after it was raised.
+        var localStats = player1Won ? winnerStats : loserStats;
+        Debug.Log($"[GameManager] Awarding match progression to local player {player1Ship.playerName} (won: {player1Won})");
+        var localResult = ProgressionManager.Instance.AwardMatchXP(
+            won: player1Won,
+            roundsWon: player1Ship.score,
+            damageDealt: localStats.damageDealt,
+            usedLoadout: equippedLoadout,
+            closeMatch: !player1Won && closeMatch,
+            trickshots: localStats.trickshots
         );
 
-        // Award XP to loser (reduced, but still something)
-        Debug.Log($"[GameManager] Awarding participation XP to: {loser.playerName}");
-        var loserResult = ProgressionManager.Instance.AwardMatchXP(
-            won: false,
-            roundsWon: loser.score,
-            damageDealt: loserStats.damageDealt,
-            usedLoadout: player1Won ? null : equippedLoadout,
-            closeMatch: closeMatch,
-            trickshots: loserStats.trickshots
-        );
-
-        // Player 1 is the local player - their award drives the celebration UI
-        var localResult = player1Won ? winnerResult : loserResult;
-        summary.firstWinOfTheDay = winnerResult.firstWinOfTheDay || loserResult.firstWinOfTheDay;
+        summary.firstWinOfTheDay = localResult.firstWinOfTheDay;
         summary.winStreak = localResult.winStreak;
         summary.streakBonusCredits = localResult.streakBonusCredits;
-        summary.trickshotBonusXP = winnerResult.trickshotBonusXP + loserResult.trickshotBonusXP;
-        summary.closeMatchBonusXP = loserResult.closeMatchBonusXP;
+        summary.trickshotBonusXP = localResult.trickshotBonusXP;
+        summary.closeMatchBonusXP = localResult.closeMatchBonusXP;
 
         // Fill reward info for the results screen
         summary.xpGained = (playerData.currentXP - xpBefore) +

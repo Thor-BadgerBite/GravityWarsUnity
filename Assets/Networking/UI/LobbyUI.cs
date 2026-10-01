@@ -348,7 +348,7 @@ namespace GravityWars.Networking.UI
             Hide();
 
             // Load game scene
-            UnityEngine.SceneManagement.SceneManager.LoadScene("HotSeat");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(SceneNames.Match);
             // Note: The scene will have OnlineGameAdapter enabled for online mode
         }
 

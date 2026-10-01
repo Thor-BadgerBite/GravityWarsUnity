@@ -1,9 +1,9 @@
 # Gravity Wars – Game Design Document
 
-**Version:** 0.1
+**Version:** 0.2
 **Genre:** Turn-based tactical space artillery (2D play on a 3D-rendered field) with a free-to-play, cosmetics-only live-service meta-game (Brawl-Stars-style hub, custom ships, ranked seasons, battle pass)
 **Engine:** Unity 2022.3.34f1 (C# 9), built-in render pipeline, PhysX 3D physics on a Z-locked plane; Netcode for GameObjects 1.15 and Unity Gaming Services packages installed but inactive
-**Status:** Assessment 0.1 (2026-09-30). A hotseat or bot match is playable in the editor from `Assets/Scenes/HotSeat 1.unity` and awards XP, credits and battle-pass progress to a local account. No player build can reach a match: the maintained match scene is not in Build Settings and both menus load other scenes. The meta-game (hub, garage, ship builder, quests, achievements, leaderboards, battle pass, ranked, cloud save, online play) exists as code but is not wired into any scene, is partly stubbed, and contains competing implementations (three account-XP formulas, two ship-XP readings, two save models, two network stacks). Current milestone: **M1 – Playable build baseline** (see Implementation Plan).
+**Status:** M1 in progress (2026-09-30). The build is the three canonical scenes `SplashScreen` → `MainMenu` (hub) → `Match` (OQ1 decided, §15.1); every scene load goes through `SceneNames`; a match awards XP, credits and battle-pass progress to the one local account exactly once (G1 fixed) and `GameManager` is scene-bound again (G3 fixed). Still open in M1: wiring the hub's PLAY NOW button to `MainMenuController.PlayNow` (editor), placing the results/settings/missile panels (editor), prefab ship XP (G22/S4), deleting `Assets/Obsolete` and the dead menu scripts. The meta-game (hub, garage, ship builder, quests, achievements, leaderboards, battle pass, ranked, cloud save, online play) exists as code but is not wired into any scene, is partly stubbed, and contains competing implementations (three account-XP formulas, two ship-XP readings, two save models, two network stacks). Current milestone: **M1 – Playable build baseline** (see Implementation Plan).
 
 This document is the single source of truth. When code and this document disagree, update one of them deliberately - never let them drift.
 
@@ -90,7 +90,7 @@ Camera follows the missile, zooms to frame both ships, proximity zoom and 0.5× 
 `BotController` (attached by `GameManager` when `player2IsBot`) simulates ~225 candidate shots with the game's own flight model, picks the closest approach and adds Gaussian aiming error scaled by `1 − difficulty`. It never moves, never uses perks, never changes missiles. Scene default difficulty 1.0. Details: `docs/_work/bot-ai.md`.
 
 ### 3.10 Match results and stats [PARTIAL]
-`MatchStatsTracker` records damage, shots, hits, rounds; `KillshotRecorder` records the killing trajectory and detects gravity-assist trickshots; `GameManager.AwardMatchProgression` builds a `MatchResultsSummary` (XP, credits, ELO change 0 offline, level-up, BP tiers, first-win, streak, close-match, trickshot, rivalry) for `MatchResultsUI`. No results panel exists in any scene, and both players' awards go to the one local account [G1].
+`MatchStatsTracker` records damage, shots, hits, rounds; `KillshotRecorder` records the killing trajectory and detects gravity-assist trickshots; `GameManager.AwardMatchProgression` builds a `MatchResultsSummary` (XP, credits, ELO change 0 offline, level-up, BP tiers, first-win, streak, close-match, trickshot, rivalry) for `MatchResultsUI`. **Rule:** exactly one account is awarded per match, the local player's (always Player 1); Player 2 is a hotseat guest or the bot and owns no account (0.2, closes G1). No results panel exists in any scene yet; without one `GameManager.GameOver` returns to the hub after `gameOverDuration`.
 
 ### 3.11 Controls (as coded; `README.md` documents a different scheme, see audit)
 | Action | Key |
@@ -176,7 +176,7 @@ Two facades (`CustomShipBuilder` id-based, `ShipBuilderUI` SO-based) delegate to
 | Flow | Amount | Code | Status |
 |---|---|---|---|
 | New account | 1000 credits + 50 gems (local) / 1000 + 0 (online) | `ProgressionManager.GrantStarterContent`, `AccountSystem.CreateNewPlayerProfile` | [CONFLICT] |
-| Win streak | 50 / 100 / 200 credits at 3 / 5 / 10 | `ProgressionManager.AwardMatchXP` | [IMPLEMENTED] (streak reset by G1) |
+| Win streak | 50 / 100 / 200 credits at 3 / 5 / 10 | `ProgressionManager.AwardMatchXP` | [IMPLEMENTED] |
 | Battle pass free track | 500…5000 credits at 11 levels, 50 gems at 23 | `BattlePassSystem.FREE_TRACK_REWARDS` | [IMPLEMENTED] |
 | Battle pass premium | 1000 credits at 1; 460 gems over the track | `BattlePassSystem.PREMIUM_TRACK_REWARDS` | [IMPLEMENTED] |
 | Season peak-rank | 20…500 gems | `RankedSeasonSystem.GrantPeakRankRewards` | [IMPLEMENTED, never triggered] |
@@ -239,15 +239,23 @@ Rules stated by Thomas for this assessment and found in `IMPLEMENTATION_STATUS.m
 
 ## 15. UI screens and navigation
 
-### 15.1 Scenes (`Assets/Scenes`) [CONFLICT - needs decision, OQ1]
-Build Settings contain `SplashScreen`, `MainMenu` (placeholder menu), `SampleScene` (legacy, uses `Obsolete/GameSetup`). The maintained match scene `HotSeat 1.unity` and the hub `MainMenuScene.unity` are **not** in the build; `MainMenu.cs`, `LobbyUI` load the stale `HotSeat.unity`; `MatchResultsUI`/`OnlineGameAdapter` return to `"MainMenu"`; `MainMenuController` targets ten scenes that do not exist.
+### 15.1 Scenes (`Assets/Scenes`) [IMPLEMENTED] (OQ1 decided 2026-09-30, option b)
+The build is exactly three scenes, in this Build Settings order (`ProjectSettings/EditorBuildSettings.asset`):
+
+| Scene | File | Role |
+|---|---|---|
+| `SplashScreen` | `SplashScreen.unity` | Boot: intro, any key → hub (`SplashScreenManager`). |
+| `MainMenu` | `MainMenu.unity` (the former hub `MainMenuScene.unity`, same GUID) | The hub. Garage, settings, missile selection, results-return, quests, achievements, profile, leaderboard are **panels inside this scene**, never scenes of their own. |
+| `Match` | `Match.unity` (the former `HotSeat 1.unity`) | The one match scene: hotseat and bot now, online in M7. Its setup panel (`HotSeatSetup`) decides the opponent (`GameManager.player2IsBot`, scene value: bot). |
+
+Deleted with the decision: `HotSeat.unity` (stale copy), the placeholder `MainMenu.unity` test menu, `SampleScene.unity`. Scene names exist in code only as the constants of `SceneNames` (`Assets/UI/SceneNames.cs`); `LoadScene("literal")` and serialized scene-name fields are forbidden (CLAUDE.md). Scene transitions: Splash → `SceneNames.MainMenu`; hub → `SceneNames.Match` (`MainMenuController.PlayNow`, hotseat and training buttons); match → `SceneNames.Match` (Play Again) or `SceneNames.MainMenu` (Return, and the no-results fallback in `GameManager.GameOver`); online stack (compiled out) uses the same constants. Scripts that only served the deleted scenes (`MainMenuManager` in `MainMenu.cs`, `ScoreKeeper`, `ScrollingBackground`) are dead and listed in the audit (G23, U8) for deletion in refactor step 4.
 
 ### 15.2 Screens
 | Screen | Class | Status |
 |---|---|---|
-| Splash | `SplashScreenManager` | [IMPLEMENTED] |
-| Placeholder main menu | `MainMenuManager` (`MainMenu.cs`) | [PARTIAL] only Hotseat works |
-| Hub (3D ship, player info, mode buttons) | `MainMenuController`, `MainMenuUI`, `ShipViewer3D` | [PARTIAL] scene exists, controller/UI not placed, viewer finds no prefab (U2–U4) |
+| Splash | `SplashScreenManager` (`SplashScreenManager.cs`, renamed in 0.2) | [IMPLEMENTED] |
+| Placeholder main menu | `MainMenuManager` (`MainMenu.cs`) | dead: its scene was deleted (OQ1); script removed in step 4 (U8) |
+| Hub (3D ship, player info, mode buttons) | `MainMenuController`, `MainMenuUI`, `ShipViewer3D` | [PARTIAL] scene exists, controller/UI not placed, viewer finds no prefab (U2–U4). `MainMenuController.PlayNow()` is the M1 hub → match entry; ranked/casual say "M7", panel buttons say "M3" until wired |
 | Ships garage | `ShipsGarageController/UI`, `ShipInventoryCard` | [PARTIAL] controller placed, UI not; equips body ids (U5) |
 | Ship builder | `ShipBuilderUI` | [DESIGNED - NOT BUILT] |
 | Missile selection | `MissileSelectionUI` | [PARTIAL] code complete, no panel |
@@ -262,8 +270,8 @@ Build Settings contain `SplashScreen`, `MainMenu` (placeholder menu), `SampleSce
 | Debug panel | `DebugSystemsUI` | [PARTIAL] targets the dead save model |
 | Inventory, profile, friends, clan, shop, gem store, offers, training, news | – | [DESIGNED - NOT BUILT] (archived `Screen Catalog.md`, 18 screens) |
 
-### 15.3 Navigation model
-Two models coexist: scene-per-screen (`MainMenuController` scene-name fields) and in-scene panels (`ShipsGarageController.OpenGarage`, `SettingsUI.Show`, `MissileSelectionUI.ShowForLoadout`, `MatchResultsUI.Show`). Decision in OQ1; recommendation: three scenes (Splash, Hub, Match) and panels inside the hub.
+### 15.3 Navigation model [IMPLEMENTED in code, panels pending in editor]
+Decided with OQ1: **three scenes, panels inside the hub.** The hub loads exactly one other scene, the match; every other hub screen is an in-scene panel (`ShipsGarageController.OpenGarage`, `SettingsUI.Show`, `MissileSelectionUI.ShowForLoadout`; results via `MatchResultsUI.Show` inside the match scene). `MainMenuController` no longer carries scene-name fields; it holds optional references to the hub panels (garage today, the rest in M3). Loop for M1: hub PLAY NOW → `Match` → setup panel → match → results panel (Play Again reloads `Match`, Return loads `MainMenu`) → hub.
 
 ---
 
@@ -293,10 +301,10 @@ Two models coexist: scene-per-screen (`MainMenuController` scene-name fields) an
 | Slingshot randomness | ×0.9–1.1 | `PlayerShip.PerformSlingshotMove` (hard-coded) |
 | Slow-motion | timeScale 0.5, 1 s, within 10 u | `CameraController` (scene) |
 | Action points | 3 (Controller 4), comeback +1, bonus cap 2 | `ShipBodySO.actionPointsPerTurn` (SO); `GameManager.ApplyTurnBonuses` (hard-coded) |
-| Match format (hotseat scene) | best-of 1, turn 15 s, 6 planet units | `HotSeat 1.unity` GameManager (scene) |
+| Match format (hotseat scene) | best-of 1, turn 15 s, prep 3 s, 6 planet units, bot on at difficulty 1.0 | `Match.unity` GameManager (scene) |
 | Match format (online design) | 3 rounds, turn 60 s / 15 s, prep 3 s, flight 30 s | `MatchmakingService`, `MatchManager`, `NetworkTurnCoordinator` (hard-coded, conflicting) |
-| Planet masses / units | Mercury 300, Venus 500, Earth 600, Mars 400, Jupiter 1000 (2), Saturn 900 (2), Uranus 700 (2), Neptune 600 (2), Moon 150 (0) | `HotSeat 1.unity` `GameManager.planetInfos` (scene) |
-| Ship spawn x-range | 29–31 (HotSeat 1) | `GameManager` (scene) |
+| Planet masses / units | Mercury 300, Venus 500, Earth 600, Mars 400, Jupiter 1000 (2), Saturn 900 (2), Uranus 700 (2), Neptune 600 (2), Moon 150 (0) | `Match.unity` `GameManager.planetInfos` (scene) |
+| Ship spawn x-range | 29–31 (Match) | `GameManager` (scene) |
 | Body base stats | §4.1 | `ShipBodySO` (SO, generated) |
 | Body validation clamps | Tank ≥ 11 000 HP, DD/Ctrl ≤ 10 000, Ctrl AP 4 | `ShipBodySO.OnValidate` (hard-coded) |
 | Leveling per level | HP +3 %, armor +2.5, dmg +0.018/0.025/0.036/0.045 | `ShipLevelingFormulaSO` assets (SO); fallback in `PlayerShip.UpdateStatsFromHardcodedFormulas` (hard-coded, different) |
@@ -328,13 +336,13 @@ Two models coexist: scene-per-screen (`MainMenuController` scene-name fields) an
 | Cloud save rate / queue / sync | 5 s / 50 / 300 s | `CloudSaveService` (const) |
 | Bot | difficulty 0.6 (scene 1.0), think 1.2–3 s, 600 steps, hit radius 1.6, error 10° / 12 % | `BotController` fields (prefab-less, hard-coded defaults) |
 | Online rewards (stack B) | win 500 cr / 10 gems / 1000 XP, loss 200 / 0 / 500, +50 cr & +100 XP per kill | `NetworkGameManager.AwardMatchRewards` (hard-coded) |
-| Scene names | "MainMenu", "HotSeat" | `SplasScreenManager`, `MainMenu.cs`, `LobbyUI`, `MatchResultsUI`, `MainMenuController` (hard-coded strings) |
+| Scene names | `SplashScreen`, `MainMenu`, `Match` | `SceneNames` (const, `Assets/UI/SceneNames.cs`) – the only place; used by `SplashScreenManager`, `MainMenuController`, `MatchResultsUI`, `GameManager`, `LobbyUI`, `OnlineGameAdapter` |
 
 ## Open Questions
 
 Each item: options, then the recommendation (R). Answers go into the section named and the Changelog.
 
-1. **Canonical scenes and menu (§15).** (a) Keep placeholder `MainMenu.unity` + `HotSeat 1.unity`; (b) hub `MainMenuScene.unity` + `HotSeat 1.unity` renamed `Match`, panels inside the hub, three scenes in the build; (c) scene per screen as `MainMenuController` assumes. **R: (b)** — the hub is the intended product, the garage/settings/missile code already works as panels, and one match scene avoids the stale-copy problem. Delete `HotSeat.unity`, `SampleScene.unity`, `MainMenu.unity` after moving references.
+1. **Canonical scenes and menu (§15).** ✅ **Decided (Thomas, 2026-09-30): option (b).** Three scenes in the build, in order: `SplashScreen`, `MainMenu` (the hub, `MainMenuScene.unity` renamed with its GUID kept), `Match` (`HotSeat 1.unity` renamed; hotseat/bot now, online later). `HotSeat.unity`, the old test `MainMenu.unity` and `SampleScene.unity` deleted (commit 959fd108). Hub screens are panels inside `MainMenu`; the hub loads only `Match`. Recorded in §15.1–15.3; code side (`SceneNames`, call sites) in 0.2. Options considered: (a) keep placeholder `MainMenu.unity` + `HotSeat 1.unity`; (c) scene per screen as `MainMenuController` assumed.
 2. **Action-point model (§3.3).** (a) Keep code: one action per turn, AP pool per round for moves/perks; (b) docs: fire free and repeatable, moves repeatable, perks once per turn. **R: (a)** for the vertical slice — it is what is built and balanced ("Star Sparrow mirror = 6 hits"); revisit after playtests. Rename `movesAllowedPerTurn` → `actionPointsPerRound`.
 3. **Account XP formula and cap (§8).** (a) Linear threshold `1000 + L·500` with XP subtracted per level, cap 50; (b) exponential `1000·1.15^(L−1)`, cap 100 to match the 100-level content schedule; (c) linear, cap 100. **R: (a)** and re-schedule the 15 assets above level 50 (or raise the cap to 100 with (c) if the long tail is wanted). Whatever is chosen becomes a single `AccountXPTable`.
 4. **Ship XP semantics (§9).** (a) `200 + 75·L²` cumulative (garage reading); (b) per-level cost (in-match reading). Also: (c) do prebuilt ships progress? (d) does editing perks/passive reset XP? **R:** (a) cumulative — the archived docs' milestone table ("Level 10→11: 7 700 XP") reads it that way and `ShipProgressionEntry` already does; (c) yes, every ship (preset or custom) gets an entry keyed by preset id or loadout id; (d) no reset on edit — key by `loadoutID`, keep the missile rule.
@@ -359,7 +367,7 @@ Each item: options, then the recommendation (R). Answers go into the section nam
 ### Architecture principles actually used
 - **Data-driven content** via ScriptableObjects (`ShipBodySO`, `ShipPresetSO`, `PassiveAbilitySO`, `MoveTypeSO`, `MissilePresetSO`, `ActivePerkSO` subclasses, `QuestDataSO`, `AchievementDataSO`), generated by editor windows (`GameContentGenerator`, `QuestTemplateGenerator`, `AchievementTemplateGenerator`) into `Resources/…` and loaded with `Resources.LoadAll` (`ProgressionManager.PopulateContentDatabases`). Rule going forward: generator is the source, assets are output.
 - **One match orchestrator** (`GameManager`, 1 930 lines) owning scene references, timers, HUD and progression hand-off; `PlayerShip` (2 041 lines) owning input, stats and damage; `Missile3D` owning flight. Rule: no new responsibilities in these three; extract (flight model, HUD, results) as milestones require.
-- **Lazy singletons** for persistent managers (`ProgressionManager`, `BattlePassSystem`, `QuestService`, `AchievementService`, `LeaderboardService`, `ServiceLocator`, `CloudSaveService`, `AnalyticsService`): `Instance` → `FindObjectOfType` → `AddComponent`, `DontDestroyOnLoad`. Scene-bound classes must not be persistent (G3).
+- **Lazy singletons** for persistent managers (`ProgressionManager`, `BattlePassSystem`, `QuestService`, `AchievementService`, `LeaderboardService`, `ServiceLocator`, `CloudSaveService`, `AnalyticsService`): `Instance` → `FindObjectOfType` → `AddComponent`, `DontDestroyOnLoad`. Scene-bound classes (`GameManager`, UI panels) are plain scene singletons: `Instance` set in `Awake`, cleared in `OnDestroy`, never `DontDestroyOnLoad` (G3 fixed in 0.2; a rematch is a fresh scene load).
 - **Static rule classes** for pure logic (`ELORatingSystem`, `RankedSeasonSystem`, `ProgressionSystem`, `MutatorSystem`, `MatchLoadoutBridge`). Fine while their numbers are constants; any tuned number moves to a config SO.
 - **Player state** = one `[Serializable]` graph (`PlayerAccountData`) saved with `JsonUtility` (`SaveSystem`). Timestamps as `long`.
 - **Networking behind a define** (`UNITY_NETCODE_GAMEOBJECTS`), off until M7.
@@ -370,6 +378,7 @@ Assets/
   GameManager.cs, PlayerShip.cs, Missile3D.cs, Planet.cs, CameraController.cs,
   HotSeatSetup.cs, MatchLoadoutBridge.cs, MatchStatsTracker.cs, KillshotRecorder.cs,
   AudioManager.cs, MutatorSystem.cs, BotController (Bot/)     ← match runtime (no new root files; new match code → Assets/Match/)
+  SplashScreenManager.cs                                      ← boot scene (root today; moves to UI/ when next touched)
   Ship System/            ← ship data types + hand-made reference assets
   +Active Perks+/         ← perk SO types, runtime perks, PerkManager
   MissilePresetSO.cs      ← missile data type
@@ -378,18 +387,18 @@ Assets/
   Quests/, Achievements/, Leaderboards/ ← data types, services (QuestService lives in Networking/Services), integrations, UI, Editor generators
   Networking/, Multiplayer/ ← UGS services and the two network stacks (define-guarded)
   CloudSave/              ← dead second save model (delete in M2)
-  UI/                     ← hub, garage, results, settings, missile selection, widgets
+  UI/                     ← hub, garage, results, settings, missile selection, widgets, SceneNames (navigation constants)
   Debug/                  ← debug panel
   Editor/                 ← content generator
   Resources/GeneratedContent, Resources/Quests, Resources/Achievements ← generator output only
-  Scenes/                 ← SplashScreen, MainMenuScene (hub), HotSeat 1 (match) + legacy scenes to delete
+  Scenes/                 ← SplashScreen, MainMenu (hub), Match — the whole build (OQ1)
   Obsolete/               ← delete
 docs/GRAVITY_WARS_GDD.md, docs/CODE_AUDIT.md, docs/_work/, docs/_archive/
 ```
 
 ### Key classes and data flow
-1. Boot: `SplashScreenManager` → hub scene. `ProgressionManager.Instance` self-creates on first use, loads `PlayerAccountData` (`SaveSystem`), fills content databases, calls `QuestService.InitializeQuests`.
-2. Hub: `MainMenuController` reads the profile (`AccountSystem` if signed in, else `ProgressionManager`), `ShipViewer3D` shows the equipped ship, `ShipsGarageController` equips, `MissileSelectionUI` sets the missile, `SettingsUI` writes `PlayerPreferences`.
+1. Boot: `SplashScreenManager` → `SceneNames.MainMenu`. `ProgressionManager.Instance` self-creates on first use, loads `PlayerAccountData` (`SaveSystem`), fills content databases, calls `QuestService.InitializeQuests`.
+2. Hub: `MainMenuController` reads the profile (`AccountSystem` if signed in, else `ProgressionManager`), `ShipViewer3D` shows the equipped ship, `ShipsGarageController` equips, `MissileSelectionUI` sets the missile, `SettingsUI` writes `PlayerPreferences`; `MainMenuController.PlayNow` → `SceneNames.Match`.
 3. Match: `HotSeatSetup` → `GameManager.StartGame` → `MatchLoadoutBridge` applies the preset/loadout to `PlayerShip` (`ShipPresetSO.ApplyToShip`, `PerkManager.ReloadSlotsFromPreset`) → turns (`PlayerShip` input, `Missile3D` flight, `Planet` gravity, `PerkManager` perks, `BotController` for AI) → `MatchStatsTracker`/`KillshotRecorder` collect.
 4. End: `GameManager.AwardMatchProgression` → `ProgressionManager.AwardMatchXP` → account/ship/BP XP (`BattlePassSystem.AddBattlePassXP` → rewards via `PlayerAccountData.UnlockById`), quests (`QuestService.UpdateQuestProgress` when the integration is attached) → `SaveSystem` (+ async `CloudSaveService`) → `MatchResultsUI.Show(MatchResultsSummary)`.
 
@@ -398,7 +407,7 @@ docs/GRAVITY_WARS_GDD.md, docs/CODE_AUDIT.md, docs/_work/, docs/_archive/
 | # | Milestone | Done when |
 |---|---|---|
 | M0 | Assessment 0.1 (this document, CODE_AUDIT, CLAUDE.md, archive) | Merged to `main`. ✅ |
-| **M1 (current)** | **Playable build baseline** – canonical scene set (OQ1), Build Settings, `SceneNames` class, menu → match → results → menu loop, fix G1 (double award), G2 (scene), G3 (`DontDestroyOnLoad`), G22/S4 (prefab XP), results/settings/missile panels placed in scenes (editor), `SampleScene`/`Obsolete` removed | A player build starts at the hub, plays a bot match from a hub button, shows the results panel with correct single-account XP, returns to the hub; console shows no exceptions across two consecutive matches. |
+| **M1 (current)** | **Playable build baseline** – ✅ canonical scene set (OQ1), ✅ Build Settings, ✅ `SceneNames` class, ✅ fix G1 (double award), ✅ G2 (scene), ✅ G3 (`DontDestroyOnLoad`), ✅ `SampleScene`/stale scenes removed; ☐ hub PLAY NOW wired to `MainMenuController.PlayNow` (editor), ☐ results/settings/missile panels placed in scenes (editor), ☐ G22/S4 (prefab XP), ☐ `Obsolete` + dead menu scripts deleted (refactor step 4) | A player build starts at the hub, plays a bot match from a hub button, shows the results panel with correct single-account XP, returns to the hub; console shows no exceptions across two consecutive matches. **Progress:** code loop hub → match → hub is in place; results panel and hub button are editor work. |
 | M2 | Progression foundation – OQ3/4/5 decided and implemented as single tables (`AccountXPTable`, `ShipXPTable`), `UnlockContentForLevel` from `requiredAccountLevel`, starter-content order (A1), timestamps (A9), delete duplicate tables/enums (`ExtendedProgressionData`, `ProgressionSystem.SHIP_UNLOCKS`, `MissileRetrofitSystem`, `ShipClass`, `RankConfiguration`, `SaveData`/`SaveManager`), prebuilt ships progress (S2) | A fresh account reaches level 5 in the editor, sees the promised unlocks, can build a valid custom ship, and a save/load round-trip preserves everything including dates. |
 | M3 | Hub vertical slice – hub wired per archived build guide (controller, UI, garage UI, cards), `ShipViewer3D` from `ShipBodySO.visualPrefab`, panel navigation, next-unlock widget, mastery badge, id-space fix (U5), starter grant removed from the garage (U7) | Every hub button does something; equip → play → results reflects the equipped loadout; no missing-reference errors. |
 | M4 | Combat correctness – one `MissileFlightModel` shared by `Missile3D`, preview and bot (BOT2/N3 groundwork), physics constants in a `PhysicsConfigSO`, perk rules (OQ7, P1–P4), warp (G4), knockback gate (G5), live-missile registry (G7, G8), match rules SO (OQ17) | All seven perk families behave per §6 in a checklist playtest; bot shots match the preview; no per-frame allocations in missile flight (profiler check by Thomas). |
@@ -413,3 +422,4 @@ docs/GRAVITY_WARS_GDD.md, docs/CODE_AUDIT.md, docs/_work/, docs/_archive/
 | Version | Changes |
 |---|---|
 | 0.1 | Initial assessment (2026-09-30): full static read of the project code, scenes and prefabs; this GDD written from code as source of truth with archived documents as evidence of intent; `docs/CODE_AUDIT.md` (defects G/M/P/A/S/E/B/Q/AC/L/N/SV/BOT/U with severities and fixes, refactor plan, docs triage); `CLAUDE.md` working rules; old documents moved to `docs/_archive/`; backing notes in `docs/_work/`. No code, scene, prefab or asset was changed. |
+| 0.2 | M1, refactor steps 1–2 (2026-09-30). **OQ1 decided** (option b): scenes `SplashScreen`, `MainMenu` (hub), `Match`; stale scenes deleted and Build Settings set by Thomas (commit 959fd108); §15.1–15.3 rewritten. New `SceneNames` constants class (`Assets/UI/SceneNames.cs`) replaces every scene literal (`SplashScreenManager`, `MainMenu.cs`, `LobbyUI`, `OnlineGameAdapter`, `MatchResultsUI`, `GameManager`) and the serialized scene-name fields of `MatchResultsUI` and `MainMenuController` (ten scene-per-screen fields removed; hub buttons now open in-scene panels or say M3/M7; new `MainMenuController.PlayNow()` for the hub button). `GameManager.AwardMatchProgression` awards the local player (Player 1) once instead of winner and loser. `GameManager` no longer `DontDestroyOnLoad` (scene singleton; `Instance` cleared in `OnDestroy`); `GameOver` without a results panel returns to the hub instead of reloading. `SplasScreenManager.cs` renamed `SplashScreenManager.cs` (GUID kept). **Audit closed:** G1/A4, G2, G3, U1, U3, U11, N5; H1 (splash part), H6 (scene part). **Audit added/updated:** U8 (`MainMenuManager` dead), G23 (`ScoreKeeper`, `ScrollingBackground` dead). Static verification only; editor checks listed in the session notes. |

@@ -101,10 +101,10 @@ private void SetupButtons()
     private void StartAIMode() { Debug.Log("AI Mode not yet implemented"); }
     private void StartPuzzleMode() { Debug.Log("Puzzle Mode not yet implemented"); }
     private void StartSandboxMode() { Debug.Log("Sandbox Mode not yet implemented"); }
-    private void StartHotseatMode() 
-    { 
-        Debug.Log("Attempting to load HotSeat scene");
-        SceneManager.LoadScene("HotSeat"); 
+    private void StartHotseatMode()
+    {
+        Debug.Log("Attempting to load Match scene");
+        SceneManager.LoadScene(SceneNames.Match);
     }
     private void StartPvPOnlineMode() { Debug.Log("PvP Online Mode not yet implemented"); }
     private void StartTourneyMode() { Debug.Log("Tourney Mode not yet implemented"); }
