@@ -44,7 +44,7 @@ public class ShipsGarageController : MonoBehaviour
     private void Start()
     {
         ValidateReferences();
-        Initialize();
+        Initialize();   // no-op when OpenGarage() already ran it (see Initialize)
     }
 
     private void OnDestroy()
@@ -73,10 +73,15 @@ public class ShipsGarageController : MonoBehaviour
     }
 
     /// <summary>
-    /// Initialize the Ships Garage.
+    /// Initialize the Ships Garage. Runs once: the panel starts inactive in
+    /// the hub (GDD §15.3), so OpenGarage() initializes it on first open and
+    /// Unity then calls Start() on that same activation - without the guard
+    /// the UI events were subscribed twice.
     /// </summary>
     private void Initialize()
     {
+        if (_isInitialized) return;
+
         Debug.Log("[ShipsGarageController] Initializing Ships Garage...");
 
         // Get player data from ProgressionManager
